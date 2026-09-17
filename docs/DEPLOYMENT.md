@@ -198,9 +198,30 @@ değişkeni olarak girilir):
 
 > **Kalıcı volume zorunlu.** `PORTAL_DATA_FILE` varsayılan olarak imaj içindeki
 > `/app/.data` yolunu gösterir; bu dizin geçicidir. Volume bağlanmazsa **her deploy'da
-> SQLite verisi sıfırlanır.** Volume'u `/app/.data` üzerine mount edin.
-> `PORTAL_BACKUP_DIRECTORY` aynı diski göstermemelidir — felaket kurtarma için
-> ayrı hedef gerekir.
+> SQLite verisi sıfırlanır.**
+
+**Volume nereye bağlanır**
+
+Önerilen: mount point `/data`, değişken `PORTAL_DATA_FILE=/data/portal.json`.
+
+| Mount point | Sonuç |
+|---|---|
+| `/data` (veya uygulama kodu içermeyen başka bir yol) | **Önerilen.** Uygulamayla hiç kesişmez. |
+| `/app/.data` | Çalışır, ama veri uygulama ağacının içinde kalır. |
+| `/app` | **Kullanılamaz.** Container hiç başlamaz. |
+
+`/app` imajın kök çalışma dizinidir: `server.mjs`, `node_modules` ve `prototype/`
+oradadır. Üzerine boş bir disk mount edilince bu dosyaların hepsi gizlenir ve süreç
+`Cannot find module '/app/server.mjs'` ile ölür. Yerelde doğrulandı.
+
+Yeni bir kalıcı disk `root` sahipliğiyle bağlanır, portal ise `node` kullanıcısıyla
+çalışır; bu yüzden imaj içindeki `chown` mount tarafından örtülür ve portal
+`unable to open database file` ile çökerdi. `portal/docker-entrypoint.sh` açılışta
+root olarak yalnız veri ve yedek dizinlerinin sahipliğini düzeltir, sonra sunucuyu
+`node` kullanıcısına düşürür. Uygulama süreci hâlâ root değildir.
+
+`PORTAL_BACKUP_DIRECTORY` veriyle aynı diski göstermemelidir — felaket kurtarma için
+ayrı hedef gerekir.
 
 Oturumlar sunucu belleğindedir; her deploy/restart'ta tüm kullanıcılar düşer.
 
@@ -216,7 +237,7 @@ Oturumlar sunucu belleğindedir; her deploy/restart'ta tüm kullanıcılar düş
 | `PORT` | Railway enjekte eder | Railway enjekte eder |
 | `PORTAL_PREVIEW_ENABLED` | `true` | `true` |
 | `PORTAL_PREVIEW_USER` / `_PASSWORD` | **ayrı** (parola ≥24 karakter) | **ayrı** |
-| `PORTAL_DATA_FILE` | volume üzerinde | **ayrı volume** |
+| `PORTAL_DATA_FILE` | `/data/portal.json` | `/data/portal.json` (**ayrı volume**) |
 | `PORTAL_BACKUP_DIRECTORY` | ayrı hedef | ayrı hedef |
 | `PORTAL_PUBLIC_ORIGIN` | portal domain'i | staging domain'i |
 | `PORTAL_QUOTE_ORIGIN` | `https://www.ascendlojistik.com` | staging site domain'i |
