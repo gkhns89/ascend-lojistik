@@ -125,9 +125,17 @@ git push origin main           # Railway otomatik deploy eder
    - `NODE_ENV=staging`
    - Ayrı API key'ler / secret'lar
    - Ayrı domain
-5. **Veritabanı kesinlikle ayrı olsun.** Duplicate sırasında DB servisi de kopyalanır;
-   `${{Postgres.DATABASE_URL}}` gibi referans değişkenler kendi ortamındaki DB'yi gösterir.
-   Düz string yapıştırılmış bağlantı dizeleri varsa elle düzelt.
+5. **Veri kesinlikle ayrı olsun.** Bu projede ayrı bir veritabanı servisi **yoktur** —
+   portal Node'un yerleşik `node:sqlite` modülünü kullanır ve verisi volume üzerindeki
+   tek bir dosyadır (`portal.sqlite`). Dolayısıyla "ayrı veritabanı", staging ortamına
+   **ayrı bir volume** vermek demektir. Duplicate sonrası staging servisinin kendi
+   volume'unu bağladığından ve production'ınkini paylaşmadığından emin ol.
+
+   > Railway'e PostgreSQL/MySQL servisi **ekleme**. Kodda `DATABASE_URL` veya herhangi
+   > bir veritabanı sürücüsü kullanılmıyor; eklenen servis boş durur ama faturalanır.
+   > Gerçek bir PostgreSQL geçişi `portal/README.md`'deki üretim yol haritasının 1.
+   > maddesidir ve ham SQLite SQL'i yazılmış tüm portal modüllerinin yeniden yazılmasını
+   > gerektirir — altyapı ayarı değil, kod işidir.
 
 ### 5.3. PR ortamları (opsiyonel)
 
