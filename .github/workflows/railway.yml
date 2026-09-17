@@ -1,0 +1,57 @@
+# Railway'e giden imajlari dogrular. Mevcut ci.yml siteyi varsayilan
+# (Cloudflare) preset'iyle derler; bu is akisi Railway'in gercekten calistiracagi
+# node-server imajini derleyip ayaga kaldirir.
+name: Railway images
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: railway-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  site-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Imaji derle
+        run: docker build -t ascend-site:ci .
+
+      - name: Container'i baslat
+        run: docker run -d --name site -p 7777:7777 -e PORT=7777 ascend-site:ci
+
+      - name: Route'lari dogrula
+        run: |
+          set -eu
+          curl -sf --retry 30 --retry-connrefused --retry-delay 1 \
+            -o /dev/null http://127.0.0.1:7777/
+          for path in / /hakkimizda /hizmetlerimiz /global-ag \
+                      /dijital-cozumler /iletisim /sitemap.xml /robots.txt; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:7777$path")
+            echo "$code  $path"
+            [ "$code" = "200" ] || exit 1
+          done
+
+      - name: Korunmasi gereken isaretleri dogrula
+        run: |
+          set -eu
+          curl -s --compressed http://127.0.0.1:7777/ > home.html
+          for marker in 'G-47EHL67FSH' 'https://www.ascendlojistik.com' 'Dijital Portal'; do
+            grep -aq "$marker" home.html || { echo "eksik: $marker"; exit 1; }
+          done
+
+      - name: Container loglari
+        if: always()
+        run: docker logs site || true
+
+      - name: Temizlik
+        if: always()
+        run: docker rm -f site || true

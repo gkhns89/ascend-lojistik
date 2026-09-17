@@ -156,7 +156,88 @@ Feature başına izole test isteniyorsa: kalıcı staging + PR ortamları birlik
 
 ---
 
-## 7. Hızlı referans
+## 7. Servis yapılandırması (bu depo)
+
+Tek depodan iki ayrı Railway servisi çıkar. İkisi de Dockerfile ile derlenir; Nixpacks
+tahminine bırakılmaz.
+
+### 7.1. Site servisi
+
+| Ayar | Değer |
+|---|---|
+| Root Directory | `/` |
+| Config File | `railway.json` |
+| Builder | Dockerfile (`Dockerfile`, depo kökü) |
+| Healthcheck | `/` |
+| Watch Paths | `/src/**`, `/public/**`, `/package.json`, `/bun.lock`, `/vite.config.ts`, `/Dockerfile`, `/portal/prototype/quote-volume.mjs` |
+
+Sitenin varsayılan Nitro preset'i `cloudflare-module`'dur ve Railway'de çalışmaz.
+Kök `Dockerfile` bunu `NITRO_PRESET=node-server` ile çevirir; `vite.config.ts`
+değiştirilmez, böylece upstream sync'inde conflict çıkmaz.
+
+> `src/routes/iletisim.tsx`, `portal/prototype/quote-volume.mjs` dosyasını klasör
+> sınırını aşarak import eder. Bu yüzden site imajının derleme bağlamı depo köküdür
+> ve o dosya watch path'lerine dahildir.
+
+Build-time değişken (opsiyoneldir, `railway.json` üzerinden değil servis
+değişkeni olarak girilir):
+
+- `VITE_PORTAL_QUOTE_URL` — boş bırakılırsa teklif formu mevcut `mailto:` akışında kalır.
+  Dolu olduğunda form doğrudan portala POST eder. Değer **derleme anında** gömülür;
+  değiştirince yeniden deploy gerekir.
+
+### 7.2. Portal servisi
+
+| Ayar | Değer |
+|---|---|
+| Root Directory | `/portal` |
+| Config File | `/portal/railway.json` |
+| Builder | Dockerfile (`portal/Dockerfile`) |
+| Healthcheck | `/healthz` |
+| Watch Paths | `/portal/**` |
+
+> **Kalıcı volume zorunlu.** `PORTAL_DATA_FILE` varsayılan olarak imaj içindeki
+> `/app/.data` yolunu gösterir; bu dizin geçicidir. Volume bağlanmazsa **her deploy'da
+> SQLite verisi sıfırlanır.** Volume'u `/app/.data` üzerine mount edin.
+> `PORTAL_BACKUP_DIRECTORY` aynı diski göstermemelidir — felaket kurtarma için
+> ayrı hedef gerekir.
+
+Oturumlar sunucu belleğindedir; her deploy/restart'ta tüm kullanıcılar düşer.
+
+> `portal/README.md` Railway kaynağı olarak `erdemergand/ascend-lojistik` yazar. O
+> doküman upstream'in kendi kurulumunu anlatır; bu fork'ta kaynak `gkhns89/ascend-lojistik`
+> olmalıdır. Çakışma çıkmaması için o dosya değiştirilmedi — bu bölüm geçerlidir.
+
+### 7.3. Ortam değişkeni matrisi
+
+| Değişken | Production | Staging |
+|---|---|---|
+| `NODE_ENV` | `production` | `staging` |
+| `PORT` | Railway enjekte eder | Railway enjekte eder |
+| `PORTAL_PREVIEW_ENABLED` | `true` | `true` |
+| `PORTAL_PREVIEW_USER` / `_PASSWORD` | **ayrı** (parola ≥24 karakter) | **ayrı** |
+| `PORTAL_DATA_FILE` | volume üzerinde | **ayrı volume** |
+| `PORTAL_BACKUP_DIRECTORY` | ayrı hedef | ayrı hedef |
+| `PORTAL_PUBLIC_ORIGIN` | portal domain'i | staging domain'i |
+| `PORTAL_QUOTE_ORIGIN` | `https://www.ascendlojistik.com` | staging site domain'i |
+| `PORTAL_PUBLIC_QUOTES` | `false` (kabul sonrası `true`) | `true` |
+| `PORTAL_MAIL_ENABLED` | `false` (kontrollü testte `true`) | `false` |
+| `SMTP_*` | gerçek değerler | **test hesabı veya boş** |
+| `VITE_PORTAL_QUOTE_URL` (site) | portal domain'i | staging portal domain'i |
+
+Parolalar ve SMTP bilgileri yalnız Railway değişkenlerinde tutulur; Git'e, Docker
+build argümanlarına veya sohbete girmez.
+
+### 7.4. CI kapısı
+
+İki iş akışı vardır: `ci.yml` (site typecheck/build + portal test + portal imajı) ve
+`railway.yml` (Railway'e giden site imajını derleyip route'ları ve GA4/canonical/CTA
+işaretlerini doğrular). Railway'de **Wait for CI** açılacaksa ikisinin de yeşil olması
+gerekir — kırmızı CI deploy'u tamamen bloklar.
+
+---
+
+## 8. Hızlı referans
 
 ```bash
 # upstream'i çek

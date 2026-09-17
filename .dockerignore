@@ -1,0 +1,38 @@
+# Kurumsal site imaji icin derleme baglamini daraltir.
+# portal/ servisi kendi kokunden derlenir ve portal/.dockerignore kullanir.
+
+.git
+.github
+.lovable
+docs
+node_modules
+.output
+.vinxi
+.nitro
+.tanstack
+.wrangler
+dist
+dist-ssr
+output
+
+# Sirlar ve yerel calisma verisi imaja hic girmez.
+.env
+.env.*
+!.env.example
+.dev.vars
+*.key
+*.log
+
+# Portal servisi bu imajin parcasi degil; tek istisna site build'inin
+# import ettigi hacim hesaplama modulu.
+portal/**
+!portal/prototype/quote-volume.mjs
+!portal/prototype/quote-volume.d.mts
+
+*.md
+!README.md
+.vscode
+.idea
+.DS_Store
+Dockerfile
+.dockerignore
