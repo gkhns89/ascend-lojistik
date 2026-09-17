@@ -28,11 +28,25 @@ jobs:
       - name: Container'i baslat
         run: docker run -d --name site -p 7777:7777 -e PORT=7777 ascend-site:ci
 
+      # Yayinlanan port, surec dinlemeye baslamadan once baglantiyi kabul edip
+      # resetler; bu yuzden --retry-connrefused yetmez, acik bekleme gerekir.
+      - name: Sunucunun hazir olmasini bekle
+        run: |
+          set -eu
+          for _ in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:7777/; then
+              echo "hazir"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "sunucu 60 saniyede hazir olmadi"
+          docker logs site || true
+          exit 1
+
       - name: Route'lari dogrula
         run: |
           set -eu
-          curl -sf --retry 30 --retry-connrefused --retry-delay 1 \
-            -o /dev/null http://127.0.0.1:7777/
           for path in / /hakkimizda /hizmetlerimiz /global-ag \
                       /dijital-cozumler /iletisim /sitemap.xml /robots.txt; do
             code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:7777$path")
