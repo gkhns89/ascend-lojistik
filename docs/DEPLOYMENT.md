@@ -1,6 +1,6 @@
 # Fork + Railway Deployment & Staging Rehberi
 
-Bu doküman, `gkhns89/ascend-logistics` fork'unun upstream (arkadaşın reposu) ile senkron
+Bu doküman, `gkhns89/ascend-lojistik` fork'unun upstream (arkadaşın reposu) ile senkron
 tutulmasını ve Railway üzerinde production + staging ortamlarının nasıl kurulacağını anlatır.
 
 ---
@@ -25,9 +25,9 @@ da değiştirilebilir.
 ## 2. Remote kurulumu
 
 ```bash
-git clone https://github.com/gkhns89/ascend-logistics.git
-cd ascend-logistics
-git remote add upstream https://github.com/<ARKADAS_KULLANICI_ADI>/ascend-logistics.git
+git clone https://github.com/gkhns89/ascend-lojistik.git
+cd ascend-lojistik
+git remote add upstream https://github.com/erdemergand/ascend-lojistik.git
 git remote -v
 ```
 
@@ -106,7 +106,7 @@ git push origin main           # Railway otomatik deploy eder
 ### 5.1. Production ortamı
 
 1. **New Project → Deploy from GitHub repo**
-2. **Configure GitHub App** → sadece `ascend-logistics` reposuna erişim ver
+2. **Configure GitHub App** → sadece `ascend-lojistik` reposuna erişim ver
 3. Deploy branch: `main`
 
 > Not: Railway'in GitHub App'i, senin hesabında erişim verdiğin repolara bağlanır.
