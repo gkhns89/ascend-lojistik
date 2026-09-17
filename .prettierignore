@@ -6,3 +6,13 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+
+# Portal kendi yogun yazim stilinde gelistirildi ve prettier'a hic sokulmadi.
+# Bicimlendirmek her portal dosyasina dokunur ve upstream ile catisma yuzeyini
+# buyutur; bu yuzden portal bicim kurallarinin disinda tutulur.
+#
+# Kapsam kaybi yok: eslint.config.js'teki kural bloklari **/*.{ts,tsx} ile
+# sinirli, yani portal'in .mjs dosyalarina zaten yalnizca prettier/prettier
+# uygulaniyordu. Sozdizimi hatalari hala raporlanir; portal'in asil dogrulamasi
+# `node --check` ve `node --test`tir.
+portal/
