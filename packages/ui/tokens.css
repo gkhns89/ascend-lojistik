@@ -1,0 +1,59 @@
+/*
+ * Ascend marka tokenları — TEK KAYNAK.
+ *
+ * Bu dosya kurumsal site ile portal arasında paylaşılan marka değerlerini
+ * tanımlar. Daha önce aynı oklch sayıları iki yerde ayrı isimlerle elle
+ * yazılıyordu (site: --primary/--background/--foreground, portal:
+ * --primary/--bg/--text) ve senkron tutmak elle yapılıyordu.
+ *
+ * Buradaki isimler nötrdür. Her uygulama kendi isimlerini bunlara bağlar:
+ *   site   → src/styles.css  (shadcn adları: --background, --primary, ...)
+ *   portal → portal/web/src/styles.css
+ *
+ * Renkleri burada değiştir; iki taraf da birlikte değişir.
+ * Bileşenlerin içine asla ham renk yazma.
+ */
+
+:root {
+  /* Marka moru #312783 */
+  --ascend-brand: oklch(0.35 0.16 292);
+  --ascend-brand-strong: oklch(0.48 0.16 292);
+  --ascend-on-brand: oklch(1 0 0);
+
+  /* Yüzeyler */
+  --ascend-surface: oklch(0.99 0.002 285);
+  --ascend-surface-card: oklch(1 0 0);
+  --ascend-surface-soft: oklch(0.94 0.01 285);
+
+  /* Metin */
+  --ascend-text: oklch(0.225 0.004 70);
+  --ascend-text-muted: oklch(0.53 0.008 250);
+
+  /* Çizgiler */
+  --ascend-border: oklch(0.85 0.008 250);
+
+  /* Tipografi */
+  --ascend-font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --ascend-font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --ascend-font-nav: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Koyu tema. Site `.dark` sınıfını, portal `[data-theme=dark]` niteliğini
+ * kullanır; ikisi de burada karşılanır ki tokenlar tek yerde kalsın.
+ */
+.dark,
+:root[data-theme="dark"] {
+  --ascend-brand: oklch(0.68 0.16 292);
+  --ascend-brand-strong: oklch(0.72 0.14 292);
+  --ascend-on-brand: oklch(0.16 0.025 220);
+
+  --ascend-surface: oklch(0.18 0.025 220);
+  --ascend-surface-card: oklch(0.235 0.026 220);
+  --ascend-surface-soft: oklch(0.3 0.035 220);
+
+  --ascend-text: oklch(0.985 0.003 250);
+  --ascend-text-muted: oklch(0.76 0.012 230);
+
+  --ascend-border: oklch(1 0 0 / 12%);
+}
