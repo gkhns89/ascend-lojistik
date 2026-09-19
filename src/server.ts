@@ -71,6 +71,11 @@ function legacyRedirect(request: Request): Response | undefined {
 
   const location = new URL(target, url);
   location.search = url.search;
+  // TLS Railway'in kenarinda sonlanir, bu yuzden istek uygulamaya http olarak
+  // gelir. Protokolu oldugu gibi kullanirsak 301 http'ye isaret eder ve
+  // ziyaretci https'e ikinci bir atlamayla doner.
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (forwardedProto) location.protocol = `${forwardedProto}:`;
   return Response.redirect(location, 301);
 }
 
