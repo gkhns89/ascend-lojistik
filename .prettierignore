@@ -15,4 +15,8 @@ routeTree.gen.ts
 # sinirli, yani portal'in .mjs dosyalarina zaten yalnizca prettier/prettier
 # uygulaniyordu. Sozdizimi hatalari hala raporlanir; portal'in asil dogrulamasi
 # `node --check` ve `node --test`tir.
-portal/
+portal/*.mjs
+portal/prototype/
+portal/test/
+portal/notifications/
+portal/assets/

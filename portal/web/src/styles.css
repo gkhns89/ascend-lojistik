@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Kurumsal site ile paylasilan marka tokenlari. Renkleri orada degistir. */
+@import "../../../packages/ui/tokens.css";
+
+/*
+ * Portal temayi `data-theme` niteligiyle tasir (site `.dark` sinifini kullanir).
+ * tokens.css her ikisini de karsilar; burada Tailwind'in dark: varyantini
+ * portalin yontemine bagliyoruz.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Prototiple ayni yerel fontlar; dev'de Vite proxy'si uzerinden gelir. */
+@font-face {
+  font-family: "Manrope";
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/manrope-0.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("/space-grotesk-0.ttf") format("truetype");
+}
+@font-face {
+  font-family: "DM Sans";
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/dm-sans-0.ttf") format("truetype");
+}
+
+@theme inline {
+  --color-surface: var(--ascend-surface);
+  --color-card: var(--ascend-surface-card);
+  --color-soft: var(--ascend-surface-soft);
+  --color-brand: var(--ascend-brand);
+  --color-brand-strong: var(--ascend-brand-strong);
+  --color-on-brand: var(--ascend-on-brand);
+  --color-ink: var(--ascend-text);
+  --color-ink-muted: var(--ascend-text-muted);
+  --color-line: var(--ascend-border);
+
+  --font-sans: var(--ascend-font-sans);
+  --font-display: var(--ascend-font-display);
+  --font-nav: var(--ascend-font-nav);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  /* Finans rakamlari hizali okunsun. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+}
