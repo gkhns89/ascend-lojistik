@@ -32,17 +32,48 @@ export const Route = createFileRoute("/iletisim")({
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "ContactPage",
-          name: tr.contact.meta.title,
-          url: siteUrl,
-          mainEntity: {
-            "@type": "Organization",
-            name: "ASCEND LOJİSTİK VE GEMİ ACENTE HİZ. DIŞ TİC. LTD. ŞTİ.",
-            telephone: "+90 212 963 05 53",
-            email: "info@ascendlojistik.com",
-            address:
-              "Ataköy 7-8-9-10.Kısım Mah. Çobançeşme E-5 Yanyol Cad. No:20/1 Ataköy Towers A Blok Kat:6 İç Kapı No:109, 34158 Bakırköy/İstanbul",
-          },
+          "@graph": [
+            {
+              "@type": "ContactPage",
+              name: tr.contact.meta.title,
+              url: siteUrl,
+              mainEntity: { "@id": "https://www.ascendlojistik.com/#organization" },
+            },
+            {
+              // LocalBusiness, yerel aramalarda Organization'a gore daha guclu
+              // sinyal verir. Yalniz dogrulanmis bilgiler yazilir; calisma
+              // saati, koordinat ve fiyat araligi teyit edilmedigi icin yok.
+              "@type": "LocalBusiness",
+              "@id": "https://www.ascendlojistik.com/#organization",
+              name: "ASCEND LOJİSTİK VE GEMİ ACENTE HİZ. DIŞ TİC. LTD. ŞTİ.",
+              alternateName: "Ascend Lojistik",
+              url: "https://www.ascendlojistik.com",
+              image: "https://www.ascendlojistik.com/og-image.jpg",
+              telephone: "+90 212 963 05 53",
+              email: "info@ascendlojistik.com",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress:
+                  "Ataköy 7-8-9-10.Kısım Mah. Çobançeşme E-5 Yanyol Cad. No:20/1 Ataköy Towers A Blok Kat:6 İç Kapı No:109",
+                postalCode: "34158",
+                addressLocality: "Bakırköy",
+                addressRegion: "İstanbul",
+                addressCountry: "TR",
+              },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Ana Sayfa",
+                  item: "https://www.ascendlojistik.com/",
+                },
+                { "@type": "ListItem", position: 2, name: "İletişim", item: siteUrl },
+              ],
+            },
+          ],
         }),
       },
     ],

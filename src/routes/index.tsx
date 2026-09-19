@@ -33,8 +33,12 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
+          // Diger sayfalardaki AboutPage ve ContactPage bu @id'ye referans
+          // verir; boylece arama motorlari tek bir kurum kaydi gorur.
+          "@id": "https://www.ascendlojistik.com/#organization",
           name: "ASCEND LOJİSTİK VE GEMİ ACENTE HİZ. DIŞ TİC. LTD. ŞTİ.",
           url: "https://www.ascendlojistik.com/",
+          logo: "https://www.ascendlojistik.com/og-image.jpg",
           telephone: "+90 212 963 05 53",
           email: "info@ascendlojistik.com",
           address: {

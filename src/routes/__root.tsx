@@ -90,7 +90,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Ascend Lojistik" },
       { property: "og:site_name", content: "Ascend Lojistik" },
       { property: "og:type", content: "website" },
+      { property: "og:locale", content: "tr_TR" },
+      // Paylasim gorseli tum sayfalarda ortaktir; adres mutlak olmalidir,
+      // aksi halde WhatsApp ve LinkedIn gorseli cozemez.
+      { property: "og:image", content: "https://www.ascendlojistik.com/og-image.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        property: "og:image:alt",
+        content: "Ascend Lojistik — global uluslararası taşımacılık çözümleri",
+      },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://www.ascendlojistik.com/og-image.jpg" },
       { name: "theme-color", content: "#183641" },
     ],
     links: [
