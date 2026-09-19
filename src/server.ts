@@ -44,9 +44,42 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+/**
+ * Bu site, ascendlojistik.com'da yayında olan WordPress kurulumunun yerini alır.
+ * Eski sitenin indekslenmiş adresleri burada karşılığı olan sayfaya kalıcı
+ * olarak yönlendirilir; aksi halde geçiş anında 404'e düşer ve o adreslerin
+ * arama motorundaki değeri kaybolur.
+ *
+ * Kaynak: eski kurulumun wp-sitemap-posts-page-1.xml / -post-1.xml çıktısı.
+ */
+const LEGACY_REDIRECTS = new Map<string, string>([
+  ["/karayolu-tasimaciligi", "/hizmetlerimiz"],
+  ["/denizyolu-tasimaciligi", "/hizmetlerimiz"],
+  ["/havayolu-tasimaciligi", "/hizmetlerimiz"],
+  ["/acentelik", "/hizmetlerimiz"],
+  // WordPress'in kurulumla gelen ornek icerikleri; karsiligi yok.
+  ["/sample-page", "/"],
+  ["/2022/09/19/hello-world", "/"],
+]);
+
+function legacyRedirect(request: Request): Response | undefined {
+  const url = new URL(request.url);
+  // Eski adresler sondaki bolu isaretiyle indekslendi; iki bicimi de karsila.
+  const path = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, "") : url.pathname;
+  const target = LEGACY_REDIRECTS.get(path.toLowerCase());
+  if (!target) return undefined;
+
+  const location = new URL(target, url);
+  location.search = url.search;
+  return Response.redirect(location, 301);
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const redirect = legacyRedirect(request);
+      if (redirect) return redirect;
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
