@@ -20,6 +20,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock bunfig.toml tsconfig.json vite.config.ts ./
 COPY src ./src
 COPY public ./public
+# src/styles.css paylasilan marka tokenlarini buradan import eder.
+COPY packages ./packages
 COPY portal/prototype/quote-volume.mjs portal/prototype/quote-volume.d.mts ./portal/prototype/
 
 # Bos birakilirsa teklif formu mevcut mailto akisinda kalir.
