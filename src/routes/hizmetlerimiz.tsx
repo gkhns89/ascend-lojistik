@@ -6,6 +6,7 @@ import { ServiceIcon } from "@/components/site/service-icon";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { tr } from "@/content/tr";
+import { servicePageByServiceId } from "@/content/service-pages-tr";
 import { trackLead } from "@/lib/analytics";
 
 const siteUrl = "https://www.ascendlojistik.com/hizmetlerimiz";
@@ -50,24 +51,37 @@ function ServicesPage() {
 
       <Section>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {s.items.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 card-elevated"
-            >
-              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/12">
-                <ServiceIcon name={item.icon} className="h-6 w-6 text-primary" />
-              </span>
-              <span className="min-w-0 flex-1 font-display text-base font-bold text-foreground">
-                {item.title}
-              </span>
-              <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-primary">
-                İncele
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </a>
-          ))}
+          {s.items.map((item) => {
+            const detail = servicePageByServiceId.get(item.id);
+            const className =
+              "group flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 card-elevated";
+            const inner = (
+              <>
+                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/12">
+                  <ServiceIcon name={item.icon} className="h-6 w-6 text-primary" />
+                </span>
+                <span className="min-w-0 flex-1 font-display text-base font-bold text-foreground">
+                  {item.title}
+                </span>
+                <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-primary">
+                  İncele
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </>
+            );
+
+            // Detay sayfasi olan hizmetler kendi adresine gider; olmayanlar
+            // sayfa icindeki bolume capa ile iner.
+            return detail ? (
+              <Link key={item.id} to={`/${detail.slug}`} className={className}>
+                {inner}
+              </Link>
+            ) : (
+              <a key={item.id} href={`#${item.id}`} className={className}>
+                {inner}
+              </a>
+            );
+          })}
         </div>
       </Section>
 
@@ -85,6 +99,15 @@ function ServicesPage() {
                   {item.title}
                 </h2>
                 <p className="mt-4 text-base leading-relaxed text-muted-foreground">{item.body}</p>
+                {servicePageByServiceId.has(item.id) ? (
+                  <Link
+                    to={`/${servicePageByServiceId.get(item.id)!.slug}`}
+                    className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary"
+                  >
+                    {item.title} hakkında detaylı bilgi
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                ) : null}
               </div>
               <ul className="grid content-start gap-4 border-border lg:border-l lg:pl-10">
                 {item.points.map((p) => (

@@ -10,20 +10,37 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DenizyoluTasimaciligiRouteImport } from './routes/denizyolu-tasimaciligi'
 import { Route as DijitalCozumlerRouteImport } from './routes/dijital-cozumler'
+import { Route as GemiAcenteligiRouteImport } from './routes/gemi-acenteligi'
 import { Route as GlobalAgRouteImport } from './routes/global-ag'
 import { Route as HakkimizdaRouteImport } from './routes/hakkimizda'
+import { Route as HavayoluTasimaciligiRouteImport } from './routes/havayolu-tasimaciligi'
 import { Route as HizmetlerimizRouteImport } from './routes/hizmetlerimiz'
 import { Route as IletisimRouteImport } from './routes/iletisim'
+import { Route as KarayoluTasimaciligiRouteImport } from './routes/karayolu-tasimaciligi'
+import { Route as MultimodalTasimacilikRouteImport } from './routes/multimodal-tasimacilik'
+import { Route as ParsiyelTasimacilikRouteImport } from './routes/parsiyel-tasimacilik'
+import { Route as ProjeTasimaciligiRouteImport } from './routes/proje-tasimaciligi'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DenizyoluTasimaciligiRoute = DenizyoluTasimaciligiRouteImport.update({
+  id: '/denizyolu-tasimaciligi',
+  path: '/denizyolu-tasimaciligi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DijitalCozumlerRoute = DijitalCozumlerRouteImport.update({
   id: '/dijital-cozumler',
   path: '/dijital-cozumler',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GemiAcenteligiRoute = GemiAcenteligiRouteImport.update({
+  id: '/gemi-acenteligi',
+  path: '/gemi-acenteligi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GlobalAgRoute = GlobalAgRouteImport.update({
@@ -36,6 +53,11 @@ const HakkimizdaRoute = HakkimizdaRouteImport.update({
   path: '/hakkimizda',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HavayoluTasimaciligiRoute = HavayoluTasimaciligiRouteImport.update({
+  id: '/havayolu-tasimaciligi',
+  path: '/havayolu-tasimaciligi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HizmetlerimizRoute = HizmetlerimizRouteImport.update({
   id: '/hizmetlerimiz',
   path: '/hizmetlerimiz',
@@ -46,66 +68,135 @@ const IletisimRoute = IletisimRouteImport.update({
   path: '/iletisim',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KarayoluTasimaciligiRoute = KarayoluTasimaciligiRouteImport.update({
+  id: '/karayolu-tasimaciligi',
+  path: '/karayolu-tasimaciligi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MultimodalTasimacilikRoute = MultimodalTasimacilikRouteImport.update({
+  id: '/multimodal-tasimacilik',
+  path: '/multimodal-tasimacilik',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParsiyelTasimacilikRoute = ParsiyelTasimacilikRouteImport.update({
+  id: '/parsiyel-tasimacilik',
+  path: '/parsiyel-tasimacilik',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjeTasimaciligiRoute = ProjeTasimaciligiRouteImport.update({
+  id: '/proje-tasimaciligi',
+  path: '/proje-tasimaciligi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/denizyolu-tasimaciligi': typeof DenizyoluTasimaciligiRoute
   '/dijital-cozumler': typeof DijitalCozumlerRoute
+  '/gemi-acenteligi': typeof GemiAcenteligiRoute
   '/global-ag': typeof GlobalAgRoute
   '/hakkimizda': typeof HakkimizdaRoute
+  '/havayolu-tasimaciligi': typeof HavayoluTasimaciligiRoute
   '/hizmetlerimiz': typeof HizmetlerimizRoute
   '/iletisim': typeof IletisimRoute
+  '/karayolu-tasimaciligi': typeof KarayoluTasimaciligiRoute
+  '/multimodal-tasimacilik': typeof MultimodalTasimacilikRoute
+  '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
+  '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/denizyolu-tasimaciligi': typeof DenizyoluTasimaciligiRoute
   '/dijital-cozumler': typeof DijitalCozumlerRoute
+  '/gemi-acenteligi': typeof GemiAcenteligiRoute
   '/global-ag': typeof GlobalAgRoute
   '/hakkimizda': typeof HakkimizdaRoute
+  '/havayolu-tasimaciligi': typeof HavayoluTasimaciligiRoute
   '/hizmetlerimiz': typeof HizmetlerimizRoute
   '/iletisim': typeof IletisimRoute
+  '/karayolu-tasimaciligi': typeof KarayoluTasimaciligiRoute
+  '/multimodal-tasimacilik': typeof MultimodalTasimacilikRoute
+  '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
+  '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/denizyolu-tasimaciligi': typeof DenizyoluTasimaciligiRoute
   '/dijital-cozumler': typeof DijitalCozumlerRoute
+  '/gemi-acenteligi': typeof GemiAcenteligiRoute
   '/global-ag': typeof GlobalAgRoute
   '/hakkimizda': typeof HakkimizdaRoute
+  '/havayolu-tasimaciligi': typeof HavayoluTasimaciligiRoute
   '/hizmetlerimiz': typeof HizmetlerimizRoute
   '/iletisim': typeof IletisimRoute
+  '/karayolu-tasimaciligi': typeof KarayoluTasimaciligiRoute
+  '/multimodal-tasimacilik': typeof MultimodalTasimacilikRoute
+  '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
+  '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/denizyolu-tasimaciligi'
     | '/dijital-cozumler'
+    | '/gemi-acenteligi'
     | '/global-ag'
     | '/hakkimizda'
+    | '/havayolu-tasimaciligi'
     | '/hizmetlerimiz'
     | '/iletisim'
+    | '/karayolu-tasimaciligi'
+    | '/multimodal-tasimacilik'
+    | '/parsiyel-tasimacilik'
+    | '/proje-tasimaciligi'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/denizyolu-tasimaciligi'
     | '/dijital-cozumler'
+    | '/gemi-acenteligi'
     | '/global-ag'
     | '/hakkimizda'
+    | '/havayolu-tasimaciligi'
     | '/hizmetlerimiz'
     | '/iletisim'
+    | '/karayolu-tasimaciligi'
+    | '/multimodal-tasimacilik'
+    | '/parsiyel-tasimacilik'
+    | '/proje-tasimaciligi'
   id:
     | '__root__'
     | '/'
+    | '/denizyolu-tasimaciligi'
     | '/dijital-cozumler'
+    | '/gemi-acenteligi'
     | '/global-ag'
     | '/hakkimizda'
+    | '/havayolu-tasimaciligi'
     | '/hizmetlerimiz'
     | '/iletisim'
+    | '/karayolu-tasimaciligi'
+    | '/multimodal-tasimacilik'
+    | '/parsiyel-tasimacilik'
+    | '/proje-tasimaciligi'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DenizyoluTasimaciligiRoute: typeof DenizyoluTasimaciligiRoute
   DijitalCozumlerRoute: typeof DijitalCozumlerRoute
+  GemiAcenteligiRoute: typeof GemiAcenteligiRoute
   GlobalAgRoute: typeof GlobalAgRoute
   HakkimizdaRoute: typeof HakkimizdaRoute
+  HavayoluTasimaciligiRoute: typeof HavayoluTasimaciligiRoute
   HizmetlerimizRoute: typeof HizmetlerimizRoute
   IletisimRoute: typeof IletisimRoute
+  KarayoluTasimaciligiRoute: typeof KarayoluTasimaciligiRoute
+  MultimodalTasimacilikRoute: typeof MultimodalTasimacilikRoute
+  ParsiyelTasimacilikRoute: typeof ParsiyelTasimacilikRoute
+  ProjeTasimaciligiRoute: typeof ProjeTasimaciligiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,11 +208,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/denizyolu-tasimaciligi': {
+      id: '/denizyolu-tasimaciligi'
+      path: '/denizyolu-tasimaciligi'
+      fullPath: '/denizyolu-tasimaciligi'
+      preLoaderRoute: typeof DenizyoluTasimaciligiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dijital-cozumler': {
       id: '/dijital-cozumler'
       path: '/dijital-cozumler'
       fullPath: '/dijital-cozumler'
       preLoaderRoute: typeof DijitalCozumlerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gemi-acenteligi': {
+      id: '/gemi-acenteligi'
+      path: '/gemi-acenteligi'
+      fullPath: '/gemi-acenteligi'
+      preLoaderRoute: typeof GemiAcenteligiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/global-ag': {
@@ -138,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HakkimizdaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/havayolu-tasimaciligi': {
+      id: '/havayolu-tasimaciligi'
+      path: '/havayolu-tasimaciligi'
+      fullPath: '/havayolu-tasimaciligi'
+      preLoaderRoute: typeof HavayoluTasimaciligiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hizmetlerimiz': {
       id: '/hizmetlerimiz'
       path: '/hizmetlerimiz'
@@ -152,16 +264,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IletisimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/karayolu-tasimaciligi': {
+      id: '/karayolu-tasimaciligi'
+      path: '/karayolu-tasimaciligi'
+      fullPath: '/karayolu-tasimaciligi'
+      preLoaderRoute: typeof KarayoluTasimaciligiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/multimodal-tasimacilik': {
+      id: '/multimodal-tasimacilik'
+      path: '/multimodal-tasimacilik'
+      fullPath: '/multimodal-tasimacilik'
+      preLoaderRoute: typeof MultimodalTasimacilikRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parsiyel-tasimacilik': {
+      id: '/parsiyel-tasimacilik'
+      path: '/parsiyel-tasimacilik'
+      fullPath: '/parsiyel-tasimacilik'
+      preLoaderRoute: typeof ParsiyelTasimacilikRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proje-tasimaciligi': {
+      id: '/proje-tasimaciligi'
+      path: '/proje-tasimaciligi'
+      fullPath: '/proje-tasimaciligi'
+      preLoaderRoute: typeof ProjeTasimaciligiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DenizyoluTasimaciligiRoute: DenizyoluTasimaciligiRoute,
   DijitalCozumlerRoute: DijitalCozumlerRoute,
+  GemiAcenteligiRoute: GemiAcenteligiRoute,
   GlobalAgRoute: GlobalAgRoute,
   HakkimizdaRoute: HakkimizdaRoute,
+  HavayoluTasimaciligiRoute: HavayoluTasimaciligiRoute,
   HizmetlerimizRoute: HizmetlerimizRoute,
   IletisimRoute: IletisimRoute,
+  KarayoluTasimaciligiRoute: KarayoluTasimaciligiRoute,
+  MultimodalTasimacilikRoute: MultimodalTasimacilikRoute,
+  ParsiyelTasimacilikRoute: ParsiyelTasimacilikRoute,
+  ProjeTasimaciligiRoute: ProjeTasimaciligiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -53,10 +53,10 @@ function isH3SwallowedErrorBody(body: string): boolean {
  * Kaynak: eski kurulumun wp-sitemap-posts-page-1.xml / -post-1.xml çıktısı.
  */
 const LEGACY_REDIRECTS = new Map<string, string>([
-  ["/karayolu-tasimaciligi", "/hizmetlerimiz"],
-  ["/denizyolu-tasimaciligi", "/hizmetlerimiz"],
-  ["/havayolu-tasimaciligi", "/hizmetlerimiz"],
-  ["/acentelik", "/hizmetlerimiz"],
+  // karayolu-, denizyolu- ve havayolu-tasimaciligi burada YOK: eski sitenin o
+  // adresleri artik gercek hizmet sayfasi olarak karsilaniyor, yonlendirilmiyor.
+  // Boylece indekslenmis adresler oldugu gibi calismaya devam eder.
+  ["/acentelik", "/gemi-acenteligi"],
   // WordPress'in kurulumla gelen ornek icerikleri; karsiligi yok.
   ["/sample-page", "/"],
   ["/2022/09/19/hello-world", "/"],
