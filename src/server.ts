@@ -79,10 +79,53 @@ function legacyRedirect(request: Request): Response | undefined {
   return Response.redirect(location, 301);
 }
 
+/**
+ * Ziyaretciyi yalniz kok adreste, tarayici dilini tercih ediyorsa Ingilizce
+ * surume yonlendirir.
+ *
+ * Sinirlar bilincli:
+ * - Yalniz "/" icin calisir; diger adresler acikca istenmis kabul edilir.
+ * - Kullanici dil secicisini kullandiysa (cerez) otomatik karar devre disi.
+ * - 302 kullanilir; kalici yonlendirme olarak onbelleklenmemeli.
+ * - Accept-Language gondermeyen tarayici disi istemciler (arama motoru
+ *   tarayicilari dahil) Turkce surumu gorur; x-default de onu gosterir.
+ */
+function preferredLocaleRedirect(request: Request): Response | undefined {
+  const url = new URL(request.url);
+  if (url.pathname !== "/") return undefined;
+
+  const cookies = request.headers.get("cookie") ?? "";
+  if (/(?:^|;\s*)ascend-lang=/.test(cookies)) return undefined;
+
+  const header = request.headers.get("accept-language");
+  if (!header) return undefined;
+
+  let en = 0;
+  let tr = 0;
+  for (const part of header.split(",")) {
+    const [tagRaw, ...params] = part.trim().split(";");
+    const tag = (tagRaw ?? "").toLowerCase();
+    const q = Number(params.find((p) => p.trim().startsWith("q="))?.split("=")[1] ?? "1");
+    const weight = Number.isFinite(q) ? q : 0;
+    if (tag === "tr" || tag.startsWith("tr-")) tr = Math.max(tr, weight);
+    else if (tag === "en" || tag.startsWith("en-")) en = Math.max(en, weight);
+  }
+  if (en <= tr) return undefined;
+
+  const location = new URL("/en", url);
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (forwardedProto) location.protocol = `${forwardedProto}:`;
+
+  return new Response(null, {
+    status: 302,
+    headers: { location: location.toString(), vary: "Accept-Language, Cookie" },
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      const redirect = legacyRedirect(request);
+      const redirect = legacyRedirect(request) ?? preferredLocaleRedirect(request);
       if (redirect) return redirect;
 
       const handler = await getServerEntry();

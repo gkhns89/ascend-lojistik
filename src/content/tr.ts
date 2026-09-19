@@ -14,6 +14,11 @@ export const tr = {
     cta: "Teklif Al",
   },
   home: {
+    meta: {
+      title: "Ascend Lojistik | Global Uluslararası Taşımacılık Çözümleri",
+      description:
+        "Ascend Lojistik; Avrupa, Amerika, Uzak Doğu, Orta Doğu ve Afrika’da karayolu, denizyolu, havayolu ve multimodal taşımacılık çözümleri sunar.",
+    },
     hero: {
       eyebrow: "Uluslararası Taşımacılık",
       title: "Dünyayı Birbirine Bağlayan Lojistik Çözümler",
@@ -436,4 +441,4 @@ export const tr = {
     contactNote: "0212 963 0553 · info@ascendlojistik.com · Ataköy Towers, Bakırköy/İstanbul",
     rights: "Tüm hakları saklıdır.",
   },
-} as const;
+};

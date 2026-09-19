@@ -4,7 +4,7 @@ import { useI18n } from "@/i18n";
 import { trackLead } from "@/lib/analytics";
 
 export function Footer() {
-  const { c } = useI18n();
+  const { c, path } = useI18n();
   const year = new Date().getFullYear();
 
   return (
@@ -25,35 +25,35 @@ export function Footer() {
             <h3 className="eyebrow text-navy-foreground">{c.footer.columns.pages}</h3>
             <ul className="mt-5 space-y-3 text-sm text-navy-foreground/85">
               <li>
-                <Link to="/" className="transition-colors hover:text-navy-foreground">
+                <Link to={path("home")} className="transition-colors hover:text-navy-foreground">
                   {c.nav.home}
                 </Link>
               </li>
               <li>
-                <Link to="/hakkimizda" className="transition-colors hover:text-navy-foreground">
+                <Link to={path("about")} className="transition-colors hover:text-navy-foreground">
                   {c.nav.about}
                 </Link>
               </li>
               <li>
-                <Link to="/hizmetlerimiz" className="transition-colors hover:text-navy-foreground">
+                <Link
+                  to={path("services")}
+                  className="transition-colors hover:text-navy-foreground"
+                >
                   {c.nav.services}
                 </Link>
               </li>
               <li>
-                <Link to="/global-ag" className="transition-colors hover:text-navy-foreground">
+                <Link to={path("network")} className="transition-colors hover:text-navy-foreground">
                   {c.nav.network}
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/dijital-cozumler"
-                  className="transition-colors hover:text-navy-foreground"
-                >
+                <Link to={path("digital")} className="transition-colors hover:text-navy-foreground">
                   {c.nav.digital}
                 </Link>
               </li>
               <li>
-                <Link to="/iletisim" className="transition-colors hover:text-navy-foreground">
+                <Link to={path("contact")} className="transition-colors hover:text-navy-foreground">
                   {c.nav.contact}
                 </Link>
               </li>
@@ -66,7 +66,7 @@ export function Footer() {
               {c.services.items.map((s) => (
                 <li key={s.id}>
                   <Link
-                    to="/hizmetlerimiz"
+                    to={path("services")}
                     hash={s.id}
                     className="transition-colors hover:text-navy-foreground"
                   >

@@ -20,14 +20,14 @@ export function Wordmark({
   tone?: "light" | "dark";
   variant?: "light" | "dark" | "neutral";
 }) {
-  const { c } = useI18n();
+  const { c, path } = useI18n();
   const { resolvedTheme } = useTheme();
   const selected = variant ?? (resolvedTheme === "dark" ? "dark" : "light");
   const label = `${c.brand.name} ${c.brand.suffix}`;
 
   return (
     <Link
-      to="/"
+      to={path("home")}
       aria-label={label}
       className={cn("block h-14 w-auto shrink-0 overflow-visible sm:h-16", className)}
     >

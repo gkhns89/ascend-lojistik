@@ -5,10 +5,10 @@ import { servicesSchema } from "@/content/schema";
 import { seoHead } from "@/lib/seo";
 import { ServicesPage } from "@/views/services";
 
-const locale = "tr" as const;
+const locale = "en" as const;
 const c = getContent(locale);
 
-export const Route = createFileRoute("/hizmetlerimiz")({
+export const Route = createFileRoute("/en/services")({
   component: ServicesPage,
   head: () =>
     seoHead({

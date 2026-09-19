@@ -22,6 +22,12 @@ import { Route as KarayoluTasimaciligiRouteImport } from './routes/karayolu-tasi
 import { Route as MultimodalTasimacilikRouteImport } from './routes/multimodal-tasimacilik'
 import { Route as ParsiyelTasimacilikRouteImport } from './routes/parsiyel-tasimacilik'
 import { Route as ProjeTasimaciligiRouteImport } from './routes/proje-tasimaciligi'
+import { Route as EnIndexRouteImport } from './routes/en/index'
+import { Route as EnAboutRouteImport } from './routes/en/about'
+import { Route as EnContactRouteImport } from './routes/en/contact'
+import { Route as EnDigitalSolutionsRouteImport } from './routes/en/digital-solutions'
+import { Route as EnGlobalNetworkRouteImport } from './routes/en/global-network'
+import { Route as EnServicesRouteImport } from './routes/en/services'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,6 +94,36 @@ const ProjeTasimaciligiRoute = ProjeTasimaciligiRouteImport.update({
   path: '/proje-tasimaciligi',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnIndexRoute = EnIndexRouteImport.update({
+  id: '/en/',
+  path: '/en/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnAboutRoute = EnAboutRouteImport.update({
+  id: '/en/about',
+  path: '/en/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnContactRoute = EnContactRouteImport.update({
+  id: '/en/contact',
+  path: '/en/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnDigitalSolutionsRoute = EnDigitalSolutionsRouteImport.update({
+  id: '/en/digital-solutions',
+  path: '/en/digital-solutions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnGlobalNetworkRoute = EnGlobalNetworkRouteImport.update({
+  id: '/en/global-network',
+  path: '/en/global-network',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnServicesRoute = EnServicesRouteImport.update({
+  id: '/en/services',
+  path: '/en/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +139,12 @@ export interface FileRoutesByFullPath {
   '/multimodal-tasimacilik': typeof MultimodalTasimacilikRoute
   '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
   '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/digital-solutions': typeof EnDigitalSolutionsRoute
+  '/en/global-network': typeof EnGlobalNetworkRoute
+  '/en/services': typeof EnServicesRoute
+  '/en/': typeof EnIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +160,12 @@ export interface FileRoutesByTo {
   '/multimodal-tasimacilik': typeof MultimodalTasimacilikRoute
   '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
   '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/digital-solutions': typeof EnDigitalSolutionsRoute
+  '/en/global-network': typeof EnGlobalNetworkRoute
+  '/en/services': typeof EnServicesRoute
+  '/en': typeof EnIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +182,12 @@ export interface FileRoutesById {
   '/multimodal-tasimacilik': typeof MultimodalTasimacilikRoute
   '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
   '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/digital-solutions': typeof EnDigitalSolutionsRoute
+  '/en/global-network': typeof EnGlobalNetworkRoute
+  '/en/services': typeof EnServicesRoute
+  '/en/': typeof EnIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +205,12 @@ export interface FileRouteTypes {
     | '/multimodal-tasimacilik'
     | '/parsiyel-tasimacilik'
     | '/proje-tasimaciligi'
+    | '/en/about'
+    | '/en/contact'
+    | '/en/digital-solutions'
+    | '/en/global-network'
+    | '/en/services'
+    | '/en/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +226,12 @@ export interface FileRouteTypes {
     | '/multimodal-tasimacilik'
     | '/parsiyel-tasimacilik'
     | '/proje-tasimaciligi'
+    | '/en/about'
+    | '/en/contact'
+    | '/en/digital-solutions'
+    | '/en/global-network'
+    | '/en/services'
+    | '/en'
   id:
     | '__root__'
     | '/'
@@ -181,6 +247,12 @@ export interface FileRouteTypes {
     | '/multimodal-tasimacilik'
     | '/parsiyel-tasimacilik'
     | '/proje-tasimaciligi'
+    | '/en/about'
+    | '/en/contact'
+    | '/en/digital-solutions'
+    | '/en/global-network'
+    | '/en/services'
+    | '/en/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +269,12 @@ export interface RootRouteChildren {
   MultimodalTasimacilikRoute: typeof MultimodalTasimacilikRoute
   ParsiyelTasimacilikRoute: typeof ParsiyelTasimacilikRoute
   ProjeTasimaciligiRoute: typeof ProjeTasimaciligiRoute
+  EnAboutRoute: typeof EnAboutRoute
+  EnContactRoute: typeof EnContactRoute
+  EnDigitalSolutionsRoute: typeof EnDigitalSolutionsRoute
+  EnGlobalNetworkRoute: typeof EnGlobalNetworkRoute
+  EnServicesRoute: typeof EnServicesRoute
+  EnIndexRoute: typeof EnIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -292,6 +370,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjeTasimaciligiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en/': {
+      id: '/en/'
+      path: '/en'
+      fullPath: '/en/'
+      preLoaderRoute: typeof EnIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/about': {
+      id: '/en/about'
+      path: '/en/about'
+      fullPath: '/en/about'
+      preLoaderRoute: typeof EnAboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/contact': {
+      id: '/en/contact'
+      path: '/en/contact'
+      fullPath: '/en/contact'
+      preLoaderRoute: typeof EnContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/digital-solutions': {
+      id: '/en/digital-solutions'
+      path: '/en/digital-solutions'
+      fullPath: '/en/digital-solutions'
+      preLoaderRoute: typeof EnDigitalSolutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/global-network': {
+      id: '/en/global-network'
+      path: '/en/global-network'
+      fullPath: '/en/global-network'
+      preLoaderRoute: typeof EnGlobalNetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/services': {
+      id: '/en/services'
+      path: '/en/services'
+      fullPath: '/en/services'
+      preLoaderRoute: typeof EnServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -309,6 +429,12 @@ const rootRouteChildren: RootRouteChildren = {
   MultimodalTasimacilikRoute: MultimodalTasimacilikRoute,
   ParsiyelTasimacilikRoute: ParsiyelTasimacilikRoute,
   ProjeTasimaciligiRoute: ProjeTasimaciligiRoute,
+  EnAboutRoute: EnAboutRoute,
+  EnContactRoute: EnContactRoute,
+  EnDigitalSolutionsRoute: EnDigitalSolutionsRoute,
+  EnGlobalNetworkRoute: EnGlobalNetworkRoute,
+  EnServicesRoute: EnServicesRoute,
+  EnIndexRoute: EnIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

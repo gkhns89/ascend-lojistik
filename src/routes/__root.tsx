@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { localeFromPath } from "../content";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { I18nProvider } from "@/i18n";
@@ -125,8 +126,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Sayfa dili adresten cozulur; /en altindaki sayfalar Ingilizce isaretlenir.
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
   return (
-    <html lang="tr" suppressHydrationWarning>
+    <html lang={localeFromPath(pathname)} suppressHydrationWarning>
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />

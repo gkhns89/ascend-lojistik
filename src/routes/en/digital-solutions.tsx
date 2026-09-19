@@ -5,10 +5,10 @@ import { digitalSchema } from "@/content/schema";
 import { seoHead } from "@/lib/seo";
 import { DigitalPage } from "@/views/digital";
 
-const locale = "tr" as const;
+const locale = "en" as const;
 const c = getContent(locale);
 
-export const Route = createFileRoute("/dijital-cozumler")({
+export const Route = createFileRoute("/en/digital-solutions")({
   component: DigitalPage,
   head: () =>
     seoHead({

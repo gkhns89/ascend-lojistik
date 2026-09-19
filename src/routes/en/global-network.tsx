@@ -5,10 +5,10 @@ import { networkSchema } from "@/content/schema";
 import { seoHead } from "@/lib/seo";
 import { NetworkPage } from "@/views/network";
 
-const locale = "tr" as const;
+const locale = "en" as const;
 const c = getContent(locale);
 
-export const Route = createFileRoute("/global-ag")({
+export const Route = createFileRoute("/en/global-network")({
   component: NetworkPage,
   head: () =>
     seoHead({

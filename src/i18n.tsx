@@ -1,33 +1,51 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { defaultLocale, getContent, type Content, type Locale } from "./content";
+import { useRouterState } from "@tanstack/react-router";
+import { useMemo, type ReactNode } from "react";
+
+import {
+  getContent,
+  locales,
+  localeFromPath,
+  pagePath,
+  type Content,
+  type Locale,
+  type PageKey,
+} from "./content";
 
 type I18nValue = {
   locale: Locale;
-  setLocale: (locale: Locale) => void;
   c: Content;
   available: Locale[];
+  /** Sayfa anahtarini icinde bulunulan dilin adresine cevirir. */
+  path: (key: PageKey) => string;
 };
 
-const fallbackValue: I18nValue = {
-  locale: defaultLocale,
-  setLocale: () => undefined,
-  c: getContent(defaultLocale),
-  available: ["tr"],
-};
-
-const I18nContext = createContext<I18nValue>(fallbackValue);
-
+/**
+ * Dil, adresten cozulur; ayri bir durum tutulmaz. Boylece sunucuda render
+ * edilen HTML ile istemcideki gorunum her zaman ayni dili gosterir ve her
+ * dilin kendi indekslenebilir adresi olur.
+ */
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(defaultLocale);
-
-  const value = useMemo<I18nValue>(
-    () => ({ locale, setLocale, c: getContent(locale), available: ["tr"] }),
-    [locale],
-  );
-
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+  return <>{children}</>;
 }
 
 export function useI18n(): I18nValue {
-  return useContext(I18nContext);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  return useMemo(() => {
+    const locale = localeFromPath(pathname);
+    return {
+      locale,
+      c: getContent(locale),
+      available: locales,
+      path: (key: PageKey) => pagePath(key, locale),
+    };
+  }, [pathname]);
+}
+
+/** Ziyaretcinin dil tercihini hatirlar; otomatik yonlendirme buna bakar. */
+export const LANG_COOKIE = "ascend-lang";
+
+export function rememberLocale(locale: Locale): void {
+  // Bir yil; SameSite=Lax cunku yonlendirme ust duzey gezinmede okunur.
+  document.cookie = `${LANG_COOKIE}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
 }
