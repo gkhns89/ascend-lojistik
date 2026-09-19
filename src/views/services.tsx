@@ -5,14 +5,11 @@ import { PageHero, Section, SectionHeading } from "@/components/site/section";
 import { ServiceIcon } from "@/components/site/service-icon";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
-import { servicePageByServiceId } from "@/content/service-pages-tr";
+import { servicePageFor, servicePath } from "@/content/service-pages";
 import { trackLead } from "@/lib/analytics";
 
 export function ServicesPage() {
   const { c, path, locale } = useI18n();
-  // Hizmet detay sayfalari su an yalniz Turkce; Ingilizce surumde kart ve
-  // baglantilar sayfa ici bolume iner.
-  const detailPages = locale === "tr";
   const s = c.services;
 
   return (
@@ -22,7 +19,7 @@ export function ServicesPage() {
       <Section>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {s.items.map((item) => {
-            const detail = detailPages ? servicePageByServiceId.get(item.id) : undefined;
+            const detail = servicePageFor(item.id, locale);
             const className =
               "group flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 card-elevated";
             const inner = (
@@ -43,7 +40,7 @@ export function ServicesPage() {
             // Detay sayfasi olan hizmetler kendi adresine gider; olmayanlar
             // sayfa icindeki bolume capa ile iner.
             return detail ? (
-              <Link key={item.id} to={`/${detail.slug}`} className={className}>
+              <Link key={item.id} to={servicePath(detail, locale)} className={className}>
                 {inner}
               </Link>
             ) : (
@@ -69,9 +66,9 @@ export function ServicesPage() {
                   {item.title}
                 </h2>
                 <p className="mt-4 text-base leading-relaxed text-muted-foreground">{item.body}</p>
-                {detailPages && servicePageByServiceId.has(item.id) ? (
+                {servicePageFor(item.id, locale) ? (
                   <Link
-                    to={`/${servicePageByServiceId.get(item.id)!.slug}`}
+                    to={servicePath(servicePageFor(item.id, locale)!, locale)}
                     className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary"
                   >
                     {item.title} hakkında detaylı bilgi

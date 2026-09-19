@@ -24,10 +24,17 @@ import { Route as ParsiyelTasimacilikRouteImport } from './routes/parsiyel-tasim
 import { Route as ProjeTasimaciligiRouteImport } from './routes/proje-tasimaciligi'
 import { Route as EnIndexRouteImport } from './routes/en/index'
 import { Route as EnAboutRouteImport } from './routes/en/about'
+import { Route as EnAirFreightRouteImport } from './routes/en/air-freight'
 import { Route as EnContactRouteImport } from './routes/en/contact'
 import { Route as EnDigitalSolutionsRouteImport } from './routes/en/digital-solutions'
 import { Route as EnGlobalNetworkRouteImport } from './routes/en/global-network'
+import { Route as EnGroupageRouteImport } from './routes/en/groupage'
+import { Route as EnMultimodalTransportRouteImport } from './routes/en/multimodal-transport'
+import { Route as EnProjectCargoRouteImport } from './routes/en/project-cargo'
+import { Route as EnRoadFreightRouteImport } from './routes/en/road-freight'
+import { Route as EnSeaFreightRouteImport } from './routes/en/sea-freight'
 import { Route as EnServicesRouteImport } from './routes/en/services'
+import { Route as EnShipAgencyRouteImport } from './routes/en/ship-agency'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -104,6 +111,11 @@ const EnAboutRoute = EnAboutRouteImport.update({
   path: '/en/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnAirFreightRoute = EnAirFreightRouteImport.update({
+  id: '/en/air-freight',
+  path: '/en/air-freight',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EnContactRoute = EnContactRouteImport.update({
   id: '/en/contact',
   path: '/en/contact',
@@ -119,9 +131,39 @@ const EnGlobalNetworkRoute = EnGlobalNetworkRouteImport.update({
   path: '/en/global-network',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnGroupageRoute = EnGroupageRouteImport.update({
+  id: '/en/groupage',
+  path: '/en/groupage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnMultimodalTransportRoute = EnMultimodalTransportRouteImport.update({
+  id: '/en/multimodal-transport',
+  path: '/en/multimodal-transport',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnProjectCargoRoute = EnProjectCargoRouteImport.update({
+  id: '/en/project-cargo',
+  path: '/en/project-cargo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnRoadFreightRoute = EnRoadFreightRouteImport.update({
+  id: '/en/road-freight',
+  path: '/en/road-freight',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnSeaFreightRoute = EnSeaFreightRouteImport.update({
+  id: '/en/sea-freight',
+  path: '/en/sea-freight',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EnServicesRoute = EnServicesRouteImport.update({
   id: '/en/services',
   path: '/en/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnShipAgencyRoute = EnShipAgencyRouteImport.update({
+  id: '/en/ship-agency',
+  path: '/en/ship-agency',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -140,10 +182,17 @@ export interface FileRoutesByFullPath {
   '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
   '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
   '/en/about': typeof EnAboutRoute
+  '/en/air-freight': typeof EnAirFreightRoute
   '/en/contact': typeof EnContactRoute
   '/en/digital-solutions': typeof EnDigitalSolutionsRoute
   '/en/global-network': typeof EnGlobalNetworkRoute
+  '/en/groupage': typeof EnGroupageRoute
+  '/en/multimodal-transport': typeof EnMultimodalTransportRoute
+  '/en/project-cargo': typeof EnProjectCargoRoute
+  '/en/road-freight': typeof EnRoadFreightRoute
+  '/en/sea-freight': typeof EnSeaFreightRoute
   '/en/services': typeof EnServicesRoute
+  '/en/ship-agency': typeof EnShipAgencyRoute
   '/en/': typeof EnIndexRoute
 }
 export interface FileRoutesByTo {
@@ -161,10 +210,17 @@ export interface FileRoutesByTo {
   '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
   '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
   '/en/about': typeof EnAboutRoute
+  '/en/air-freight': typeof EnAirFreightRoute
   '/en/contact': typeof EnContactRoute
   '/en/digital-solutions': typeof EnDigitalSolutionsRoute
   '/en/global-network': typeof EnGlobalNetworkRoute
+  '/en/groupage': typeof EnGroupageRoute
+  '/en/multimodal-transport': typeof EnMultimodalTransportRoute
+  '/en/project-cargo': typeof EnProjectCargoRoute
+  '/en/road-freight': typeof EnRoadFreightRoute
+  '/en/sea-freight': typeof EnSeaFreightRoute
   '/en/services': typeof EnServicesRoute
+  '/en/ship-agency': typeof EnShipAgencyRoute
   '/en': typeof EnIndexRoute
 }
 export interface FileRoutesById {
@@ -183,10 +239,17 @@ export interface FileRoutesById {
   '/parsiyel-tasimacilik': typeof ParsiyelTasimacilikRoute
   '/proje-tasimaciligi': typeof ProjeTasimaciligiRoute
   '/en/about': typeof EnAboutRoute
+  '/en/air-freight': typeof EnAirFreightRoute
   '/en/contact': typeof EnContactRoute
   '/en/digital-solutions': typeof EnDigitalSolutionsRoute
   '/en/global-network': typeof EnGlobalNetworkRoute
+  '/en/groupage': typeof EnGroupageRoute
+  '/en/multimodal-transport': typeof EnMultimodalTransportRoute
+  '/en/project-cargo': typeof EnProjectCargoRoute
+  '/en/road-freight': typeof EnRoadFreightRoute
+  '/en/sea-freight': typeof EnSeaFreightRoute
   '/en/services': typeof EnServicesRoute
+  '/en/ship-agency': typeof EnShipAgencyRoute
   '/en/': typeof EnIndexRoute
 }
 export interface FileRouteTypes {
@@ -206,10 +269,17 @@ export interface FileRouteTypes {
     | '/parsiyel-tasimacilik'
     | '/proje-tasimaciligi'
     | '/en/about'
+    | '/en/air-freight'
     | '/en/contact'
     | '/en/digital-solutions'
     | '/en/global-network'
+    | '/en/groupage'
+    | '/en/multimodal-transport'
+    | '/en/project-cargo'
+    | '/en/road-freight'
+    | '/en/sea-freight'
     | '/en/services'
+    | '/en/ship-agency'
     | '/en/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -227,10 +297,17 @@ export interface FileRouteTypes {
     | '/parsiyel-tasimacilik'
     | '/proje-tasimaciligi'
     | '/en/about'
+    | '/en/air-freight'
     | '/en/contact'
     | '/en/digital-solutions'
     | '/en/global-network'
+    | '/en/groupage'
+    | '/en/multimodal-transport'
+    | '/en/project-cargo'
+    | '/en/road-freight'
+    | '/en/sea-freight'
     | '/en/services'
+    | '/en/ship-agency'
     | '/en'
   id:
     | '__root__'
@@ -248,10 +325,17 @@ export interface FileRouteTypes {
     | '/parsiyel-tasimacilik'
     | '/proje-tasimaciligi'
     | '/en/about'
+    | '/en/air-freight'
     | '/en/contact'
     | '/en/digital-solutions'
     | '/en/global-network'
+    | '/en/groupage'
+    | '/en/multimodal-transport'
+    | '/en/project-cargo'
+    | '/en/road-freight'
+    | '/en/sea-freight'
     | '/en/services'
+    | '/en/ship-agency'
     | '/en/'
   fileRoutesById: FileRoutesById
 }
@@ -270,10 +354,17 @@ export interface RootRouteChildren {
   ParsiyelTasimacilikRoute: typeof ParsiyelTasimacilikRoute
   ProjeTasimaciligiRoute: typeof ProjeTasimaciligiRoute
   EnAboutRoute: typeof EnAboutRoute
+  EnAirFreightRoute: typeof EnAirFreightRoute
   EnContactRoute: typeof EnContactRoute
   EnDigitalSolutionsRoute: typeof EnDigitalSolutionsRoute
   EnGlobalNetworkRoute: typeof EnGlobalNetworkRoute
+  EnGroupageRoute: typeof EnGroupageRoute
+  EnMultimodalTransportRoute: typeof EnMultimodalTransportRoute
+  EnProjectCargoRoute: typeof EnProjectCargoRoute
+  EnRoadFreightRoute: typeof EnRoadFreightRoute
+  EnSeaFreightRoute: typeof EnSeaFreightRoute
   EnServicesRoute: typeof EnServicesRoute
+  EnShipAgencyRoute: typeof EnShipAgencyRoute
   EnIndexRoute: typeof EnIndexRoute
 }
 
@@ -384,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnAboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en/air-freight': {
+      id: '/en/air-freight'
+      path: '/en/air-freight'
+      fullPath: '/en/air-freight'
+      preLoaderRoute: typeof EnAirFreightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/en/contact': {
       id: '/en/contact'
       path: '/en/contact'
@@ -405,11 +503,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnGlobalNetworkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en/groupage': {
+      id: '/en/groupage'
+      path: '/en/groupage'
+      fullPath: '/en/groupage'
+      preLoaderRoute: typeof EnGroupageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/multimodal-transport': {
+      id: '/en/multimodal-transport'
+      path: '/en/multimodal-transport'
+      fullPath: '/en/multimodal-transport'
+      preLoaderRoute: typeof EnMultimodalTransportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/project-cargo': {
+      id: '/en/project-cargo'
+      path: '/en/project-cargo'
+      fullPath: '/en/project-cargo'
+      preLoaderRoute: typeof EnProjectCargoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/road-freight': {
+      id: '/en/road-freight'
+      path: '/en/road-freight'
+      fullPath: '/en/road-freight'
+      preLoaderRoute: typeof EnRoadFreightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/sea-freight': {
+      id: '/en/sea-freight'
+      path: '/en/sea-freight'
+      fullPath: '/en/sea-freight'
+      preLoaderRoute: typeof EnSeaFreightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/en/services': {
       id: '/en/services'
       path: '/en/services'
       fullPath: '/en/services'
       preLoaderRoute: typeof EnServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/ship-agency': {
+      id: '/en/ship-agency'
+      path: '/en/ship-agency'
+      fullPath: '/en/ship-agency'
+      preLoaderRoute: typeof EnShipAgencyRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -430,10 +570,17 @@ const rootRouteChildren: RootRouteChildren = {
   ParsiyelTasimacilikRoute: ParsiyelTasimacilikRoute,
   ProjeTasimaciligiRoute: ProjeTasimaciligiRoute,
   EnAboutRoute: EnAboutRoute,
+  EnAirFreightRoute: EnAirFreightRoute,
   EnContactRoute: EnContactRoute,
   EnDigitalSolutionsRoute: EnDigitalSolutionsRoute,
   EnGlobalNetworkRoute: EnGlobalNetworkRoute,
+  EnGroupageRoute: EnGroupageRoute,
+  EnMultimodalTransportRoute: EnMultimodalTransportRoute,
+  EnProjectCargoRoute: EnProjectCargoRoute,
+  EnRoadFreightRoute: EnRoadFreightRoute,
+  EnSeaFreightRoute: EnSeaFreightRoute,
   EnServicesRoute: EnServicesRoute,
+  EnShipAgencyRoute: EnShipAgencyRoute,
   EnIndexRoute: EnIndexRoute,
 }
 export const routeTree = rootRouteImport

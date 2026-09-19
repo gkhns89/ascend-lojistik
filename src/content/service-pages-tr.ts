@@ -39,7 +39,15 @@ export type ServiceSlug =
   | "gemi-acenteligi"
   | "multimodal-tasimacilik"
   | "proje-tasimaciligi"
-  | "parsiyel-tasimacilik";
+  | "parsiyel-tasimacilik"
+  // Ingilizce surumun slug'lari; adresleri /en/<slug> olarak olusur.
+  | "road-freight"
+  | "sea-freight"
+  | "air-freight"
+  | "ship-agency"
+  | "multimodal-transport"
+  | "project-cargo"
+  | "groupage";
 
 export interface ServicePage {
   slug: ServiceSlug;

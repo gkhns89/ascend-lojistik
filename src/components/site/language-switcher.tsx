@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Languages } from "lucide-react";
 
 import { localeFromPath, pagePath, pagePaths, type Locale, type PageKey } from "@/content";
+import { servicePageFor, servicePages, servicePath } from "@/content/service-pages";
 import { rememberLocale } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -16,15 +17,26 @@ function pageKeyFor(pathname: string, locale: Locale): PageKey | undefined {
   });
 }
 
+/** Hizmet detay sayfasindaysak ayni hizmetin diger dildeki adresini bulur. */
+function serviceCounterpart(pathname: string, locale: Locale, target: Locale) {
+  const normalised = pathname.replace(/\/+$/, "");
+  const current = servicePages(locale).find((page) => servicePath(page, locale) === normalised);
+  if (!current) return undefined;
+  const other = servicePageFor(current.serviceId, target);
+  return other ? servicePath(other, target) : undefined;
+}
+
 export function LanguageSwitcher({ className }: { className?: string }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const locale = localeFromPath(pathname);
   const target: Locale = locale === "tr" ? "en" : "tr";
 
-  // Karsiligi olmayan bir sayfadaysak (ornegin yalniz Turkce olan hizmet
-  // detaylari) o dilin ana sayfasina goturulur.
+  // Once ana sayfalar, sonra hizmet detaylari denenir; hicbiri eslesmezse
+  // hedef dilin ana sayfasina goturulur.
   const key = pageKeyFor(pathname, locale);
-  const to = key ? pagePath(key, target) : pagePath("home", target);
+  const to = key
+    ? pagePath(key, target)
+    : (serviceCounterpart(pathname, locale, target) ?? pagePath("home", target));
 
   return (
     <Link
