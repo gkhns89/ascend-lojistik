@@ -105,7 +105,12 @@ export async function createPortalServer(env = process.env) {
       try{let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>30000)return send(413,'Too large');}const result=quotes.intake(JSON.parse(raw));return send(201,JSON.stringify(result),'application/json');}catch(e){return send(400,JSON.stringify({error:e.message}),'application/json');}
     }
     if (!timingSafeEqual(digest(req.headers.authorization ?? ''), expected)) {
-      res.setHeader('WWW-Authenticate', 'Basic realm="Ascend internal preview", charset="UTF-8"');
+      // Realm cevre degiskeninden okunur. Tarayicilar Basic kimlik bilgisini
+      // (origin + realm) ciftine gore onbellege alir; realm degistiginde yeni
+      // bir koruma alani sayip yeniden sorarlar. Kayitli yanlis parola bir
+      // kullaniciyi disarida birakirsa realm'i degistirmek cozer.
+      const realm = (env.PORTAL_PREVIEW_REALM || 'Ascend internal preview').split('"').join('');
+      res.setHeader('WWW-Authenticate', `Basic realm="${realm}", charset="UTF-8"`);
       return send(401, 'Kimlik doğrulama gerekli.');
     }
 
