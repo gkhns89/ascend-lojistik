@@ -11,6 +11,25 @@ export async function openPortalDatabase(legacyPath,options={}){
  function audit(actor,action,detail={}){db.prepare('INSERT INTO audit(at,actor,action,detail) VALUES(?,?,?,?)').run(new Date().toISOString(),actor,action,JSON.stringify(detail));}
  function save(state,expected,actor='system',changes={}){db.exec('BEGIN IMMEDIATE');try{const row=current();if(row&&expected!==row.revision)throw Object.assign(Error('Kayıt başka bir oturumda güncellendi. Sayfayı yenileyin.'),{status:409});const revision=(row?.revision??-1)+1;db.prepare('INSERT INTO state VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,body=excluded.body').run(revision,JSON.stringify(state));audit(actor,'state.update',changes);db.exec('COMMIT');return revision;}catch(e){db.exec('ROLLBACK');throw e;}}
  async function makeBackup(){if(!legacyPath)throw Error('Kalıcı veritabanı gerekli');const folder=join(dirname(path),'backups');await mkdir(folder,{recursive:true});const target=join(folder,basename(path)+'.'+new Date().toISOString().replace(/[:.]/g,'-')+'.sqlite');await backup(db,target);try{await copyFile(legacyPath+'.key',target+'.key');}catch(e){if(e.code!=='ENOENT')throw e;}const check=new DatabaseSync(target,{readOnly:true});try{if(check.prepare('PRAGMA integrity_check').get().integrity_check!=='ok')throw Error('Yedek doğrulanamadı');}finally{check.close();}let offsite={status:'not-configured'};if(options.backupDirectory){try{const folder=resolve(options.backupDirectory),rel=relative(resolve(dirname(path)),folder);if(!rel||(!rel.startsWith('..')&&!isAbsolute(rel)))throw Error('Yedek hedefi veri klasöründen ayrı olmalı');await mkdir(folder,{recursive:true});const destination=join(folder,basename(target));await copyFile(target,destination);try{await copyFile(target+'.key',destination+'.key');}catch(e){if(e.code!=='ENOENT')throw e;}const sha=b=>createHash('sha256').update(b).digest('hex');if(sha(await readFile(target))!==sha(await readFile(destination)))throw Error('Yedek kopyası doğrulanamadı');const restored=new DatabaseSync(destination,{readOnly:true});try{if(restored.prepare('PRAGMA integrity_check').get().integrity_check!=='ok')throw Error('Yedek açılamadı');}finally{restored.close();}offsite={status:'verified',file:basename(destination)};}catch{offsite={status:'failed'};audit('system','backup.remote-failed',{message:'Yedek hedefine kopyalama veya doğrulama başarısız.'});}}const result={file:basename(target),createdAt:new Date().toISOString(),offsite};audit('system','backup.completed',result);return result;}
- let timer;if(legacyPath){await makeBackup();timer=setInterval(()=>makeBackup().catch(()=>audit('system','backup.failed',{message:'Otomatik yedek oluşturulamadı'})),6*3600000);timer.unref();}
- return {db,current,save,audit,makeBackup,close(){clearInterval(timer);db.close();},path};
+ // Otomatik yedek varsayilan olarak kapalidir. Yedek, verinin bulundugu
+ // diske yaziliyordu; ayni disk kaybedilirse yedek de gider, yani felaket
+ // korumasi saglamiyordu. Bunun yerine yonetici istedigi anda indirir ve
+ // nereye saklayacagini kendisi secer. Otomatik yedek istenirse
+ // PORTAL_BACKUP_INTERVAL_HOURS ile saat cinsinden acilir.
+ const intervalHours=Number(options.backupIntervalHours??0);
+ let timer;
+ if(legacyPath&&Number.isFinite(intervalHours)&&intervalHours>0){
+  await makeBackup();
+  timer=setInterval(()=>makeBackup().catch(()=>audit('system','backup.failed',{message:'Otomatik yedek oluşturulamadı'})),intervalHours*3600000);
+  timer.unref();
+ }
+ // Yalnizca yedek klasorundeki bir dosyayi, adiyla okur. Ad dogrulanir ki
+ // istek uzerinden baska bir yola cikilamasin.
+ async function readBackup(file){
+  if(!legacyPath)throw Error('Kalıcı veritabanı gerekli');
+  const name=basename(String(file||''));
+  if(name!==String(file||''))throw Error('Geçersiz yedek adı');
+  return readFile(join(dirname(path),'backups',name));
+ }
+ return {db,current,save,audit,makeBackup,readBackup,close(){clearInterval(timer);db.close();},path};
 }

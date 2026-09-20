@@ -82,6 +82,7 @@ export async function createPortalServer(env = process.env) {
   }
   const tenants=await createTenantStore(env.PORTAL_DATA_FILE,{
     backupDirectory:env.PORTAL_BACKUP_DIRECTORY,
+    backupIntervalHours:env.PORTAL_BACKUP_INTERVAL_HOURS,
     ...(bootstrapPassword?{bootstrapPassword}:{}),
   });
   const operations=portalOperations(tenants),quotes=quoteService(tenants),offers=offerService(tenants),monitor=monitoring(tenants),mailImports=mailImportService(tenants,quotes,offers),intakeLimits=new Map();
@@ -156,6 +157,14 @@ export async function createPortalServer(env = process.env) {
       if(pathname==='/api/tenant/quotes/dismiss'&&req.method==='POST')return json(200,quotes.dismiss(principal,body));
         if(pathname==='/api/tenant/audit'&&req.method==='GET')return json(200,operations.audit(principal));
         if(pathname==='/api/tenant/backup'&&req.method==='POST')return json(200,await operations.backup(principal));
+      // Yedegi sunucuda biriktirmek yerine yoneticiye indirtir; kaydedilecek
+      // yeri tarayicinin indirme penceresi belirler.
+      if(pathname==='/api/tenant/backup/download'&&req.method==='GET'){
+        const result=await operations.backup(principal);
+        const body=await tenants.database.readBackup(result.file);
+        res.setHeader('Content-Disposition',`attachment; filename="${result.file}"`);
+        return send(200,body,'application/octet-stream');
+      }
         if(pathname==='/api/tenant/recipients'&&req.method==='GET'){const q=new URL(req.url,'http://localhost').searchParams;return json(200,operations.recipients(principal,q.get('module'),q.get('record'),q.get('event')));}
         if(pathname==='/api/tenant/outbox'&&req.method==='GET')return json(200,operations.outbox(principal));
         if(pathname==='/api/tenant/outbox'&&req.method==='POST')return json(200,operations.queue(principal,body));
