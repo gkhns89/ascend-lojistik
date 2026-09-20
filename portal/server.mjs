@@ -153,6 +153,7 @@ export async function createPortalServer(env = process.env) {
         if(pathname==='/api/tenant/quotes'&&req.method==='POST')return json(201,quotes.create(principal,body));
         if(pathname==='/api/tenant/quotes/prepare'&&req.method==='POST')return json(200,quotes.prepare(body.id,principal));
         if(pathname==='/api/tenant/quotes/approve'&&req.method==='POST')return json(200,quotes.approve(principal,body));
+      if(pathname==='/api/tenant/quotes/dismiss'&&req.method==='POST')return json(200,quotes.dismiss(principal,body));
         if(pathname==='/api/tenant/audit'&&req.method==='GET')return json(200,operations.audit(principal));
         if(pathname==='/api/tenant/backup'&&req.method==='POST')return json(200,await operations.backup(principal));
         if(pathname==='/api/tenant/recipients'&&req.method==='GET'){const q=new URL(req.url,'http://localhost').searchParams;return json(200,operations.recipients(principal,q.get('module'),q.get('record'),q.get('event')));}
