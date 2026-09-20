@@ -165,40 +165,61 @@ export function ContactPage() {
                     name="mode"
                     className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    {["Hava", "Kara", "Deniz", "Demiryolu"].map((m) => (
+                    {(["Hava", "Kara", "Deniz", "Demiryolu"] as const).map((m) => (
                       <option key={m} value={m}>
-                        {m}
+                        {k.quoteForm.modeLabels[m]}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="direction">İşlem yönü *</Label>
+                  <Label htmlFor="direction">{k.quoteForm.extra.direction} *</Label>
                   <select
                     id="direction"
                     name="direction"
                     required
                     className="rounded-md border border-input bg-background p-3"
                   >
-                    <option>İthalat</option>
-                    <option>İhracat</option>
+                    {(["İthalat", "İhracat"] as const).map((d) => (
+                      <option key={d} value={d}>
+                        {k.quoteForm.directionLabels[d]}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <Field id="originCountry" label="Çıkış ülkesi *" required />
-                <Field id="originAddress" label="Yükleme adresi *" required />
-                <Field id="destinationCountry" label="Varış ülkesi *" required />
-                <Field id="destinationAddress" label="Teslim adresi *" required />
-                <Field id="packages" label="Toplam kap *" type="number" required />
-                <Field id="gross" label="Brüt kg *" type="number" required />
-                <Field id="net" label="Net kg *" type="number" required />
+                <Field id="originCountry" label={`${k.quoteForm.extra.originCountry} *`} required />
+                <Field id="originAddress" label={`${k.quoteForm.extra.originAddress} *`} required />
+                <Field
+                  id="destinationCountry"
+                  label={`${k.quoteForm.extra.destinationCountry} *`}
+                  required
+                />
+                <Field
+                  id="destinationAddress"
+                  label={`${k.quoteForm.extra.destinationAddress} *`}
+                  required
+                />
+                <Field
+                  id="packages"
+                  label={`${k.quoteForm.extra.packages} *`}
+                  type="number"
+                  required
+                />
+                <Field id="gross" label={`${k.quoteForm.extra.gross} *`} type="number" required />
+                <Field id="net" label={`${k.quoteForm.extra.net} *`} type="number" required />
                 <label>
-                  Toplam hacim (m³, otomatik)
+                  {k.quoteForm.extra.volume}
                   <input id="volume" name="volume" readOnly className="w-full rounded border p-3" />
                 </label>
-                <Field id="readyDate" label="Eşyanın Hazır Olma Tarihi *" type="date" required />
+                <Field
+                  id="readyDate"
+                  label={`${k.quoteForm.extra.readyDate} *`}
+                  type="date"
+                  required
+                />
                 <div className="grid gap-2">
-                  <Label htmlFor="incoterm">Teslim şekli *</Label>
+                  <Label htmlFor="incoterm">{k.quoteForm.extra.incoterm} *</Label>
                   <select
                     id="incoterm"
                     name="incoterm"

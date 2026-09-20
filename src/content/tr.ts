@@ -418,7 +418,23 @@ export const tr = {
         cargo: "Yük Tipi / Ağırlık / Ölçü",
         message: "Ek Notlar",
       },
-      modes: ["Karayolu", "Denizyolu", "Gemi Acenteliği", "Havayolu", "Multimodal", "Proje Yükü"],
+      // Gonderilen degerler portalin bekledigi sabitlerdir; yalniz etiketler
+      // dile gore degisir (bkz. portal/quotes.mjs validateQuote).
+      directionLabels: { İthalat: "İthalat", İhracat: "İhracat" },
+      modeLabels: { Hava: "Hava", Kara: "Kara", Deniz: "Deniz", Demiryolu: "Demiryolu" },
+      extra: {
+        direction: "İşlem yönü",
+        originCountry: "Çıkış ülkesi",
+        originAddress: "Yükleme adresi",
+        destinationCountry: "Varış ülkesi",
+        destinationAddress: "Teslim adresi",
+        packages: "Toplam kap",
+        gross: "Brüt kg",
+        net: "Net kg",
+        volume: "Toplam hacim (m³, otomatik)",
+        readyDate: "Eşyanın Hazır Olma Tarihi",
+        incoterm: "Teslim şekli",
+      },
       submit: "E-posta ile Talep Gönder",
     },
     contactForm: {

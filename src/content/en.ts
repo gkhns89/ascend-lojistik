@@ -426,7 +426,23 @@ export const en: Content = {
         cargo: "Cargo Type / Weight / Dimensions",
         message: "Additional Notes",
       },
-      modes: ["Road", "Sea", "Ship Agency", "Air", "Multimodal", "Project Cargo"],
+      // Submitted values stay Turkish because the portal validates against them;
+      // only the labels are translated.
+      directionLabels: { İthalat: "Import", İhracat: "Export" },
+      modeLabels: { Hava: "Air", Kara: "Road", Deniz: "Sea", Demiryolu: "Rail" },
+      extra: {
+        direction: "Direction",
+        originCountry: "Origin country",
+        originAddress: "Pickup address",
+        destinationCountry: "Destination country",
+        destinationAddress: "Delivery address",
+        packages: "Total packages",
+        gross: "Gross weight (kg)",
+        net: "Net weight (kg)",
+        volume: "Total volume (m³, calculated)",
+        readyDate: "Cargo ready date",
+        incoterm: "Incoterm",
+      },
       submit: "Send Request by E-mail",
     },
     contactForm: {
