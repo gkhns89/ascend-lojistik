@@ -14,7 +14,24 @@ export async function createTenantStore(path,options={}){
  let state={users:[],companies:[],shipments:[],ncts:[]};
  const database=await openPortalDatabase(path,options),vault=await secretVault(path);let revision=database.current()?.revision??-1;if(database.current())state=JSON.parse(database.current().body);
  function user(data){const salt=randomBytes(16).toString('hex');return {...pick(data,['username','name','role','companyId','companyName','active','email']),salt,passwordHash:hash(data.password,salt)};}
- if(!state.users.length){state.users=[user({username:'yonetici.demo',name:'Demo Yönetici',role:'Yönetici',password:'AscendDemo!2026',active:true}),user({username:'personel.demo',name:'Demo Personel',role:'Operasyon',password:'AscendDemo!2026',active:true}),user({username:'musteri.demo',name:'Demo Müşteri',role:'Görüntüleme',companyId:'demo-anadolu',password:'AscendDemo!2026',active:true})];state.companies=[{id:'demo-anadolu',name:'DEMO Anadolu Dış Ticaret Ltd. Şti.'}];}
+ // Ilk acilista tek bir yonetici olusturulur ve parolasi cagirandan gelir.
+ // Uretimde bu deger PORTAL_BOOTSTRAP_PASSWORD'dur (bkz. server.mjs); boylece
+ // depoda saklanan sabit bir parola production'a hic sizmaz. Yonetici kendi
+ // parolasini belirledigi anda saklanan ozet degisir ve bootstrap degeri
+ // kendiliginden gecersizlesir; ayrica bir islem gerekmez.
+ //
+ // Parola verilmezse demo hesaplar kurulur. Bu yol yalnizca testler icindir:
+ // server.mjs bootstrap parolasi olmadan baslamayi reddeder.
+ if(!state.users.length){
+  const bootstrap=options.bootstrapPassword;
+  if(bootstrap){
+   state.users=[user({username:'ascend lojistik',name:'Ascend Lojistik',email:'info@ascendlojistik.com',role:'Yönetici',password:bootstrap,active:true})];
+   state.companies=[];
+  }else{
+   state.users=[user({username:'yonetici.demo',name:'Demo Yönetici',role:'Yönetici',password:'AscendDemo!2026',active:true}),user({username:'personel.demo',name:'Demo Personel',role:'Operasyon',password:'AscendDemo!2026',active:true}),user({username:'musteri.demo',name:'Demo Müşteri',role:'Görüntüleme',companyId:'demo-anadolu',password:'AscendDemo!2026',active:true})];
+   state.companies=[{id:'demo-anadolu',name:'DEMO Anadolu Dış Ticaret Ltd. Şti.'}];
+  }
+ }
  function bind(record,module){if(Array.isArray(record.customerCompanyIds))return record;const names=module==='ncts'?[record.sender,record.receiver]:[record.shipper,record.consignee];return {...record,customerCompanyIds:state.companies.filter(c=>names.includes(c.name)).map(c=>String(c.id||c.name))};}
  state.shipments=state.shipments.map(r=>bind(r,'shipments'));state.ncts=state.ncts.map(r=>bind(r,'ncts'));
  function persist(actor='system',detail={}){revision=database.save(state,revision,actor,detail);return Promise.resolve();}

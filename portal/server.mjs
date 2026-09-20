@@ -69,7 +69,21 @@ export async function createPortalServer(env = process.env) {
       files.set(name, await readFile(new URL(`./prototype/${name}`, import.meta.url)));
     }
   }
-  const tenants=await createTenantStore(env.PORTAL_DATA_FILE,{backupDirectory:env.PORTAL_BACKUP_DIRECTORY});
+  // Ilk yoneticinin parolasi cevre degiskeninden gelir; depoda sabit bir
+  // kimlik bilgisi tutulmaz. Yalnizca veritabani bos oldugunda kullanilir ve
+  // yonetici kendi parolasini belirleyince kendiliginden gecersizlesir.
+  // Veriyi kaliciya yazan her kurulum bootstrap parolasi vermek zorundadir;
+  // aksi halde demo hesaplarla acilirdi ve o hesaplarin parolasi acik depoda
+  // yaziyor. Kalici dosyasi olmayan ornekler (testler, gecici deneme) eski
+  // demo fixture'lariyla calismaya devam eder.
+  const bootstrapPassword = env.PORTAL_BOOTSTRAP_PASSWORD ?? '';
+  if (env.PORTAL_DATA_FILE && bootstrapPassword.length < 16) {
+    throw new Error('PORTAL_BOOTSTRAP_PASSWORD en az 16 karakter olmalidir; ilk yonetici bu parolayla olusturulur.');
+  }
+  const tenants=await createTenantStore(env.PORTAL_DATA_FILE,{
+    backupDirectory:env.PORTAL_BACKUP_DIRECTORY,
+    ...(bootstrapPassword?{bootstrapPassword}:{}),
+  });
   const operations=portalOperations(tenants),quotes=quoteService(tenants),offers=offerService(tenants),monitor=monitoring(tenants),mailImports=mailImportService(tenants,quotes,offers),intakeLimits=new Map();
   const mailTransport=createMailTransport(env);let mailTimer;if(mailTransport){mailTimer=setInterval(()=>operations.deliver(mailTransport).catch(()=>tenants.database.audit('system','mail.worker-failed')),60000);mailTimer.unref();}
   const expected = digest(`Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`);
