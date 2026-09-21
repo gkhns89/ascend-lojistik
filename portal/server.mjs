@@ -2,6 +2,7 @@ import {mailImportService} from './mail-import.mjs';
 import {monitoring} from './monitoring.mjs';
 import {offerService} from './offers.mjs';
 import {createMailTransport} from './smtp-transport.mjs';
+import {createDriveUploader} from './drive-backup.mjs';
 import {quoteService} from './quotes.mjs';
 import {portalOperations} from './operations.mjs';
 import { createTenantStore } from './tenant-store.mjs';
@@ -83,6 +84,7 @@ export async function createPortalServer(env = process.env) {
   const tenants=await createTenantStore(env.PORTAL_DATA_FILE,{
     backupDirectory:env.PORTAL_BACKUP_DIRECTORY,
     backupIntervalHours:env.PORTAL_BACKUP_INTERVAL_HOURS,
+    driveUploader:createDriveUploader(env),
     ...(bootstrapPassword?{bootstrapPassword}:{}),
   });
   const operations=portalOperations(tenants),quotes=quoteService(tenants),offers=offerService(tenants),monitor=monitoring(tenants),mailImports=mailImportService(tenants,quotes,offers),intakeLimits=new Map();
