@@ -1,6 +1,17 @@
+import { useState } from "react";
+
 import type { User } from "../lib/api";
 import { MonitorPage } from "../screens/MonitorPage";
+import { QuotesPage } from "../screens/QuotesPage";
 import { ThemeToggle } from "./ThemeToggle";
+
+type Screen = "quotes" | "monitor";
+
+/** Takip Merkezi yalnız yöneticiye açıktır; sınır sunucuda da uygulanır. */
+const SCREENS: { key: Screen; label: string; adminOnly: boolean }[] = [
+  { key: "quotes", label: "Hızlı Fiyat Al", adminOnly: false },
+  { key: "monitor", label: "Takip Merkezi", adminOnly: true },
+];
 
 interface AppShellProps {
   user: User;
@@ -9,6 +20,8 @@ interface AppShellProps {
 
 export function AppShell({ user, onSignOut }: AppShellProps) {
   const isAdmin = user.role === "Yönetici";
+  const available = SCREENS.filter((screen) => isAdmin || !screen.adminOnly);
+  const [screen, setScreen] = useState<Screen>("quotes");
 
   return (
     <div className="min-h-dvh bg-surface">
@@ -32,18 +45,30 @@ export function AppShell({ user, onSignOut }: AppShellProps) {
         </div>
       </header>
 
+      <nav className="border-b border-line bg-card" aria-label="Bölümler">
+        <div className="mx-auto flex max-w-5xl gap-1 px-4">
+          {available.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setScreen(item.key)}
+              aria-current={screen === item.key ? "page" : undefined}
+              className={
+                "border-b-2 px-3 py-3 font-nav text-sm transition " +
+                (screen === item.key
+                  ? "border-brand text-ink"
+                  : "border-transparent text-ink-muted hover:text-ink")
+              }
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
       <main className="mx-auto max-w-5xl px-4 py-8">
-        {isAdmin ? (
-          <MonitorPage />
-        ) : (
-          /*
-           * Bu yalnizca arayuz kisitidir. Gercek sinir sunucudadir:
-           * /api/tenant/monitor yonetici olmayan her istegi 403 ile reddeder.
-           */
-          <p className="rounded-xl border border-line bg-card p-6 text-ink-muted">
-            Takip Merkezi yalnız Yönetici rolüne açıktır.
-          </p>
-        )}
+        {screen === "quotes" ? <QuotesPage isAdmin={isAdmin} /> : null}
+        {screen === "monitor" && isAdmin ? <MonitorPage /> : null}
       </main>
     </div>
   );

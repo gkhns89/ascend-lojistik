@@ -98,8 +98,8 @@
   --accent: oklch(0.93 0.025 292);
   --accent-foreground: var(--ascend-brand);
 
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
+  --destructive: var(--ascend-danger);
+  --destructive-foreground: var(--ascend-on-danger);
 
   --border: var(--ascend-border);
   --input: var(--ascend-border);

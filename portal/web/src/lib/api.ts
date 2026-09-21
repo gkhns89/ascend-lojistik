@@ -55,6 +55,41 @@ export interface MonitorReport {
   revision: number;
 }
 
+/** GET /api/tenant/quotes — personel; taslaklar yalnız yöneticiye anlamlıdır. */
+export interface QuoteDraft {
+  id: string;
+  quote_id: string;
+  carrier_id: string;
+  status: string;
+  body: { to: string[]; cc: string[]; subject: string; text: string };
+}
+
+export interface QuoteBody {
+  company: string;
+  person: string;
+  email: string;
+  phone: string;
+  direction: string;
+  mode: string;
+  originCountry: string;
+  originCity: string;
+  destinationCountry: string;
+  destinationCity: string;
+  goods: string;
+  readyDate: string;
+  incoterm: string;
+  [field: string]: string;
+}
+
+export interface QuoteRequest {
+  id: string;
+  created_at: string;
+  created_by: string;
+  status: string;
+  body: QuoteBody;
+  drafts: QuoteDraft[];
+}
+
 export class ApiError extends Error {
   readonly status: number;
 
@@ -123,5 +158,32 @@ export const api = {
 
   monitor(): Promise<MonitorReport> {
     return request<MonitorReport>("/api/tenant/monitor");
+  },
+  quotes(): Promise<QuoteRequest[]> {
+    return request<QuoteRequest[]>("/api/tenant/quotes");
+  },
+
+  /** Kayıtlı taşıyıcılarla yeniden eşleştirip taslakları tazeler. */
+  prepareQuote(id: string): Promise<unknown> {
+    return request("/api/tenant/quotes/prepare", {
+      method: "POST",
+      body: JSON.stringify({ id }),
+    });
+  },
+
+  /** Yalnız yönetici; teklife dönüşmüş talep sunucuda reddedilir. */
+  dismissQuote(id: string): Promise<unknown> {
+    return request("/api/tenant/quotes/dismiss", {
+      method: "POST",
+      body: JSON.stringify({ id }),
+    });
+  },
+
+  /** Sunucu `reviewed` olmadan onaylamaz; gözden geçirme bilinçli bir adımdır. */
+  approveDraft(input: { id: string; subject: string; text: string }): Promise<unknown> {
+    return request("/api/tenant/quotes/approve", {
+      method: "POST",
+      body: JSON.stringify({ ...input, reviewed: true }),
+    });
   },
 };

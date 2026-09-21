@@ -40,6 +40,8 @@
   --color-ink: var(--ascend-text);
   --color-ink-muted: var(--ascend-text-muted);
   --color-line: var(--ascend-border);
+  --color-danger: var(--ascend-danger);
+  --color-on-danger: var(--ascend-on-danger);
 
   --font-sans: var(--ascend-font-sans);
   --font-display: var(--ascend-font-display);

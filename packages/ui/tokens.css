@@ -32,6 +32,10 @@
   /* Çizgiler */
   --ascend-border: oklch(0.85 0.008 250);
 
+  /* Yıkıcı eylem (silme, kaldırma) */
+  --ascend-danger: oklch(0.577 0.245 27.325);
+  --ascend-on-danger: oklch(0.985 0 0);
+
   /* Tipografi */
   --ascend-font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --ascend-font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
