@@ -3,6 +3,9 @@ node_modules
 .env
 *.sqlite*
 *.key
-*backup*
+# Yedek VERILERI disarida kalir. Onceki desen (*backup*) kaynak dosyalari da
+# kapsiyordu: drive-backup.mjs imaja girmedigi icin sunucu acilamiyordu.
+backups/
+*.sqlite.*
 assets
 notifications
