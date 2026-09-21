@@ -444,6 +444,23 @@ export const en: Content = {
         incoterm: "Incoterm",
       },
       submit: "Send Request by E-mail",
+      portalSubtitle: "Fill in every field and your request goes straight to our operations team.",
+      portalSubmit: "Send Request",
+      status: {
+        saving: "Saving your request…",
+        savedTitle: "Request received",
+        savedReference: "Your reference number",
+        savedMail: "A confirmation e-mail has been sent to {email}.",
+        savedNext: "Our team will get back to you shortly.",
+        missing: "Please fill in every required field.",
+        numbers:
+          "Packages must be a whole number, weight and volume positive; net weight cannot exceed gross.",
+        email: "Enter a valid e-mail address.",
+        dimensions: "Please check the dimensions.",
+        failed: "The request could not be saved.",
+        offline: "Could not reach the server. Please try again.",
+        mailto: "Your request is being prepared in your e-mail application; send it from there.",
+      },
     },
     contactForm: {
       title: "Contact Form",

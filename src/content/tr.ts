@@ -436,6 +436,24 @@ export const tr = {
         incoterm: "Teslim şekli",
       },
       submit: "E-posta ile Talep Gönder",
+      // Portal ucu tanimliyken form e-posta uygulamasini acmaz, talebi dogrudan
+      // kaydeder; bu yuzden baslik ve buton yazisi da degisir.
+      portalSubtitle: "Tüm alanları doldurun; talebiniz operasyon ekibimize kaydedilsin.",
+      portalSubmit: "Talebi Gönder",
+      status: {
+        saving: "Talep kaydediliyor…",
+        savedTitle: "Talebiniz alındı",
+        savedReference: "Referans numaranız",
+        savedMail: "Onay e-postası {email} adresine gönderildi.",
+        savedNext: "Ekibimiz en kısa sürede size dönüş yapacak.",
+        missing: "Lütfen tüm zorunlu alanları doldurun.",
+        numbers: "Kap tam sayı, ağırlık ve hacim pozitif olmalı; net kilo brüt kiloyu aşamaz.",
+        email: "Geçerli bir e-posta adresi girin.",
+        dimensions: "Ölçüleri kontrol edin.",
+        failed: "Talep kaydedilemedi.",
+        offline: "Bağlantı kurulamadı. Lütfen tekrar deneyin.",
+        mailto: "Talebiniz e-posta uygulamasında hazırlanıyor; gönderimi oradan tamamlayın.",
+      },
     },
     contactForm: {
       title: "İletişim Formu",

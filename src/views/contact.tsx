@@ -1,6 +1,6 @@
 import { calculateVolume } from "../../portal/prototype/quote-volume.mjs";
 import { useState, type FormEvent } from "react";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { CheckCircle2, Mail, MapPin, Phone } from "lucide-react";
 import { SiteLayout } from "@/components/site/site-layout";
 import { PageHero, Section } from "@/components/site/section";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,18 @@ export function ContactPage() {
   const { c } = useI18n();
   const k = c.contact;
 
+  // Basarili kayit ayri tutulur: hata metni gibi kaybolmasin, referans numarasi
+  // vurgulu bir kutuda kalsin ve form temizlensin.
   const [quoteStatus, setQuoteStatus] = useState("");
+  const [quoteSaved, setQuoteSaved] = useState<{ id: string; email: string } | null>(null);
   const [quoteBusy, setQuoteBusy] = useState(false);
+  const st = k.quoteForm.status;
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    if (e.currentTarget.dataset["formType"] === "quote") {
+    const formEl = e.currentTarget;
+    const form = new FormData(formEl);
+    if (formEl.dataset["formType"] === "quote") {
+      setQuoteSaved(null);
       const fields = [
         "company",
         "person",
@@ -55,12 +61,12 @@ export function ContactPage() {
           ),
         );
       } catch (error) {
-        setQuoteStatus(error instanceof Error ? error.message : "Ölçüleri kontrol edin.");
+        setQuoteStatus(error instanceof Error ? error.message : st.dimensions);
         return;
       }
       const missing = fields.find((key) => !String(form.get(key) || "").trim());
       if (missing) {
-        setQuoteStatus("Lütfen tüm zorunlu alanları doldurun.");
+        setQuoteStatus(st.missing);
         document.getElementById(missing)?.focus();
         return;
       }
@@ -69,19 +75,18 @@ export function ContactPage() {
         Number(form.get("net")) > Number(form.get("gross")) ||
         !Number.isInteger(Number(form.get("packages")))
       ) {
-        setQuoteStatus(
-          "Kap tam sayı, ağırlık ve hacim pozitif olmalı; net kilo brüt kiloyu aşamaz.",
-        );
+        setQuoteStatus(st.numbers);
         return;
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(form.get("email") || "").trim())) {
-        setQuoteStatus("Geçerli bir e-posta adresi girin.");
+        setQuoteStatus(st.email);
         return;
       }
       const endpoint = import.meta.env["VITE_PORTAL_QUOTE_URL"];
       if (endpoint) {
+        const email = String(form.get("email") || "").trim();
         setQuoteBusy(true);
-        setQuoteStatus("Talep kaydediliyor…");
+        setQuoteStatus(st.saving);
         try {
           const response = await fetch(endpoint, {
             method: "POST",
@@ -89,19 +94,20 @@ export function ContactPage() {
             body: JSON.stringify(Object.fromEntries(form.entries())),
           });
           const result = await response.json();
-          if (!response.ok) throw new Error(result.error || "Talep kaydedilemedi.");
-          setQuoteStatus("Talebiniz kaydedildi. Referans: " + result.id);
+          if (!response.ok) throw new Error(result.error || st.failed);
+          // Once kutuyu goster, sonra formu bosalt: iki kez gonderim olmasin.
+          setQuoteStatus("");
+          setQuoteSaved({ id: String(result.id), email });
+          formEl.reset();
           trackLead("quote_portal_saved");
         } catch (error) {
-          setQuoteStatus(
-            error instanceof Error ? error.message : "Bağlantı kurulamadı. Lütfen tekrar deneyin.",
-          );
+          setQuoteStatus(error instanceof Error ? error.message : st.offline);
         } finally {
           setQuoteBusy(false);
         }
         return;
       }
-      setQuoteStatus("Talebiniz e-posta uygulamasında hazırlanıyor; gönderimi oradan tamamlayın.");
+      setQuoteStatus(st.mailto);
     }
     const lines = Array.from(form.entries())
       .filter(([, value]) => String(value).trim())
@@ -146,7 +152,7 @@ export function ContactPage() {
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 {import.meta.env["VITE_PORTAL_QUOTE_URL"]
-                  ? "Tüm alanları doldurun; talebiniz operasyon ekibimize kaydedilsin."
+                  ? k.quoteForm.portalSubtitle
                   : k.quoteForm.subtitle}
               </p>
 
@@ -242,16 +248,37 @@ export function ContactPage() {
                 </div>
               </div>
 
-              <p role="status" aria-live="polite" className="mt-4">
-                {quoteStatus}
-              </p>
+              <div role="status" aria-live="polite">
+                {quoteSaved ? (
+                  <div
+                    ref={(node) => node?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                    className="mt-6 rounded-xl border-2 border-primary bg-secondary p-6"
+                  >
+                    <p className="flex items-center gap-2 font-display text-lg font-bold text-primary">
+                      <CheckCircle2 className="size-6 shrink-0" aria-hidden="true" />
+                      {st.savedTitle}
+                    </p>
+                    <p className="mt-3 text-sm text-muted-foreground">{st.savedReference}</p>
+                    <p className="font-display text-3xl font-bold tracking-tight text-foreground">
+                      {quoteSaved.id}
+                    </p>
+                    <p className="mt-3 text-sm text-foreground">
+                      {st.savedMail.replace("{email}", quoteSaved.email)}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">{st.savedNext}</p>
+                  </div>
+                ) : null}
+                {quoteStatus ? <p className="mt-4 text-sm text-foreground">{quoteStatus}</p> : null}
+              </div>
               <Button
                 type="submit"
                 size="lg"
                 disabled={quoteBusy}
                 className="mt-8 w-full sm:w-auto"
               >
-                {k.quoteForm.submit}
+                {import.meta.env["VITE_PORTAL_QUOTE_URL"]
+                  ? k.quoteForm.portalSubmit
+                  : k.quoteForm.submit}
               </Button>
             </form>
 
