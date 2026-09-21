@@ -57,10 +57,11 @@ export async function createPortalServer(env = process.env) {
   const preview = env.PORTAL_PREVIEW_ENABLED === 'true';
   const publicOrigin=env.PORTAL_PUBLIC_ORIGIN||'';
   if(publicOrigin){const url=new URL(publicOrigin);if(url.protocol!=='https:'||url.origin!==publicOrigin)throw Error('PORTAL_PUBLIC_ORIGIN must be an HTTPS origin without a path.');}
+  const requireGate = env.PORTAL_PREVIEW_REQUIRE_AUTH !== 'false';
   const secureCookie=publicOrigin?'; Secure':'';
   const username = env.PORTAL_PREVIEW_USER ?? '';
   const password = env.PORTAL_PREVIEW_PASSWORD ?? '';
-  if (preview && (!username || username.includes(':') || password.length < 24)) {
+  if (preview && requireGate && (!username || username.includes(':') || password.length < 24)) {
     throw new Error('Preview requires a username without a colon and a password of at least 24 characters.');
   }
   // Read the complete release before declaring readiness. Never serve arbitrary paths.
@@ -121,7 +122,7 @@ export async function createPortalServer(env = process.env) {
       const key=req.socket.remoteAddress,prior=intakeLimits.get(key),now=Date.now();const count=prior&&prior.until>now?prior.count:0;if(count>=10)return send(429,JSON.stringify({error:'Çok fazla talep. Daha sonra tekrar deneyin.'}),'application/json');intakeLimits.set(key,{count:count+1,until:now+3600000});
       try{let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>30000)return send(413,'Too large');}const result=quotes.intake(JSON.parse(raw));return send(201,JSON.stringify(result),'application/json');}catch(e){return send(400,JSON.stringify({error:e.message}),'application/json');}
     }
-    if (!timingSafeEqual(digest(req.headers.authorization ?? ''), expected)) {
+    if (requireGate && !timingSafeEqual(digest(req.headers.authorization ?? ''), expected)) {
       // Realm cevre degiskeninden okunur. Tarayicilar Basic kimlik bilgisini
       // (origin + realm) ciftine gore onbellege alir; realm degistiginde yeni
       // bir koruma alani sayip yeniden sorarlar. Kayitli yanlis parola bir
