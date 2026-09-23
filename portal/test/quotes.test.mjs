@@ -24,3 +24,15 @@ test('website intake acknowledges the requester once and never names the carrier
 
 // Panelden acilan talep otomatik onay uretmez: operator kendisi yazisir.
 test('staff-created quotes do not mail the customer',async()=>{const store=await createTenantStore();try{const token=store.login('yonetici.demo','AscendDemo!2026').token,admin=store.principal({headers:{cookie:'ascend_sid='+token}});await store.sync(admin,{companies:[carrier('a','Kara','a@example.com')]});quoteService(store).create(admin,request);assert.equal(portalOperations(store).outbox(admin).length,0);}finally{store.close();}});
+
+// Ulke adlari elle yazilir ve veri cogunlukla buyuk harftir. Turkce kucultme
+// 'I' harfini noktasiz 'ı' yaptigi icin 'ITALYA' ile 'İtalya' eslesmezdi ve
+// talep sebebi gorunmeden taşıyıcı bekler durumda kalirdi.
+test('carrier matching survives the dotted and dotless Turkish i',()=>{
+ const italya=id=>({id,name:id,isCarrier:true,serviceCountries:['İtalya'],contacts:[{first:'T',transportMode:'Kara',email:'a@example.com'}]});
+ for(const yazim of ['İtalya','ITALYA','italya','ıtalya','İTALYA'])
+  assert.equal(matchCarriers([italya('a')],{...request,originCountry:yazim}).length,1,'eslesmeli: '+yazim);
+ // Farkli ulkeler hala ayrilir; katlama her seyi birbirine karistirmamali.
+ assert.equal(matchCarriers([italya('a')],{...request,originCountry:'İspanya'}).length,0);
+ assert.equal(matchCarriers([italya('a')],{...request,originCountry:'Almanya'}).length,0);
+});
