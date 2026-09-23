@@ -88,6 +88,34 @@ export async function createPortalServer(env = process.env) {
     driveUploader:createDriveUploader(env),
     ...(bootstrapPassword?{bootstrapPassword}:{}),
   });
+  // Yonetici parolasini unuttugunda tek cikis yolu. Sifirlama jetonunu normalde
+  // oturum acmis bir yonetici uretir; kimse giremiyorsa o kapi kapalidir. Railway'de
+  // PORTAL_RECOVERY=true verilince acilista tek aktif yoneticiye 15 dakikalik bir
+  // jeton uretilir ve dagitim gunlugune yazilir. Gunluge parola degil jeton duser;
+  // yeni parolayi kullanici control-center.html uzerinden kendisi belirler.
+  // Bu yol yetki sinirini genisletmez: degiskeni yazabilen kisi zaten kodu ve
+  // ortami degistirebiliyor. Islem denetim gunlugune de yazilir.
+  // Kurtarma bittikten sonra degisken KALDIRILMALIDIR.
+  if(env.PORTAL_RECOVERY==='true'){
+    try{
+      const system={username:'system',role:'Yönetici'};
+      const admins=tenants.data(system).users.filter(x=>x.active&&x.role==='Yönetici');
+      const wanted=String(env.PORTAL_RECOVERY_USERNAME||'').trim();
+      const target=wanted?admins.find(x=>x.username===wanted):(admins.length===1?admins[0]:null);
+      if(!target){
+        console.warn('[kurtarma] Hedef secilemedi. Aktif yoneticiler: '+(admins.map(x=>x.username).join(', ')||'(yok)')+'. PORTAL_RECOVERY_USERNAME ile birini secin.');
+      }else{
+        const {token,expiresMinutes}=await tenants.security('reset-create',system,{username:target.username});
+        console.warn('[kurtarma] Kullanici adi: '+target.username);
+        console.warn('[kurtarma] Jeton ('+expiresMinutes+' dakika gecerli): '+token);
+        console.warn('[kurtarma] control-center.html > Sifre sifirla bolumune bu jetonu ve yeni parolani gir (en az 12 karakter).');
+        console.warn('[kurtarma] Bittiginde PORTAL_RECOVERY degiskenini SIL.');
+      }
+    }catch(error){
+      // Kurtarma basarisiz olsa bile portal ayaga kalkmali.
+      console.warn('[kurtarma] Jeton uretilemedi: '+error.message);
+    }
+  }
   const operations=portalOperations(tenants),quotes=quoteService(tenants),offers=offerService(tenants),monitor=monitoring(tenants),mailImports=mailImportService(tenants,quotes,offers),intakeLimits=new Map();
   const mailTransport=createMailTransport(env);let mailTimer;if(mailTransport){mailTimer=setInterval(()=>operations.deliver(mailTransport).catch(()=>tenants.database.audit('system','mail.worker-failed')),60000);mailTimer.unref();}
   const expected = digest(`Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`);
