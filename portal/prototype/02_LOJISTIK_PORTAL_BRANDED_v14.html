@@ -544,7 +544,7 @@ table{border-radius:8px;overflow:hidden}th{background:#eef3f6;color:#302080;text
       <button class="secondary" onclick="previewNoticePdf()">PDF Hazırla / Yazdır</button>
       <button class="secondary" onclick="closeMailModal()">Vazgeç</button>
     </div>
-    <div class="muted" role="status" id="noticeDeliveryStatus" style="margin-top:8px">E-posta bağlantısı kurulmadı. Bu ekran taslaktır; otomatik gönderim ve PDF eki henüz bağlı değildir.</div>
+    <div class="muted" role="status" id="noticeDeliveryStatus" style="margin-top:8px">Bu pencere bildirimi hazırlar ve PDF çıktısını alır. Gönderim, Kontrol Merkezi > Gönderim kuyruğu bölümünden yapılır.</div>
   </div>
 </div>
 
@@ -853,7 +853,7 @@ async function openMailModal(i,type){
  const notice=AscendNotifications.create(r,type==='Çıkış Bildirimi'?'departure':'arrival');
  mailSubject.value=notice.subject;mailBody.value=notice.text;
  mailAttachment.value=notice.attachmentName+' (PDF hazırlanacak)';
- noticeDeliveryStatus.textContent=rec.to.length?'Taslak hazır. E-posta bağlantısı kurulmadığı için gönderilmedi.':'Bildirim alıcısı seçilmemiş. Firma kartındaki ilgili bildirim tercihini işaretleyin. E-posta gönderilmedi.';
+ noticeDeliveryStatus.textContent=rec.to.length?'Taslak hazır. Göndermek için Kontrol Merkezi > Gönderim kuyruğu bölümünü kullanın.':'Bildirim alıcısı seçilmemiş. Firma kartındaki ilgili bildirim tercihini işaretleyin. E-posta gönderilmedi.';
  mailModal.classList.remove('hidden');
 }
 function closeMailModal(){mailModal.classList.add('hidden');}
