@@ -1075,7 +1075,11 @@ function openFinance(){
 function renderFinance(){
  financeSalesLabel.textContent=logisticsReadOnly()?'Toplam Navlun':'Toplam Navlun Satış';
  financeBody.innerHTML='';
- let totalSales=0,totalProfit=0,totalShare=0,totalShareTL=0;
+ // Her satirin kendi dovizi var. Farkli dovizler toplanamaz: 500 EUR ile
+ // 500 USD'yi 1000 diye gostermek yanlis rakam uretir. Her doviz icin
+ // ayri toplam tutulur. Pay TL bunun disindadir; kur ile TL'ye cevrildigi
+ // icin tek toplami dogrudur.
+ const byCurrency=new Map();let totalShareTL=0;
  rows.forEach((r,i)=>{
    const purchase=parseFloat(r.purchasePrice||0);
    const sale=parseFloat(r.salePrice||0);
@@ -1083,7 +1087,10 @@ function renderFinance(){
    const share=profit/3;
    const rate=parseFloat(r.exchangeRate||0);
    const shareTL=rate ? share*rate : 0;
-   totalSales+=sale;totalProfit+=profit;totalShare+=share;totalShareTL+=shareTL;
+   const code=String(r.financeCurrency||'EUR');
+   const bucket=byCurrency.get(code)||{sales:0,profit:0,share:0};
+   bucket.sales+=sale;bucket.profit+=profit;bucket.share+=share;
+   byCurrency.set(code,bucket);totalShareTL+=shareTL;
    const tr=document.createElement('tr');
    tr.innerHTML=`
    <td>${r.fileNo}</td>
@@ -1102,10 +1109,18 @@ function renderFinance(){
    <td><button class="secondary" onclick="${logisticsReadOnly()?"viewFinanceShipment":"editFinance"}(${i})">${logisticsReadOnly()?"Görüntüle":logisticsView==="staff"?"Tarihleri Güncelle":"Düzenle"}</button></td>`;
    financeBody.appendChild(tr);
  });
- financeTotalSales.textContent=totalSales.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
- financeTotalProfit.textContent=(isFinanceAdmin()?totalProfit:0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
- financeTotalShare.textContent=(isFinanceAdmin()?totalShare:0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
- financeTotalShareTL.textContent=(isFinanceAdmin()?totalShareTL:0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+ // Doviz kodu kullanicidan gelir ve sunucuda listeye karsi dogrulanmaz;
+ // bu yuzden metin olarak basilir, innerHTML ile degil.
+ const money=n=>n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const codes=[...byCurrency.keys()].sort((a,b)=>a.localeCompare(b,'tr'));
+ const fill=(node,pick)=>{node.replaceChildren();
+  if(!codes.length){node.textContent='0,00';return;}
+  for(const code of codes){const line=document.createElement('div');
+   line.textContent=money(pick(byCurrency.get(code)))+' '+code;node.appendChild(line);}};
+ fill(financeTotalSales,b=>b.sales);
+ fill(financeTotalProfit,b=>isFinanceAdmin()?b.profit:0);
+ fill(financeTotalShare,b=>isFinanceAdmin()?b.share:0);
+ financeTotalShareTL.textContent=money(isFinanceAdmin()?totalShareTL:0)+' TL';
  applyFinanceRoleVisibility();
 }
 

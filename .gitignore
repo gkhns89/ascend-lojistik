@@ -38,3 +38,9 @@ portal/.data/
 
 output/
 portal/*audit.json
+
+# Gercek is verisi. Firma adlari, fiyatlar, kazanc ve pay bilgileri icerir;
+# depo herkese aciktir ve bunlar asla islenmemelidir (bkz. AGENTS.md).
+*.xlsx
+*.xls
+*.csv
