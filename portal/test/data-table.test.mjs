@@ -107,3 +107,15 @@ test('messages stay visible: sticky page status, errors inside an open dialog, h
  // Filtreli toplam, tum toplam sanilmasin.
  for(const id of ['lgTotalsNote','ncTotalsNote','trTotalsNote'])assert.ok(finans.includes('id="'+id+'"'),id);
 });
+
+test('Lojistik finance lets the user hide amount columns and always offers a way back',()=>{
+ const html=readFileSync(new URL('../prototype/finans.html',import.meta.url),'utf8');
+ for(const col of ['purchase','sale','profit','share','rate','share-tl'])assert.ok(html.includes('data-col="'+col+'"'),col);
+ // Kimlik, taraflar, doviz ve odeme durumu gizlenemez.
+ assert.ok(!/data-col="[^"]+"[^>]*>(Dosya|Gönderici → Alıcı|Döviz|Ödendi)</.test(html));
+ assert.ok(html.includes("AscendTable.columns($('lgRows').closest('table'),'finans.logistics'"));
+ assert.ok(source.includes("textContent='Varsayılana dön'"));
+ assert.ok(source.includes("write(key+'.cols'"),'secim oturumda saklanir');
+ const css=readFileSync(new URL('../prototype/data-table.css',import.meta.url),'utf8');
+ assert.ok(!/[\u0000-\u0008\u000b-\u001f]/.test(css),'CSS icinde kontrol karakteri yok');
+});

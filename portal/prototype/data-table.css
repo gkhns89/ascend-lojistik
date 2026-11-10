@@ -36,7 +36,7 @@
 .data-table th.actions,.data-table td.actions{white-space:nowrap;text-align:right;width:1%}
 .data-table .row-actions{display:inline-flex;gap:6px;align-items:center;justify-content:flex-end}
 .data-table .row-actions button,.data-table button.small{padding:5px 11px;font-size:12.5px;line-height:1.2;width:auto;min-height:0;border-radius:8px}
-.data-table input[type=checkbox]{width:16px;height:16px;margin:0;vertical-align:middle;cursor:pointer}
+.data-table input[type=checkbox]{width:16px;height:16px;min-height:0;margin:0;vertical-align:middle;cursor:pointer}
 .data-table .paid-cell{white-space:nowrap}
 .data-table .paid-cell label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .data-table .neg{color:#c0392b}
@@ -76,6 +76,17 @@
   .bulk-bar{bottom:8px;padding:10px 12px}
   .bulk-bar button{flex:1 1 auto}
 }
+/* Sutun menusu: arac cubugunda; panel acilir, disari tiklayinca kapanir. */
+.col-menu{position:relative}
+.col-menu>summary{list-style:none;cursor:pointer;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-weight:700;font-size:13px;padding:6px 14px;white-space:nowrap}
+.col-menu>summary::-webkit-details-marker{display:none}
+.col-menu>summary::after{content:'\25BE';margin-left:6px}
+.col-menu[open]>summary,.col-menu>summary:hover{color:var(--text);border-color:var(--primary)}
+.col-menu-panel{position:absolute;z-index:20;top:calc(100% + 6px);left:0;display:grid;gap:4px;min-width:200px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);box-shadow:0 8px 24px rgb(0 0 0/.16)}
+.col-menu-panel label{display:flex;align-items:center;gap:8px;padding:4px 2px;font-size:14px;cursor:pointer}
+.col-menu-panel input{width:16px;height:16px;min-height:0;margin:0}
+.col-menu-panel button{margin-top:6px;justify-self:start;min-height:0;padding:5px 11px;font-size:12.5px}
+@media (max-width:640px){.col-menu-panel input{width:24px;height:24px}.col-menu-panel label{padding:6px 2px}}
 /* Sayfa durum bildirimi: sayfa kayarken ustte yapisik kalir; tiklayinca kapanir. */
 .page-status{margin:0}
 .page-status:not(:empty){position:sticky;top:8px;z-index:30;margin:8px 0;padding:10px 40px 10px 14px;border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:10px;background:var(--card);color:var(--text);font-weight:600;box-shadow:0 8px 24px rgb(0 0 0/.14);cursor:pointer}

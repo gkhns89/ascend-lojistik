@@ -155,6 +155,49 @@
     box.textContent=kind==='error'?(text||''):'';
   }
 
+  // ---------- Sutun goster/gizle ----------
+  // Yalniz basliginda data-col olan sutunlar gizlenebilir; kimlik, taraflar
+  // ve durum hep gorunur. Gizleme bir <style> kuraliyla yapilir: tablo her
+  // cizimde yeniden kurulsa da secim gecerli kalir. Secim oturumda saklanir;
+  // "Varsayilana don" her zaman menude.
+  function columns(table,key,host){
+    const head=[...(table.tHead?.rows[0]?.cells||[])];
+    const options=head.map((th,i)=>({th,i,col:th.dataset.col})).filter(o=>o.col);
+    if(!options.length||!host)return null;
+    if(!table.id)table.id='dt-'+key.replace(/[^a-z0-9]+/gi,'-');
+    const known=new Set(options.map(o=>o.col));
+    const saved=read(key+'.cols');
+    const hidden=new Set((Array.isArray(saved)?saved:[]).filter(c=>known.has(c)));
+    const style=document.createElement('style');document.head.append(style);
+    const label=th=>[...th.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim();
+    const menu=document.createElement('details');menu.className='col-menu';
+    const summary=document.createElement('summary');
+    const panel=document.createElement('div');panel.className='col-menu-panel';
+    panel.setAttribute('role','group');panel.setAttribute('aria-label','Görünen sütunlar');
+    const boxes=options.map(o=>{
+      const row=document.createElement('label');const box=document.createElement('input');box.type='checkbox';
+      box.onchange=()=>{if(box.checked)hidden.delete(o.col);else hidden.add(o.col);paint();};
+      row.append(box,document.createTextNode(label(o.th)));panel.append(row);
+      return {o,box};
+    });
+    const reset=document.createElement('button');reset.type='button';reset.className='secondary small';reset.textContent='Varsayılana dön';
+    reset.onclick=()=>{hidden.clear();paint();};
+    panel.append(reset);menu.append(summary,panel);
+    const count=host.querySelector('.count');
+    if(count)host.insertBefore(menu,count);else host.append(menu);
+    function paint(){
+      style.textContent=options.filter(o=>hidden.has(o.col)).map(o=>'#'+table.id+' tr>:nth-child('+(o.i+1)+'){display:none}').join('\n');
+      for(const {o,box} of boxes)box.checked=!hidden.has(o.col);
+      summary.textContent=hidden.size?'Sütunlar ('+hidden.size+' gizli)':'Sütunlar';
+      reset.disabled=!hidden.size;
+      write(key+'.cols',hidden.size?[...hidden]:null);
+    }
+    document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
+    menu.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu.open){menu.open=false;summary.focus();}});
+    paint();
+    return {hidden:()=>[...hidden],reset(){hidden.clear();paint();}};
+  }
+
   function sortable(table,key){
     explain(table);
     const head=table.tHead?.rows[0];
@@ -212,5 +255,5 @@
     return {apply,reset(){state=null;write(key,null);paint();}};
   }
 
-  window.AscendTable={sortable,explain,highlight,notify,fold,read,write,parseNumber};
+  window.AscendTable={sortable,columns,explain,highlight,notify,fold,read,write,parseNumber};
 })();

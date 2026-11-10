@@ -119,7 +119,18 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
    - `tfoot` ile sabit alt satır denenebilir.
    - Döviz başına çok satırlı toplam tek satıra sığmayabilir. Ekran görüntüsüyle
      karar ver; kartlar daha okunaklıysa kalsın, nedenini buraya yaz.
-5. [ ] **Sütun göster/gizle ve "Varsayılana dön".** Yalnız Lojistik finans
+5. [x] **Sütun göster/gizle** (yapıldı, 11 Kasım 2026).
+   - Lojistik finans araç çubuğunda "Sütunlar" menüsü. Gizlenebilen:
+     Alış, Satış, Kazanç, Pay (1/3), Kur, Pay TL. Dosya, taraflar, döviz,
+     ödeme durumu ve pay aktarımı hep görünür.
+   - Menü başlığı kaç sütunun gizli olduğunu söyler ("Sütunlar (2 gizli)").
+     "Varsayılana dön" menüde her zaman var. Seçim tarayıcı sekmesinde
+     oturum boyunca korunur (yenilemede denendi). Ortak yardımcı:
+     `AscendTable.columns`; başka tabloya `data-col` ile eklenir.
+   - Yan bulgu: genel `input{min-height:36px}` onay kutularını da 36 px
+     yapıyordu; tablo ve menü kutularında sıfırlandı, satırlar sıkılaştı.
+
+   Önceki not: **Sütun göster/gizle ve "Varsayılana dön".** Yalnız Lojistik finans
    (12 sütun) için. Örnek: Alış ve Kur dar ekranda gizlenebilir. Seçim oturum
    deposunda tutulur.
 6. [x] **Telefonda dokunma hedefleri** (yapıldı, 11 Kasım 2026). 640 px
