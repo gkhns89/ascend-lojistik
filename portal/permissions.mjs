@@ -15,9 +15,11 @@ export const customerRoles = new Set(['Müşteri', 'Görüntüleme']);
 
 // collection: tenant-store'daki durum anahtari.
 // hidden: finans yetkisi olmayana okunurken silinen alanlar.
-// protected: finans yetkisi olmayanin yazamadigi alanlar. Lojistik'te satis
-//   fiyati ve dovizi personele okunur ama yazilamaz; bu, sistemin yetki
-//   oncesindeki davranisidir ve korunur.
+// protected: finans yetkisi olmayanin yazamadigi alanlar.
+// Lojistik'te satis fiyati, dovizi, odeme tarihi ve vade de finanstir.
+// Yetki sisteminin ilk surumu bunlari personele okutmaya devam ediyordu
+// (eski davranisi korumak icin); bu yuzden finans yetkisi olmayan personel
+// Finans bolumune girip navlun tutarlarini gorebiliyor, odeme isaretleyebiliyordu.
 export const MODULES = {
   ncts: {
     label: 'NCTS / T1',
@@ -36,8 +38,8 @@ export const MODULES = {
   logistics: {
     label: 'Lojistik Operasyon',
     collection: 'shipments',
-    hidden: ['purchasePrice', 'profit', 'share', 'shareTL', 'exchangeRate'],
-    protected: ['purchasePrice', 'profit', 'share', 'shareTL', 'exchangeRate', 'salePrice', 'financeCurrency', 'paymentDueDate'],
+    hidden: ['purchasePrice', 'profit', 'share', 'shareTL', 'exchangeRate', 'salePrice', 'financeCurrency', 'paymentDate', 'paymentDueDate'],
+    protected: ['purchasePrice', 'profit', 'share', 'shareTL', 'exchangeRate', 'salePrice', 'financeCurrency', 'paymentDate', 'paymentDueDate'],
     staffDefault: true,
   },
 };

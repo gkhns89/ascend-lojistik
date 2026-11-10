@@ -64,8 +64,11 @@ test('staff without finance see no finance field in any module, including NCTS c
  try{
   const staff=as(store,'personel.demo'),data=store.data(staff);
   const s=data.shipments.find(r=>r.fileNo===shipment.fileNo);
-  for(const f of ['purchasePrice','profit','share','shareTL','exchangeRate'])assert.equal(f in s,false,f);
-  assert.equal(s.salePrice,500,'satis fiyati personele okunur; yetki oncesi davranis');
+  // Satis fiyati, dovizi ve odeme tarihi de finanstir. Ilk surum bunlari
+  // personele okutuyordu; finans yetkisi olmayan personel Finans bolumunde
+  // navlun tutarlarini goruyor ve odeme isaretleyebiliyordu.
+  for(const f of ['purchasePrice','profit','share','shareTL','exchangeRate','salePrice','financeCurrency','paymentDate','paymentDueDate'])assert.equal(f in s,false,f);
+  assert.equal(s.shipper,shipment.shipper,'operasyon alanlari okunur');
   const n=data.ncts.find(r=>r.no===ncts.no);
   for(const f of ['freightFee','guaranteeFee','feeCurrency','purchasePrice'])assert.equal(f in n,false,f);
   assert.deepEqual(data.transport,[],'Ic Nakliye varsayilan olarak kapali');
@@ -128,9 +131,9 @@ test('staff without finance cannot change money, and their edit keeps the old va
   assert.equal(row.warehouse,'Antrepo 5','operasyon alani yazilir');
   assert.equal(row.fee,2500);assert.equal(row.paid,false);assert.equal(row.currency,'TRY');
 
-  await store.sync(staff,{_revision:store.revision(),shipments:[{fileNo:shipment.fileNo,purchasePrice:1,salePrice:1}]});
+  await store.sync(staff,{_revision:store.revision(),shipments:[{fileNo:shipment.fileNo,purchasePrice:1,salePrice:1,paymentDate:'2026-11-10'}]});
   const s=store.data(as(store,'yonetici.demo')).shipments.find(r=>r.fileNo===shipment.fileNo);
-  assert.equal(s.purchasePrice,300);assert.equal(s.salePrice,500);
+  assert.equal(s.purchasePrice,300);assert.equal(s.salePrice,500);assert.equal(s.paymentDate,undefined,'odeme tarihi de yazilamaz');
  }finally{store.close();}
 });
 

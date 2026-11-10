@@ -802,6 +802,9 @@ function renderEditOtherDocs(){renderChips(eOtherDocChips,parseOtherDocs(eOtherD
 
 function show(id){
  if(logisticsView==='staff'&&id==='customerAccounts')return;
+ // Finans bolumu finans yetkisi olmayan personele kapali. Veri zaten
+ // sunucudan gelmez (permissions.mjs); bu, bos bir tablo yerine bolumu hic acmaz.
+ if(staffNoFinance()&&['finance','financeEdit','financeShipmentPrint'].includes(id))return;
  if(logisticsReadOnly()&&['loadForm','newLoad','companies','companyEdit'].includes(id))return;
  document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
  document.getElementById(id).classList.remove('hidden');
@@ -1093,6 +1096,7 @@ function applyFinanceRoleVisibility(){
 }
 
 function openFinance(){
+ if(staffNoFinance())return;
  renderFinance();
  show('finance');
 }
@@ -1170,6 +1174,7 @@ function openCustomerAccounts(){
 function renderCustomerAccounts(){renderAccountLedger();}
 function editFinance(i){
  if(logisticsReadOnly()){viewFinanceShipment(i);return;}
+ if(staffNoFinance())return;
  document.querySelectorAll('#financeEdit input,#financeEdit select').forEach(e=>{e.disabled=e.id==='fFileNo'||(staffNoFinance()&&!['fArrival','fPayment'].includes(e.id));});
  financeIndex=i; const r=rows[i];
  fFileNo.value=r.fileNo??'';
@@ -1186,12 +1191,8 @@ function editFinance(i){
 }
 
 function saveFinanceEdit(){
- if(logisticsReadOnly())return;
+ if(logisticsReadOnly()||staffNoFinance())return;
  const r=rows[financeIndex];if(!r)return;
- if(staffNoFinance()){
- r.arrivalDate=fArrival.value;r.paymentDate=fPayment.value;
- persist();render();renderTracking();renderFinance();show('finance');return;
- }
  r.shipper=fShipper.value;
  r.consignee=fConsignee.value;
  r.agent=fAgent.value;
@@ -1276,6 +1277,7 @@ function logisticsPreviewUi(){
 
  document.querySelectorAll('button').forEach(b=>{const action=b.getAttribute('onclick')||'';
  if(logisticsView==='staff'&&/openCustomerAccounts/.test(action))hide(b);
+ if(staffNoFinance()&&/openFinance\(/.test(action))hide(b);
  if(logisticsReadOnly()){
  if(/save|delete|recordShipmentEvent|openQuick|newCompany|addCompany|addRow/.test(action)||/Yeni Yük|Kaydet|Çıkış Bildirimi Yap|Varış Bildirimi Yap/.test(b.textContent))hide(b);
  if(action.startsWith('edit(')&&b.textContent!=='Görüntüle')b.textContent='Görüntüle';
