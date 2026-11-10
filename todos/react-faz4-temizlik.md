@@ -8,6 +8,7 @@
 ## Yapılacak
 
 - [ ] Faz 3 bittikten sonra prototip HTML'lerini ve `tenant-bridge.js`'i kaldır.
+- [ ] Lojistik ekranındaki devre dışı eski Cari'yi (`account-ledger.js`, `customerAccounts` bölümü) sil.
 - [ ] Sunucudaki `localStorage` → `portalLocal` metin değiştirmesini kaldır.
 - [ ] CSP'den `'unsafe-inline'`'ı çıkar (prototip satır içi betiğe muhtaç).
 - [ ] Fontları paylaşılan pakete taşı. Site Google Fonts kullanıyor, portal

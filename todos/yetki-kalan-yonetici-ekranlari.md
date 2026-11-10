@@ -11,7 +11,7 @@ Modül bazlı yetki NCTS, İç Nakliye ve Lojistik için çalışıyor. Şu ekra
 hâlâ yalnız yöneticiye açık ve yetki tablosunda yok:
 
 - Raporlar: 10 Kasım'dan beri Finans alanında, yalnız yönetici sekmesi.
-- Cari: yeniden yapılıyor; bkz. [cari-sunucuda.md](cari-sunucuda.md).
+- Cari: 10 Kasım'dan beri sunucuda ve Finans alanında, yalnız yönetici.
 - Teklif Yönetimi (`offer-center.html`)
 - Mailden Talep / Fiyat (`mail-import.html`)
 - Takip Merkezi (`monitor-center.html`)

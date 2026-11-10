@@ -31,6 +31,11 @@ dialog::backdrop{background:rgb(0 0 0 / .35)}
 dialog .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:16px 0}
 dialog .actions{display:flex;gap:8px;justify-content:flex-end}
 .reports{display:flex;gap:12px;flex-wrap:wrap}
+.ld-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:12px 0}
+#ldForm{margin:20px 0;padding:18px}
+#ldDetail h3{margin-top:22px}
+button.remove{background:transparent!important;border:1px solid #c0392b!important;color:#c0392b!important;border-radius:8px;font-weight:600}
+button.remove:hover{background:#c0392b!important;color:#fff!important}
 [hidden]{display:none!important}
 </style></head>
 <body>
@@ -98,6 +103,48 @@ dialog .actions{display:flex;gap:8px;justify-content:flex-end}
  </div>
 </section>
 
+<section id="panel-ledger" class="card" role="tabpanel" hidden>
+ <h2>Cari</h2>
+ <div class="toolbar">
+  <div class="segment" role="group" aria-label="Cari türü" id="ldKind">
+   <button type="button" data-kind="customer" aria-pressed="true">Müşteri carileri</button><button type="button" data-kind="carrier" aria-pressed="false">Taşıyıcı carileri</button>
+  </div>
+  <div class="field"><label for="ldSearch">Ara</label><input id="ldSearch" placeholder="Firma…" autocomplete="off"></div>
+ </div>
+ <p class="muted" id="ldHelp"></p>
+ <div id="ldList">
+  <div class="table-wrap"><table>
+   <thead><tr><th>Firma</th><th class="num">Dosya</th><th>Bakiye</th><th>Son işlem</th><th>İşlem</th></tr></thead>
+   <tbody id="ldRows"></tbody>
+  </table></div>
+  <p id="ldEmpty" class="empty" hidden></p>
+ </div>
+ <div id="ldDetail" hidden>
+  <button type="button" class="secondary" id="ldBack">← Cari listesi</button>
+  <h3 id="ldTitle" tabindex="-1"></h3>
+  <div class="table-wrap"><table>
+   <thead><tr><th>Döviz</th><th class="num">Fatura</th><th class="num">Ödeme</th><th class="num">Firma bize borçlu</th><th class="num">Biz firmaya borçluyuz</th></tr></thead>
+   <tbody id="ldSummary"></tbody>
+  </table></div>
+  <form id="ldForm" class="card" novalidate>
+   <h3>Kayıt ekle</h3>
+   <div class="ld-fields">
+    <div class="field"><label for="ldType">Tür</label><select id="ldType"><option value="invoice"></option><option value="payment"></option></select></div>
+    <div class="field"><label for="ldCurrency">Döviz</label><select id="ldCurrency"></select></div>
+    <div class="field"><label for="ldRef">Fatura no / ödeme referansı *</label><input id="ldRef" maxlength="120" autocomplete="off"></div>
+    <div class="field"><label for="ldDate">Tarih *</label><input id="ldDate" type="date"></div>
+    <div class="field"><label for="ldAmount">Tutar *</label><input id="ldAmount" inputmode="decimal" placeholder="1250,50" autocomplete="off"></div>
+    <div class="field"><label for="ldNote">Not</label><input id="ldNote" maxlength="1000" autocomplete="off"></div>
+   </div>
+   <div class="actions"><button type="submit" class="primary">Kaydet</button></div>
+  </form>
+  <h3 id="ldInvoiceHeading"></h3>
+  <div class="table-wrap"><table><thead><tr><th>Referans</th><th>Tarih</th><th class="num">Tutar</th><th>Not</th><th>İşlem</th></tr></thead><tbody id="ldInvoices"></tbody></table></div>
+  <h3 id="ldPaymentHeading"></h3>
+  <div class="table-wrap"><table><thead><tr><th>Referans</th><th>Tarih</th><th class="num">Tutar</th><th>Not</th><th>İşlem</th></tr></thead><tbody id="ldPayments"></tbody></table></div>
+ </div>
+</section>
+
 <section id="panel-reports" class="card" role="tabpanel" hidden>
  <h2>Raporlar</h2>
  <p class="muted">Firma bazında dosya sayısı ve kazanç. Her rapor tek bir döviz için hesaplanır.</p>
@@ -146,7 +193,7 @@ dialog .actions{display:flex;gap:8px;justify-content:flex-end}
  const tabs=F.financeTabs(user);
  if(!tabs.length){$('denied').hidden=false;return;}
 
- let data={shipments:boot.shipments||[],ncts:boot.ncts||[],transport:boot.transport||[]};
+ let data={shipments:boot.shipments||[],ncts:boot.ncts||[],transport:boot.transport||[],ledger:boot.ledger||[]};
  let revision=boot.revision;
  const filters={logistics:'',transport:''};
  const status=text=>{$('status').textContent=text;};
@@ -169,7 +216,7 @@ dialog .actions{display:flex;gap:8px;justify-content:flex-end}
    throw Error(result.error||'Kayıt tamamlanamadı.');
   }
   const fresh=await fetch('/api/tenant/data').then(r=>r.ok?r.json():Promise.reject(Error('Liste yenilenemedi.')));
-  data={shipments:fresh.shipments||[],ncts:fresh.ncts||[],transport:fresh.transport||[]};revision=fresh.revision;
+  data={shipments:fresh.shipments||[],ncts:fresh.ncts||[],transport:fresh.transport||[],ledger:fresh.ledger||[]};revision=fresh.revision;
   renderAll();status(done);
  }
  const attempt=async(work)=>{try{await work();}catch(error){status(error.message);}};
@@ -307,12 +354,90 @@ dialog .actions{display:flex;gap:8px;justify-content:flex-end}
   attempt(async()=>{await save('transport',data.transport.map(r=>r.id===trEditing?{...r,...changes}:{...r}),trEditing+' güncellendi.');$('trDialog').close();});
  });
 
+ // ---------- Cari ----------
+ // Kayitlar sunucuda tutulur ve degistirilemez; yanlis kayit silinip dogrusu
+ // eklenir, silme denetim gunlugune yazilir. Yalniz yonetici gorur; sunucu da
+ // yalniz yoneticiye gonderir ve yalniz yoneticiden kabul eder.
+ let ldKind='customer',ldAccount=null;
+ const ledgerLabels={
+  customer:{invoice:'Kesilen fatura',payment:'Alınan ödeme',invoices:'Kesilen faturalar',payments:'Alınan ödemeler',help:'Bakiye = kestiğimiz faturalar − aldığımız ödemeler. Hesaplar sevkiyatlardaki alıcılardan oluşur.'},
+  carrier:{invoice:'Bize kesilen fatura',payment:'Yaptığımız ödeme',invoices:'Bize kesilen faturalar',payments:'Yaptığımız ödemeler',help:'Bakiye = bize kesilen faturalar − yaptığımız ödemeler. Hesaplar sevkiyatlardaki acente / taşıyıcılardan oluşur.'},
+ };
+ const entriesOf=company=>data.ledger.filter(e=>e.kind===ldKind&&F.fold(e.company)===F.fold(company));
+ const shortName=name=>(boot.companies||[]).find(c=>c.name===name)?.shortName||name;
+ const trDate=d=>d?d.split('-').reverse().join('.'):'—';
+ for(const code of ['EUR','USD','TRY','GBP','CHF','CNY','JPY','AED','SAR','RUB'])$('ldCurrency').add(new Option(code,code));
+ const emptyRow=(body,text)=>{const tr=document.createElement('tr');const td=cell(text);td.colSpan=5;tr.append(td);body.append(tr);};
+ function renderLedger(){
+  const labels=ledgerLabels[ldKind];
+  $('ldHelp').textContent=labels.help;
+  for(const b of $('ldKind').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.kind===ldKind));
+  if(ldAccount){renderLedgerDetail();return;}
+  $('ldList').hidden=false;$('ldDetail').hidden=true;
+  const q=F.fold($('ldSearch').value);
+  const accounts=F.ledgerAccounts(data.shipments,data.ledger,ldKind).filter(a=>!q||F.fold(a.company).includes(q));
+  const body=$('ldRows');body.replaceChildren();
+  for(const account of accounts){
+   const totals=F.ledgerTotals(entriesOf(account.company),ldKind);
+   const balance=totals.length?totals.map(t=>t.theyOwe?F.minorMoney(t.theyOwe,t.currency)+' bize borçlu':t.weOwe?F.minorMoney(t.weOwe,t.currency)+' borçluyuz':F.minorMoney(0,t.currency)).join(' · '):'Kayıt yok';
+   const tr=document.createElement('tr');
+   const name=cell(shortName(account.company));name.title=account.company;
+   tr.append(name,cell(String(account.count),'num'),cell(balance),cell(trDate(account.last)));
+   const act=document.createElement('td');const open=document.createElement('button');open.type='button';open.className='secondary';open.textContent='Cariyi aç';
+   open.onclick=()=>{ldAccount=account.company;renderLedger();$('ldTitle').focus();};act.append(open);tr.append(act);body.append(tr);
+  }
+  $('ldEmpty').hidden=accounts.length>0;
+  $('ldEmpty').textContent=$('ldSearch').value?'Aramaya uyan firma yok.':'Henüz cari hesap yok. Firma bir sevkiyatta '+(ldKind==='carrier'?'acente / taşıyıcı':'alıcı')+' olarak kullanıldığında burada görünür.';
+ }
+ function renderLedgerDetail(){
+  const labels=ledgerLabels[ldKind];
+  $('ldList').hidden=true;$('ldDetail').hidden=false;
+  $('ldTitle').textContent=ldAccount;
+  $('ldType').options[0].textContent=labels.invoice;$('ldType').options[1].textContent=labels.payment;
+  $('ldInvoiceHeading').textContent=labels.invoices;$('ldPaymentHeading').textContent=labels.payments;
+  const entries=entriesOf(ldAccount);
+  const summary=$('ldSummary');summary.replaceChildren();
+  for(const t of F.ledgerTotals(entries,ldKind)){
+   const tr=document.createElement('tr');
+   tr.append(cell(t.currency),cell(F.minorMoney(t.invoiced,t.currency),'num'),cell(F.minorMoney(t.paid,t.currency),'num'),cell(F.minorMoney(t.theyOwe,t.currency),'num'),cell(F.minorMoney(t.weOwe,t.currency),'num'));
+   summary.append(tr);
+  }
+  if(!summary.children.length)emptyRow(summary,'Henüz kayıt yok.');
+  for(const [type,id] of [['invoice','ldInvoices'],['payment','ldPayments']]){
+   const body=$(id);body.replaceChildren();
+   const list=entries.filter(e=>e.type===type).sort((a,b)=>b.date.localeCompare(a.date));
+   for(const e of list){
+    const tr=document.createElement('tr');
+    tr.append(cell(e.reference),cell(trDate(e.date)),cell(F.minorMoney(e.amount,e.currency),'num'),cell(e.note||'—'));
+    const act=document.createElement('td');const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';
+    del.onclick=()=>{
+     if(!confirm(e.reference+' · '+F.minorMoney(e.amount,e.currency)+' kaydı silinsin mi? Silme denetim günlüğüne yazılır.'))return;
+     attempt(()=>save('ledger',data.ledger.filter(x=>x.id!==e.id),e.reference+' silindi.'));
+    };
+    act.append(del);tr.append(act);body.append(tr);
+   }
+   if(!list.length)emptyRow(body,'Henüz kayıt yok.');
+  }
+ }
+ $('ldForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const reference=$('ldRef').value.trim(),date=$('ldDate').value,amount=F.minorUnits($('ldAmount').value);
+  const checks=[['ldRef',!reference,'Fatura numarası veya ödeme referansı girin.'],['ldDate',!date,'İşlem tarihini girin.'],['ldAmount',amount===null,'Sıfırdan büyük, en fazla iki ondalıklı tutar girin. Binlik ayırıcı kullanmayın.']];
+  for(const [id,bad] of checks)$(id).setAttribute('aria-invalid',String(bad));
+  const failed=checks.find(([,bad])=>bad);if(failed){status(failed[2]);$(failed[0]).focus();return;}
+  const entry={id:crypto.randomUUID(),kind:ldKind,company:ldAccount,currency:$('ldCurrency').value,type:$('ldType').value,reference,date,amount,note:$('ldNote').value.trim()};
+  attempt(async()=>{await save('ledger',[...data.ledger,entry],'Kayıt eklendi.');$('ldForm').reset();});
+ });
+ $('ldBack').onclick=()=>{ldAccount=null;renderLedger();};
+ for(const b of $('ldKind').querySelectorAll('button'))b.onclick=()=>{ldKind=b.dataset.kind;ldAccount=null;renderLedger();};
+ $('ldSearch').addEventListener('input',renderLedger);
+
  // ---------- Raporlar ----------
  $('reportLogistics').onclick=()=>openPortalReport('logistics');
  $('reportNcts').onclick=()=>openPortalReport('ncts');
 
  // ---------- Sekmeler ----------
- const renderers={logistics:renderLogistics,ncts:renderNcts,transport:renderTransport,reports:()=>{}};
+ const renderers={logistics:renderLogistics,ncts:renderNcts,transport:renderTransport,ledger:renderLedger,reports:()=>{}};
  function renderAll(){for(const tab of tabs)renderers[tab.key]();}
  function select(key){
   for(const tab of tabs){

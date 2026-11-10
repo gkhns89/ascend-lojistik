@@ -12,7 +12,7 @@ const plain=value=>JSON.parse(JSON.stringify(value));
 const keys=user=>plain(F.financeTabs(user)).map(t=>t.key);
 
 test('each tab appears only for the module whose finance the user holds',()=>{
- assert.deepEqual(keys({role:'Yönetici'}),['logistics','ncts','transport','reports']);
+ assert.deepEqual(keys({role:'Yönetici'}),['logistics','ncts','transport','ledger','reports']);
  assert.deepEqual(keys({role:'Operasyon',permissions:{ncts:{access:true,finance:true},logistics:{access:true,finance:false}}}),['ncts']);
  assert.deepEqual(keys({role:'Finans',permissions:{logistics:{access:true,finance:true},transport:{access:true,finance:true}}}),['logistics','transport']);
  assert.deepEqual(keys({role:'Operasyon',permissions:{logistics:{access:true,finance:false}}}),[],'finans yetkisi yoksa hic sekme yok');

@@ -31,8 +31,8 @@
 
 - NCTS finans toplamları da dövizleri birbirine ekliyordu. Finans alanında
   döviz başına ayrı toplanıyor.
-- Cari hiçbir zaman sunucuya kaydedilmiyordu. Girişi kapatıldı; bkz.
-  [../cari-sunucuda.md](../cari-sunucuda.md).
+- Cari hiçbir zaman sunucuya kaydedilmiyordu. Aynı gün sunucuda yeniden
+  kuruldu: [2026-11-10-cari-sunucuda.md](2026-11-10-cari-sunucuda.md).
 
 ## Doğrulama
 
