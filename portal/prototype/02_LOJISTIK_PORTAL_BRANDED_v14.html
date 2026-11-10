@@ -31,7 +31,19 @@ h2,h3{margin-top:0}.muted{font-size:12px;color:var(--muted)}
 .field input,.field select,.field textarea{padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}.span2{grid-column:span 2}.full{grid-column:1/-1}
 table{width:100%;border-collapse:collapse;background:#fff}th,td{border-bottom:1px solid var(--border);padding:9px 7px;font-size:12px;text-align:left}th{background:#f8fafb}
 .badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;background:var(--soft)}.badge.ok{background:var(--ok)}.badge.warn{background:var(--warn)}.badge.gray{background:#f1f3f5}.badge.blue{background:#e8f1fb}.badge.green{background:#eaf6ee}.badge.orange{background:#fff1df}.summary-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}.summary-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px}.summary-card .num{font-size:24px;font-weight:700;margin-top:4px}
-.row-actions{display:flex;gap:5px;flex-wrap:wrap}.row-actions button{font-size:11px;padding:5px 7px}.check-group{display:flex;flex-wrap:wrap;gap:8px 14px;padding:8px;border:1px solid var(--border);border-radius:6px;background:#fafbfc}.check-group label{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500}.check-group input{margin:0}.other-doc-wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.other-doc-wrap input{flex:1;min-width:240px}.doc-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.doc-chip{background:var(--soft);border:1px solid #cfd9e2;border-radius:999px;padding:4px 8px;font-size:11px}.brand-mark{display:flex;align-items:center;gap:10px}.brand-badge{width:34px;height:34px;border-radius:7px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.row-actions{display:flex;gap:5px;flex-wrap:wrap}.row-actions button{font-size:11px;padding:5px 7px}
+/* Dosya Takip tablosu (rehber: todos/tablo-tasarim-iyilestirmesi.md): kimlik ve tarih tek satir,
+   sayilar saga, dort islem dugmesi 2x2 izgara; once uc satira yigiliyordu. */
+#trackingBody td:first-child{white-space:nowrap;font-weight:700}
+/* Dar ekranda tablo kartin icinde yatay kayar; Dosya No sabit kalir. */
+#trackingBody td:first-child,table:has(#trackingBody) th:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:inset -1px 0 0 var(--border)}
+table:has(#trackingBody) th:first-child{z-index:2}
+/* Genel table{overflow:hidden} tabloyu kaydirma kabi yapar ve sabit sutunu bozar; clip koseleri yine kirpar ama kab olusturmaz. */
+table:has(#trackingBody){overflow:clip}
+#trackingBody td:nth-child(10),#trackingBody td:nth-child(12){white-space:nowrap}
+#trackingBody td:nth-child(8),#trackingBody td:nth-child(9),table:has(#trackingBody) th:nth-child(8),table:has(#trackingBody) th:nth-child(9){text-align:right;font-variant-numeric:tabular-nums}
+#trackingBody .row-actions{display:grid;grid-template-columns:repeat(2,max-content);gap:4px}
+#trackingBody .row-actions button{min-height:0}.check-group{display:flex;flex-wrap:wrap;gap:8px 14px;padding:8px;border:1px solid var(--border);border-radius:6px;background:#fafbfc}.check-group label{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500}.check-group input{margin:0}.other-doc-wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.other-doc-wrap input{flex:1;min-width:240px}.doc-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.doc-chip{background:var(--soft);border:1px solid #cfd9e2;border-radius:999px;padding:4px 8px;font-size:11px}.brand-mark{display:flex;align-items:center;gap:10px}.brand-badge{width:34px;height:34px;border-radius:7px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
 .print-sheet{background:#fff;border:1px solid var(--border);padding:18px;max-width:1100px;margin:auto}.print-head{display:flex;justify-content:space-between;border-bottom:2px solid var(--primary);padding-bottom:8px;margin-bottom:12px}
 .print-title{font-weight:700;font-size:18px}.print-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #999;border-left:1px solid #999}
 .print-cell{min-height:48px;padding:6px;border-right:1px solid #999;border-bottom:1px solid #999}.print-cell b{display:block;font-size:10px;margin-bottom:4px}
@@ -769,7 +781,7 @@ function renderCompanies(){
   if(tab==='carrier'){if(c.isCarrier!==true) return;}else if(tab && c.location!==tab) return;
   if(role && !roles.includes(role)) return;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${trackingEscape(c.name)}</td><td>${trackingEscape(c.shortName||'—')}</td><td><span class="pill">${trackingEscape(c.location||'')}</span></td><td>${trackingEscape(c.country||'')}</td><td>${roles.join(' / ')||'Henüz gönderi yok'}</td>
+  tr.innerHTML=`<td>${trackingEscape(c.name)}</td><td>${trackingEscape(c.shortName||'—')}</td><td>${c.location?'<span class="pill">'+trackingEscape(c.location)+'</span>':'—'}</td><td>${trackingEscape(c.country||'')}</td><td>${roles.join(' / ')||'Henüz gönderi yok'}</td>
   <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>`${trackingEscape([x.first,x.last].filter(Boolean).join(' '))}${x.position?' · '+trackingEscape(x.position):''}`).join('<br>'):'—'}</td>
   <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>trackingEscape(x.phone||'—')).join('<br>'):'—'}</td>
   <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>trackingEscape(x.email||'—')).join('<br>'):'—'}</td><td>${trackingEscape(c.taxNo||'—')}</td>

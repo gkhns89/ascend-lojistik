@@ -150,7 +150,24 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
      sunucudaki veriyle yeniden çiziliyor.
    - "Yükleniyor" durumu yok: veri sayfaya gömülü geliyor, kayıttan sonra
      yeniden okuma kısa sürüyor. React'te ortak bileşen ele alacak.
-8. [ ] **Diğer prototip tabloları.** Lojistik operasyon listesi, NCTS listesi,
+8. [x] **Diğer prototip tabloları: göze batanlar** (yapıldı, 11 Kasım 2026).
+   Ekran görüntüsüyle bakıldı: Dosya Takip, NCTS listesi, Firma Kartları,
+   Kullanıcı Yönetimi. Düzeltilen:
+   - Dosya Takip: Dosya No üç satıra, tarih iki satıra bölünüyordu; dört
+     işlem düğmesi üç satıra yığılıp satırı çok uzatıyordu. Artık kimlik
+     ve tarih tek satır, düğmeler 2×2, Kap/Kilo sağa hizalı. Tablo dar
+     ekranda kartın içinde kayıyor ve Dosya No sabit.
+   - Sabit sütunu bozan neden: sayfadaki genel `table{overflow:hidden}`
+     tabloyu kaydırma kabı yapıyor. Bu tabloda `overflow:clip` kullanıldı.
+   - Zebra hiçbir tabloda yok: koyu tema kuralı tamamen kaldırıldı
+     (Kullanıcı Yönetimi'nde görünüyordu).
+   - Firma Kartları: konumu olmayan firmada boş rozet yerine "—".
+   Bilerek bırakılan (React'te ele alınacak): Dosya Takip'te tarihler ISO
+   biçiminde (2026-11-02); NCTS listesinde kısa ad yerine tam ünvan; telefonda
+   özet kartlarının etiketleri kesiliyor. Teklif Yönetimi yerel kopyada veri
+   çekemediği için değerlendirilemedi.
+
+   Önceki not: **Diğer prototip tabloları.** Lojistik operasyon listesi, NCTS listesi,
    Firma Kartları, Kullanıcı Yönetimi ve Teklif Yönetimi ortak
    `data-table.css`'i kullanmıyor.
    - Prototip React'e taşınacağı için ([react-faz3-buyuk-ekranlar.md](react-faz3-buyuk-ekranlar.md))

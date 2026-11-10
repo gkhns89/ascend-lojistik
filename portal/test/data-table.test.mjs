@@ -71,9 +71,20 @@ test('status pills differ in both themes; the theme file paints every pill grey 
  assert.match(css,/\[data-theme=dark\] \.pill\.wait\{[^}]*!important/);
 });
 
-test('dark theme keeps its zebra off the shared data table',()=>{
+test('no table in the portal is striped; rows are told apart by a thin line',()=>{
+ // Rehber: zebra hover, secili ve odak durumlariyla catisir.
  const theme=readFileSync(new URL('../prototype/portal-theme.css',import.meta.url),'utf8');
- for(const rule of theme.match(/[^}]*nth-child\(even\)[^{]*\{/g)||[])assert.match(rule,/table:not\(\.data-table\)/,rule.trim());
+ assert.ok(!/nth-child\(even\)/.test(theme));
+});
+
+test('Dosya Takip keeps the file number in view and the row compact',()=>{
+ const html=readFileSync(new URL('../prototype/02_LOJISTIK_PORTAL_BRANDED_v14.html',import.meta.url),'utf8');
+ assert.ok(html.includes('#trackingBody td:first-child,table:has(#trackingBody) th:first-child{position:sticky;left:0'));
+ // table{overflow:hidden} sabit sutunu bozar; bu tabloda clip kullanilir.
+ assert.ok(html.includes('table:has(#trackingBody){overflow:clip}'));
+ assert.ok(html.includes('#trackingBody .row-actions{display:grid;grid-template-columns:repeat(2,max-content)'));
+ // Konumu olmayan firmada bos rozet yok.
+ assert.ok(!html.includes(`<span class="pill">\${trackingEscape(c.location||'')}</span>`));
 });
 
 test('bulk "paid" touches only selected unpaid rows and asks Lojistik for a date',()=>{
