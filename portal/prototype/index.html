@@ -13,16 +13,12 @@
 [hidden]{display:none!important}
 body.portal-home{margin:0;background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
 .portal-home main,.home-header{box-sizing:border-box}
-.home-header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.home-header .brand{display:inline-flex;align-items:center}
-.home-header .brand img{height:46px;width:auto}
-.home-header .app-name{font-family:'Space Grotesk',Manrope,sans-serif;font-weight:700;font-size:16px;color:var(--text);padding-left:14px;border-left:1px solid var(--border)}
-.home-header .account{margin-left:auto;display:flex;align-items:center;gap:10px}
-.home-header .account .who{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
-.home-header .account .who small{color:var(--muted);font-size:12px}
-.home-header .theme-toggle{margin-left:0}
-.home-header .account[hidden]~.theme-toggle{margin-left:auto}
-.home-header button{padding:8px 14px;font-size:13px}
+/* Giris ekrani basligi ortak baslikla (portal-shell.css) ayni olculerde: 64px, logo 34px. */
+html body header.home-header{display:flex!important;align-items:center;gap:16px;flex-wrap:nowrap;height:64px!important;min-height:0!important;padding:0 24px!important;margin:0!important;box-sizing:border-box;border:0!important;border-bottom:1px solid var(--border)!important;background:var(--card)!important}
+html body header.home-header .brand{display:inline-flex;align-items:center}
+html body header.home-header .brand img{height:34px!important;width:auto!important;max-height:none!important}
+html body header.home-header .app-name{font-family:'DM Sans',Manrope,sans-serif;font-weight:700;font-size:14px;color:var(--text);padding-left:16px;border-left:1px solid var(--border)}
+html body header.home-header .theme-toggle{margin-left:auto!important;height:36px!important;min-height:0!important;padding:0 12px!important;font-size:14px!important;border-radius:8px!important}
 .portal-home main{width:100%;max-width:1180px;margin:0 auto;padding:28px 24px 40px;flex:1}
 
 /* Calisma alanlari ekrani */
@@ -90,9 +86,8 @@ body.portal-home{margin:0;background:var(--bg);min-height:100vh;display:flex;fle
 }
 @media (max-width:640px){
  .portal-home main{padding:16px 12px 28px}
- .home-header .brand img{height:36px}
- .home-header .app-name{display:none}
- .home-header .account .who{display:none}
+ html body header.home-header{height:56px!important;padding:0 12px!important}
+ html body header.home-header .brand img{height:28px!important}
  .welcome{grid-template-columns:1fr;padding:16px 18px}
  .welcome h1{font-size:22px}
  .welcome .portal-map{display:none}
@@ -109,13 +104,11 @@ body.portal-home{margin:0;background:var(--bg);min-height:100vh;display:flex;fle
 </style>
 </head>
 <body class="portal-home">
+<!-- Oturum acikken bu baslik ortak baslikla (portal-shell.js) degisir;
+     giris ekraninda ayni olculerle yalniz logo, ad ve tema dugmesi gorunur. -->
 <header class="home-header">
  <a class="brand" href="index.html" aria-label="Portal ana ekranı"><img src="ascend-logo-light.svg" alt="ASCEND Lojistik"></a>
  <span class="app-name">Operasyon Portalı</span>
- <div class="account" id="account" hidden>
-  <span class="who"><strong id="welcomeName"></strong><small id="welcomeRole"></small></span>
-  <button type="button" class="secondary" id="logoutBtn">Çıkış Yap</button>
- </div>
 </header>
 
 <main id="loginBox" class="login-view" hidden>
@@ -231,8 +224,7 @@ async function login(){
 // ---------- Calisma alanlari ----------
 function showPortal(s){
   const boot=window.portalBootstrap||{};
-  portalBox.hidden=false;account.hidden=false;
-  welcomeName.textContent=s.name||s.username||'';welcomeRole.textContent=s.role||'';
+  portalBox.hidden=false;
   helloName.textContent=String(s.name||s.username||'').split(' ')[0];
   today.textContent=new Intl.DateTimeFormat('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Istanbul'}).format(new Date());
   const customer=['Müşteri','Görüntüleme'].includes(s.role),admin=s.role==='Yönetici';
@@ -260,8 +252,6 @@ function showPortal(s){
   companiesLink.href=view==='staff'?'02_LOJISTIK_PORTAL_BRANDED_v14.html?view=staff&section=companies':'02_LOJISTIK_PORTAL_BRANDED_v14.html?section=companies';
   usersLink.hidden=!admin;
 }
-function logout(){sessionStorage.removeItem('ascend_session');location.reload()}
-logoutBtn.onclick=logout;
 init();
 </script>
 </body>

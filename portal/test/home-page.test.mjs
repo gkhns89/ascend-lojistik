@@ -18,7 +18,8 @@ test('the home page shares the portal header and keeps the official logo and the
  assert.match(home,/<header class="home-header">[\s\S]*?<img src="ascend-logo-light.svg" alt="ASCEND Lojistik">/,'tema betigi baslik logosunu acik/koyu resmi varyantla degistirir');
  assert.equal((home.match(/class="portal-map"/g)||[]).length,2,'harita giriste ve karsilamada');
  assert.ok(!/data:image\/png;base64/.test(home),'gomulu logo kopyasi yok');
- assert.match(bridge,/getElementById\('portalShortcuts'\)\|\|document\.querySelector\('header'\)/,'ana ekranda kisayollar Hizli erisim alaninda');
+ assert.match(bridge,/const home=document\.getElementById\('portalShortcuts'\)/,'ana ekranda kisayollar Hizli erisim alaninda');
+ assert.match(bridge,/if\(!home&&window\.AscendShell\)return;/,'diger sayfalarda kisayollar ortak basligin Araclar menusunde');
 });
 
 test('login is a real form: Enter submits, errors are announced, no fake first-run account',()=>{

@@ -22,6 +22,8 @@ const assets = new Map([
   ['/control-center.html','control-center.html'],
   ['/world-countries.svg','world-countries.svg'],
   ['/tenant-bridge.js','tenant-bridge.js'],
+  ['/portal-shell.js','portal-shell.js'],
+  ['/portal-shell.css','portal-shell.css'],
   ['/portal-theme.css','portal-theme.css'],
   ['/ascend-logo-dark.svg','ascend-logo-dark.svg'],
   ['/ascend-logo-light.svg','ascend-logo-light.svg'],
@@ -235,7 +237,7 @@ export async function createPortalServer(env = process.env) {
       content=content.toString().replace(/\blocalStorage\b/g,'portalLocal').replace(/\bsessionStorage\b/g,'portalSession');
       if(filename.endsWith('.html')){
         const state=JSON.stringify(tenants.data(principal)).replace(/</g,'\\u003c');
-        content=content.replace(/<head([^>]*)>/,'<head$1><script>window.portalBootstrap='+state+';</script><script src="tenant-bridge.js"></script>');
+        content=content.replace(/<head([^>]*)>/,'<head$1><script>window.portalBootstrap='+state+';</script><script src="tenant-bridge.js"></script><link rel="stylesheet" href="portal-shell.css"><script src="portal-shell.js"></script>');
       }
     }
     return send(200, content, filename.endsWith('.ttf') ? 'font/ttf' : filename.endsWith('.css') ? 'text/css; charset=utf-8' : filename.endsWith('.svg') ? 'image/svg+xml' : filename.endsWith('.png') ? 'image/png' : (filename.endsWith('.js')||filename.endsWith('.mjs')) ? 'text/javascript; charset=utf-8' : 'text/html; charset=utf-8');

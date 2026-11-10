@@ -1,0 +1,114 @@
+/* Portalin ortak ust basligi (portal-shell.js). Sayfalarin eski baslik
+   kurallari <header> ogesine !important ile yazildigi icin buradaki
+   seciciler bilincli olarak guclu (html body header.app-bar ...).
+   Olculer tek yerde: cubuk 64px, tum dugme ve baglantilar 36px. */
+html.shell-pending body > header{visibility:hidden}
+/* Baslik sayfa kenarina dayanir; bazi sayfalarda tarayicinin varsayilan 8px govde boslugu vardi. */
+html body{margin:0!important}
+
+html body header.app-bar{
+  --bar-h:64px;--ctl-h:36px;--ctl-r:8px;
+  position:relative;display:block!important;width:100%!important;height:auto!important;min-height:0!important;
+  margin:0!important;padding:0!important;box-sizing:border-box;
+  background:var(--card,#fff)!important;color:var(--text,#18212f)!important;
+  border:0!important;border-bottom:1px solid var(--border,#dfe4e8)!important;box-shadow:none!important;
+  font-family:'DM Sans',Manrope,system-ui,sans-serif;z-index:40;
+}
+html body header.app-bar *{box-sizing:border-box}
+html body header.app-bar .app-bar__inner{display:flex;align-items:center;gap:20px;height:var(--bar-h);padding:0 24px;max-width:none}
+html body header.app-bar .app-bar__brand{display:inline-flex;align-items:center;flex:0 0 auto;padding:0;border:0;text-decoration:none}
+html body header.app-bar .app-bar__brand img{display:block;height:34px!important;width:auto!important;max-height:none!important;max-width:none!important;object-fit:contain}
+
+/* Moduller */
+html body header.app-bar .app-bar__nav{display:flex;align-items:center;gap:2px;flex:1 1 auto;min-width:0;margin:0;padding:0 0 0 16px;border-left:1px solid var(--border,#dfe4e8)}
+html body header.app-bar .app-bar__link,
+html body header.app-bar .app-bar__btn,
+html body header.app-bar .app-bar__user,
+html body header.app-bar .app-bar__burger{
+  display:inline-flex!important;align-items:center;gap:8px;height:var(--ctl-h)!important;min-height:0!important;
+  padding:0 12px!important;margin:0!important;border:1px solid transparent!important;border-radius:var(--ctl-r)!important;
+  background:transparent!important;color:var(--text,#18212f)!important;
+  font:600 14px/1 'DM Sans',Manrope,system-ui,sans-serif!important;letter-spacing:0;text-decoration:none!important;white-space:nowrap;
+  cursor:pointer;box-shadow:none!important;filter:none!important;transition:background .15s,color .15s,border-color .15s;
+}
+html body header.app-bar .app-bar__link,html body header.app-bar .app-bar__btn{color:var(--muted,#5b6675)!important}
+html body header.app-bar .app-bar__link:hover,
+html body header.app-bar .app-bar__btn:hover,
+html body header.app-bar .app-bar__user:hover,
+html body header.app-bar .app-bar__burger:hover{background:var(--surface-soft,#f1f0f8)!important;color:var(--text,#18212f)!important}
+html body header.app-bar .app-bar__link[aria-current=page],
+html body header.app-bar .app-bar__btn.is-active{background:color-mix(in srgb,var(--primary,#302080) 12%,transparent)!important;color:var(--primary,#302080)!important}
+html body header.app-bar [aria-expanded=true]{background:var(--surface-soft,#f1f0f8)!important;border-color:var(--border,#dfe4e8)!important}
+html body header.app-bar :focus-visible{outline:3px solid var(--primary,#302080)!important;outline-offset:2px}
+
+/* Sag taraf */
+html body header.app-bar .app-bar__end{display:flex;align-items:center;gap:6px;margin-left:auto;flex:0 0 auto}
+html body header.app-bar .app-bar__caret{display:inline-block;width:7px;height:7px;margin:-3px 0 0 2px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);opacity:.55}
+html body header.app-bar .app-bar__badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#c2410c;color:#fff;font-size:11.5px;font-weight:700;line-height:1}
+html body header.app-bar .app-bar__badge[hidden]{display:none}
+html body header.app-bar .app-bar__user{padding:0 8px 0 4px!important;gap:10px}
+html body header.app-bar .app-bar__avatar{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--primary,#302080);color:var(--on-primary,#fff);font-size:12px;font-weight:700;letter-spacing:.02em}
+html body header.app-bar .app-bar__who{display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1.15;text-align:left}
+html body header.app-bar .app-bar__who strong,html body header.app-bar .app-bar__who small,html body header.app-bar .shell-menu__head strong,html body header.app-bar .shell-menu__head small{display:block!important;margin:0!important;padding:0!important;line-height:1.15!important}
+html body header.app-bar .app-bar__who strong{font-size:13.5px!important;font-weight:700;color:var(--text,#18212f)!important}
+html body header.app-bar .app-bar__who small{font-size:11.5px!important;font-weight:500;color:var(--muted,#5b6675)!important}
+html body header.app-bar .app-bar__burger{display:none!important;border-color:var(--border,#dfe4e8)!important}
+html body header.app-bar .app-bar__burger-icon{position:relative;width:16px;height:2px;background:currentColor;border-radius:2px}
+html body header.app-bar .app-bar__burger-icon::before,
+html body header.app-bar .app-bar__burger-icon::after{content:'';position:absolute;left:0;width:16px;height:2px;background:currentColor;border-radius:2px}
+html body header.app-bar .app-bar__burger-icon::before{top:-5px}
+html body header.app-bar .app-bar__burger-icon::after{top:5px}
+
+/* Acilir menuler */
+html body header.app-bar .shell-menu{position:relative}
+html body header.app-bar .shell-menu__panel{position:absolute;top:calc(100% + 8px);left:0;min-width:260px;padding:6px;background:var(--card,#fff);color:var(--text,#18212f);border:1px solid var(--border,#dfe4e8);border-radius:12px;box-shadow:0 16px 40px rgba(16,24,40,.16);z-index:60}
+html body header.app-bar .shell-menu__panel--end,
+html body header.app-bar .shell-menu--tools .shell-menu__panel{left:auto;right:0}
+html body header.app-bar .shell-menu__panel[hidden]{display:none}
+html body header.app-bar .shell-menu__list{list-style:none!important;margin:0!important;padding:0!important}
+html body header.app-bar .shell-menu__list li{margin:0!important;padding:0!important;list-style:none!important;border:0!important}
+html body header.app-bar .shell-menu__item{display:flex!important;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:38px;height:auto!important;white-space:nowrap;padding:8px 10px!important;margin:0!important;border:0!important;border-radius:8px!important;background:transparent!important;color:var(--text,#18212f)!important;font:500 14px/1.2 'DM Sans',Manrope,system-ui,sans-serif!important;text-align:left;text-decoration:none!important;cursor:pointer;box-shadow:none!important;filter:none!important}
+html body header.app-bar .shell-menu__item:hover{background:var(--surface-soft,#f1f0f8)!important}
+html body header.app-bar .shell-menu__item[aria-current=page]{color:var(--primary,#302080)!important;font-weight:700!important;background:color-mix(in srgb,var(--primary,#302080) 10%,transparent)!important}
+html body header.app-bar .shell-menu__note{font-size:12px;font-weight:600;color:#c2410c}
+html body header.app-bar .shell-menu__head{display:flex;flex-direction:column;gap:2px;padding:8px 10px 10px;margin-bottom:6px;border-bottom:1px solid var(--border,#dfe4e8)}
+html body header.app-bar .shell-menu__head strong{font-size:14px}
+html body header.app-bar .shell-menu__head small{font-size:12px;color:var(--muted,#5b6675)}
+html body header.app-bar .shell-menu__label{margin:8px 10px 4px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#5b6675)}
+html body header.app-bar .shell-menu__logout{color:#b42318!important;margin-top:4px!important;border-top:1px solid var(--border,#dfe4e8)!important;border-radius:0 0 8px 8px!important}
+html body header.app-bar .shell-menu__theme .theme-toggle{display:flex!important;width:100%!important;min-height:38px!important;height:auto!important;margin:0!important;padding:8px 10px!important;border:0!important;border-radius:8px!important;background:transparent!important;color:var(--text,#18212f)!important;font:500 14px/1.2 'DM Sans',Manrope,system-ui,sans-serif!important;text-align:left;box-shadow:none!important;filter:none!important}
+html body header.app-bar .shell-menu__theme .theme-toggle:hover{background:var(--surface-soft,#f1f0f8)!important}
+html body header.app-bar .shell-drawer{position:absolute;right:0;left:auto;width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 90px);overflow:auto}
+
+/* Sayfanin bolum sekmeleri */
+html body header.app-bar .app-bar__sub{display:flex;align-items:center;height:44px;padding:0 24px;border-top:1px solid var(--border,#dfe4e8);background:var(--card,#fff)}
+html body header.app-bar .app-bar__tabs{display:flex!important;gap:4px;margin:0!important;padding:0!important;border:0!important;background:transparent!important}
+html body header.app-bar .app-bar__tab{position:relative;height:44px!important;min-height:0!important;padding:0 12px!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:var(--muted,#5b6675)!important;font:600 13.5px/1 'DM Sans',Manrope,system-ui,sans-serif!important;cursor:pointer;box-shadow:none!important;filter:none!important}
+html body header.app-bar .app-bar__tab:hover{color:var(--text,#18212f)!important}
+html body header.app-bar .app-bar__tab[aria-current=page]{color:var(--primary,#302080)!important}
+html body header.app-bar .app-bar__tab[aria-current=page]::after{content:'';position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:var(--primary,#302080)}
+
+/* Dar ekran: once kullanici adi, sonra moduller ve araclar "Menu"ye girer. */
+@media (max-width:1180px){
+  html body header.app-bar .app-bar__who{display:none}
+  html body header.app-bar .app-bar__user{padding:0 6px 0 4px!important}
+}
+@media (max-width:960px){
+  html body header.app-bar .app-bar__nav,
+  html body header.app-bar .shell-menu--tools,
+  html body header.app-bar .shell-menu--user{display:none!important}
+  html body header.app-bar .app-bar__burger{display:inline-flex!important}
+}
+@media (min-width:961px){
+  html body header.app-bar .shell-menu--drawer{display:none!important}
+}
+@media (max-width:640px){
+  html body header.app-bar{--bar-h:56px}
+  html body header.app-bar .app-bar__inner,
+  html body header.app-bar .app-bar__sub{padding:0 12px}
+  html body header.app-bar .app-bar__brand img{height:28px!important}
+  html body header.app-bar .app-bar__burger{height:40px!important}
+  html body header.app-bar .shell-menu__item{min-height:44px}
+  html body header.app-bar .app-bar__sub{overflow-x:auto}
+}
+@media print{html body header.app-bar{display:none!important}}

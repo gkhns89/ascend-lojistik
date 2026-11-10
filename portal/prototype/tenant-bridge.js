@@ -29,7 +29,15 @@
    document.head.append(style);
   }
   // Ana ekran kisayollari kendi 'Hizli erisim' alaninda gosterir; diger sayfalarda ust baslikta.
-  const host=document.getElementById('portalShortcuts')||document.querySelector('header')||document.querySelector('.topbar')||document.body;
+  const logout=async()=>{await queue;await fetch('/api/tenant/logout',{method:'POST'});location.href='index.html';};
+  // Ortak baslik (portal-shell.js) cikisi bunun uzerinden yapar: bekleyen kayitlar once biter.
+  window.portalLogout=logout;
+  for(const b of document.querySelectorAll('button'))if(/^Çıkış(?: Yap)?$/.test(b.textContent.trim()))b.onclick=logout;
+  // Ana ekran kisayollari kendi 'Hizli erisim' alaninda gosterir. Diger sayfalarda
+  // kisayollar ortak basligin Araclar menusundedir; ortak baslik yoksa eskisi gibi ust baslikta.
+  const home=document.getElementById('portalShortcuts');
+  if(!home&&window.AscendShell)return;
+  const host=home||document.querySelector('header')||document.querySelector('.topbar')||document.body;
   const nav=document.createElement('nav');nav.className='portal-shortcuts no-print';nav.setAttribute('aria-label','Kısayollar');
   const here=location.pathname.split('/').pop();
   const add=(href,text)=>{const a=document.createElement('a');a.href=href;a.className='portal-shortcut';a.textContent=text;if(here===href)a.setAttribute('aria-current','page');nav.append(a);return a;};
@@ -44,6 +52,5 @@
    fetch('/api/tenant/monitor').then(r=>r.ok?r.json():Promise.reject()).then(data=>{const count=data.failures.length+data.offers.length+data.payments.length;if(count){note.textContent=count+' uyarı';monitor.append(note);}}).catch(()=>{note.textContent='durum alınamadı';monitor.append(note);});
   }
   host.append(nav);
-  for(const b of document.querySelectorAll('button'))if(/^Çıkış(?: Yap)?$/.test(b.textContent.trim()))b.onclick=async()=>{await queue;await fetch('/api/tenant/logout',{method:'POST'});location.href='index.html';};
  });
 })();
