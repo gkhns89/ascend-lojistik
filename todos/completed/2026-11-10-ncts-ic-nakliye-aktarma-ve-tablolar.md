@@ -65,10 +65,26 @@ taşıyıcı adlarında kısa adı zaten kullanıyordu.
   1 dosya), aktarma yapıldı. Konteyner sert biçimde silinip yeniden
   başlatıldığında NCTS'de yalnız seçilmeyen kayıt kalmıştı ve beş İç Nakliye
   kaydı kaynak, ücret ve konteyner bilgisiyle yerindeydi.
-- `node --test`: 113/113.
+- `node --test`: 113/113 (aktarma testleriyle birlikte).
 
-## Kalan
+## Aktarma yapıldı, araç kaldırıldı
 
-Aktarma bölümü tek seferlik. Kullanıcı aktarmayı yaptıktan sonra
-kaldırılabilir; istenen kayıtlar artık yoksa bölüm yalnız kalan NCTS
-kayıtlarını listeler.
+Kullanıcı aktarmayı 10 Kasım'da yaptı ve aracın kaldırılmasını istedi.
+Kaldırılanlar: İç Nakliye ekranındaki aktarma bölümü, `prototype/transport-import.js`
+ve sunucunun dosya listesindeki kaydı.
+
+Kalanlar:
+
+- İç Nakliye kaydındaki `source` alanı. Aktarılan kayıtlar geldikleri NCTS
+  numarasını bununla taşıyor ve tablolarda numaranın altında görünüyor.
+  Kaynak NCTS kaydı silindiği için tek iz bu. Sonraki kayıtlarda, personel
+  kaydında da korunuyor.
+- Gümrük ve depo seçeneklerinde NCTS'deki adlar.
+
+Aktarma testleri `test/multi-collection-sync.test.mjs`'e taşındı ve
+planlayıcıdan bağımsız hale getirildi. Bu dosya üç şeyi sınıyor: birden fazla
+koleksiyonun tek istekte değişmesi (doğrulama hatasında da, bellekte
+uygulandıktan sonra gelen 409'da da hiçbir şey değişmiyor), `source`'un
+korunması ve seçenek listeleri. Kaynak alanının izin listesinden çıkması ve
+geri almanın kaldırılması kasıtlı bozmayla sınandı; ikisi de yakalandı.
+`node --test`: 111/111. İmaj yerelde açıldı.
