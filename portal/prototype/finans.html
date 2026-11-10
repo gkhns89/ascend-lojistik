@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · Finans</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><script src="portal-theme.js"></script><script src="shared-portal.js"></script><script src="finance-center.js"></script><script src="portal-reports.js"></script>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · Finans</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><link rel="stylesheet" href="data-table.css"><script src="portal-theme.js"></script><script src="shared-portal.js"></script><script src="finance-center.js"></script><script src="portal-reports.js"></script>
 <style>
 main{padding:24px;max-width:1320px;margin:0 auto}
 header{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:16px 24px}header img{height:48px}
@@ -12,11 +12,6 @@ input,select,button{padding:10px;font:inherit}button{cursor:pointer}
 .segment{display:flex;gap:6px;flex-wrap:wrap}
 .segment button{border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-weight:700;font-size:13px;padding:7px 15px}
 .segment button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary,#fff)}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:9px;border-bottom:1px solid var(--border);vertical-align:top}
-th{font-size:13px;color:var(--muted);font-weight:700;white-space:nowrap}
-td.num{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}th.num{text-align:right}
 .totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:16px}
 .total{border:1px solid var(--border);border-radius:10px;padding:14px}
 .total .label{color:var(--muted);font-size:13px;font-weight:700}
@@ -55,8 +50,8 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    <button type="button" data-filter="" aria-pressed="true">Tümü</button><button type="button" data-filter="wait" aria-pressed="false">Ödeme bekleyen</button><button type="button" data-filter="paid" aria-pressed="false">Ödendi</button>
   </div>
  </div>
- <div class="table-wrap"><table>
-  <thead><tr><th>Dosya No</th><th>Gönderici</th><th>Alıcı</th><th>Acente / Taşıyıcı</th><th class="num">Navlun alış</th><th class="num">Navlun satış</th><th class="num">Kazanç</th><th class="num">Pay (1/3)</th><th class="num">Kur</th><th class="num">Pay TL</th><th>Varış</th><th>Ödeme tarihi</th><th>Ödendi</th><th>İşlem</th></tr></thead>
+ <div class="table-wrap"><table class="data-table">
+  <thead><tr><th>Dosya No</th><th>Gönderici</th><th>Alıcı</th><th>Acente / Taşıyıcı</th><th class="num">Navlun alış</th><th class="num">Navlun satış</th><th class="num">Kazanç</th><th class="num">Pay (1/3)</th><th class="num">Kur</th><th class="num">Pay TL</th><th>Varış</th><th>Ödeme tarihi</th><th>Ödendi</th><th class="actions"></th></tr></thead>
   <tbody id="lgRows"></tbody>
  </table></div>
  <p id="lgEmpty" class="empty" hidden></p>
@@ -71,8 +66,8 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
 <section id="panel-ncts" class="card" role="tabpanel" hidden>
  <h2>NCTS finans</h2>
  <div class="toolbar"><div class="field"><label for="ncSearch">Ara</label><input id="ncSearch" placeholder="NCTS no, firma…" autocomplete="off"></div></div>
- <div class="table-wrap"><table>
-  <thead><tr><th>NCTS No</th><th>Tarih</th><th>Gönderici</th><th>Alıcı</th><th class="num">Navlun ücreti</th><th class="num">Teminat ücreti</th><th class="num">Toplam</th><th>İşlem</th></tr></thead>
+ <div class="table-wrap"><table class="data-table">
+  <thead><tr><th>NCTS No</th><th>Tarih</th><th>Gönderici</th><th>Alıcı</th><th class="num">Navlun ücreti</th><th class="num">Teminat ücreti</th><th class="num">Toplam</th><th class="actions"></th></tr></thead>
   <tbody id="ncRows"></tbody>
  </table></div>
  <p id="ncEmpty" class="empty" hidden></p>
@@ -91,8 +86,8 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    <button type="button" data-filter="" aria-pressed="true">Tümü</button><button type="button" data-filter="wait" aria-pressed="false">Ödeme bekleyen</button><button type="button" data-filter="paid" aria-pressed="false">Ödendi</button>
   </div>
  </div>
- <div class="table-wrap"><table>
-  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th class="num">Kap</th><th class="num">Kilo</th><th>Konteyner</th><th class="num">Taşıma ücreti</th><th>Ödeme</th><th>İşlem</th></tr></thead>
+ <div class="table-wrap"><table class="data-table">
+  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th class="num">Kap</th><th class="num">Kilo</th><th>Konteyner</th><th class="num">Taşıma ücreti</th><th>Ödeme</th><th class="actions"></th></tr></thead>
   <tbody id="trRows"></tbody>
  </table></div>
  <p id="trEmpty" class="empty" hidden></p>
@@ -113,7 +108,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  </div>
  <p class="muted" id="ldHelp"></p>
  <div id="ldList">
-  <div class="table-wrap"><table>
+  <div class="table-wrap"><table class="data-table">
    <thead><tr><th>Firma</th><th class="num">Dosya</th><th>Bakiye</th><th>Son işlem</th><th>İşlem</th></tr></thead>
    <tbody id="ldRows"></tbody>
   </table></div>
@@ -122,7 +117,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  <div id="ldDetail" hidden>
   <button type="button" class="secondary" id="ldBack">← Cari listesi</button>
   <h3 id="ldTitle" tabindex="-1"></h3>
-  <div class="table-wrap"><table>
+  <div class="table-wrap"><table class="data-table">
    <thead><tr><th>Döviz</th><th class="num">Fatura</th><th class="num">Ödeme</th><th class="num">Firma bize borçlu</th><th class="num">Biz firmaya borçluyuz</th></tr></thead>
    <tbody id="ldSummary"></tbody>
   </table></div>
@@ -139,9 +134,9 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    <div class="actions"><button type="submit" class="primary">Kaydet</button></div>
   </form>
   <h3 id="ldInvoiceHeading"></h3>
-  <div class="table-wrap"><table><thead><tr><th>Referans</th><th>Tarih</th><th class="num">Tutar</th><th>Not</th><th>İşlem</th></tr></thead><tbody id="ldInvoices"></tbody></table></div>
+  <div class="table-wrap"><table class="data-table"><thead><tr><th>Referans</th><th>Tarih</th><th class="num">Tutar</th><th>Not</th><th>İşlem</th></tr></thead><tbody id="ldInvoices"></tbody></table></div>
   <h3 id="ldPaymentHeading"></h3>
-  <div class="table-wrap"><table><thead><tr><th>Referans</th><th>Tarih</th><th class="num">Tutar</th><th>Not</th><th>İşlem</th></tr></thead><tbody id="ldPayments"></tbody></table></div>
+  <div class="table-wrap"><table class="data-table"><thead><tr><th>Referans</th><th>Tarih</th><th class="num">Tutar</th><th>Not</th><th>İşlem</th></tr></thead><tbody id="ldPayments"></tbody></table></div>
  </div>
 </section>
 
@@ -202,7 +197,12 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  const nctsId=r=>String(r.no||r.id||'');
  const normalize=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i');
  const matches=(q,parts)=>!q||normalize(parts.join(' ')).includes(q);
- const cell=(text,cls)=>{const td=document.createElement('td');td.textContent=text??'—';if(cls)td.className=cls;return td;};
+ const cell=(text,cls,title)=>{const td=document.createElement('td');td.textContent=text??'—';if(cls)td.className=cls;if(title)td.title=title;return td;};
+ // Tabloda Firma Kartlari'ndaki kisa ad; tam unvan uzerine gelince gorunur.
+ const companyShort=name=>{if(!name)return '—';const c=(boot.companies||[]).find(x=>x.name===name)||(boot.companies||[]).find(x=>normalize(x.name)===normalize(name));return c?.shortName||name;};
+ const nameCell=name=>cell(companyShort(name),'name',name||'');
+ const dateCell=d=>cell(/^\d{4}-\d{2}-\d{2}/.test(d||'')?d.slice(0,10).split('-').reverse().join('.'):'—','nowrap');
+ const actionCell=button=>{const td=document.createElement('td');td.className='actions';td.append(button);return td;};
  const amount=(value,currency)=>value===null?'—':F.money(value,currency);
  const currencies=['EUR','USD','TRY','GBP','CHF'];
  for(const id of ['lgCurrency','ncCurrency','trCurrency'])for(const code of currencies)$(id).add(new Option(code,code));
@@ -239,17 +239,17 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const body=$('lgRows');body.replaceChildren();
   for(const r of rows){
    const m=F.logisticsMoney(r),tr=document.createElement('tr');
-   tr.append(cell(shipmentId(r)),cell(r.shipper||'—'),cell(r.consignee||'—'),cell(r.agent||'—'),
+   tr.append(cell(shipmentId(r),'id'),nameCell(r.shipper),nameCell(r.consignee),nameCell(r.agent),
     cell(amount(m.purchase,m.currency),'num'),cell(amount(m.sale,m.currency),'num'),
     cell(m.priced?F.money(m.profit,m.currency):'—','num'),cell(m.priced?F.money(m.share,m.currency):'—','num'),
     cell(m.rate===null?'—':String(m.rate),'num'),cell(m.priced&&m.rate?F.money(m.shareTL,'TL'):'—','num'),
-    cell(r.arrivalDate||'—'),cell(r.paymentDate||'—'));
+    dateCell(r.arrivalDate),dateCell(r.paymentDate));
    const paidCell=document.createElement('td');
    const box=document.createElement('input');box.type='checkbox';box.checked=!!r.paymentDate;
    box.setAttribute('aria-label',shipmentId(r)+' ödeme alındı');
    box.onchange=()=>attempt(()=>{box.disabled=true;return saveShipment(shipmentId(r),{paymentDate:box.checked?today():''},box.checked?shipmentId(r)+' ödendi olarak işaretlendi.':shipmentId(r)+' ödeme bekliyor.');}).finally(()=>{box.disabled=false;});
    paidCell.append(box);tr.append(paidCell);
-   const act=document.createElement('td');const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openLogistics(shipmentId(r));act.append(edit);tr.append(act);
+   const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openLogistics(shipmentId(r));tr.append(actionCell(edit));
    body.append(tr);
   }
   $('lgEmpty').hidden=rows.length>0;$('lgEmpty').textContent=data.shipments.length?'Aramaya uyan kayıt yok.':'Henüz sevkiyat yok.';
@@ -285,10 +285,10 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   for(const r of rows){
    const f=F.number(r.freightFee),g=F.number(r.guaranteeFee),code=r.feeCurrency||'';
    const tr=document.createElement('tr');
-   tr.append(cell(nctsId(r)),cell(r.date||'—'),cell(r.sender||'—'),cell(r.receiver||'—'),
+   tr.append(cell(nctsId(r),'id'),dateCell(r.date),nameCell(r.sender),nameCell(r.receiver),
     cell(f===null?'—':F.money(f,code),'num'),cell(g===null?'—':F.money(g,code),'num'),
     cell(f===null&&g===null?'—':F.money((f??0)+(g??0),code),'num'));
-   const act=document.createElement('td');const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openNcts(nctsId(r));act.append(edit);tr.append(act);
+   const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openNcts(nctsId(r));tr.append(actionCell(edit));
    body.append(tr);
   }
   $('ncEmpty').hidden=rows.length>0;$('ncEmpty').textContent=data.ncts.length?'Aramaya uyan kayıt yok.':'Henüz NCTS kaydı yok.';
@@ -324,15 +324,16 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const body=$('trRows');body.replaceChildren();
   for(const r of rows){
    const tr=document.createElement('tr');
-   tr.append(cell(r.id),cell(r.company),cell(r.customs||'—'),cell(r.warehouse||'—'),
+   const idCell=cell(r.id,'id');if(r.source){const sub=document.createElement('span');sub.className='sub';sub.textContent=r.source;idCell.append(sub);}
+   tr.append(idCell,nameCell(r.company),cell(r.customs||'—','name',r.customs),cell(r.warehouse||'—','name',r.warehouse),
     cell(r.packages==null?'—':String(r.packages),'num'),cell(r.weight==null?'—':Number(r.weight).toLocaleString('tr-TR',{maximumFractionDigits:2}),'num'),
-    cell(r.container?'Konteyner':'—'),cell(r.fee==null?'—':F.money(r.fee,r.currency||'TRY'),'num'));
+    cell(r.container?'Konteyner':'—','nowrap'),cell(r.fee==null?'—':F.money(r.fee,r.currency||'TRY'),'num'));
    const paidCell=document.createElement('td');
    const box=document.createElement('input');box.type='checkbox';box.checked=r.paid===true;box.setAttribute('aria-label',r.id+' ödeme alındı');
    const tag=document.createElement('span');tag.className=r.paid?'badge-paid':'badge-wait';tag.textContent=r.paid?'Ödendi':'Bekliyor';
    box.onchange=()=>attempt(()=>{box.disabled=true;return save('transport',data.transport.map(x=>x.id===r.id?{...x,paid:box.checked}:{...x}),box.checked?r.id+' ödendi olarak işaretlendi.':r.id+' ödeme bekliyor.');}).finally(()=>{box.disabled=false;});
    const wrap=document.createElement('span');wrap.className='check';wrap.append(box,tag);paidCell.append(wrap);tr.append(paidCell);
-   const act=document.createElement('td');const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openTransport(r.id);act.append(edit);tr.append(act);
+   const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openTransport(r.id);tr.append(actionCell(edit));
    body.append(tr);
   }
   $('trEmpty').hidden=rows.length>0;$('trEmpty').textContent=data.transport.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok.';
@@ -381,9 +382,9 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    const totals=F.ledgerTotals(entriesOf(account.company),ldKind);
    const balance=totals.length?totals.map(t=>t.theyOwe?F.minorMoney(t.theyOwe,t.currency)+' bize borçlu':t.weOwe?F.minorMoney(t.weOwe,t.currency)+' borçluyuz':F.minorMoney(0,t.currency)).join(' · '):'Kayıt yok';
    const tr=document.createElement('tr');
-   const name=cell(shortName(account.company));name.title=account.company;
+   const name=cell(shortName(account.company),'name',account.company);
    tr.append(name,cell(String(account.count),'num'),cell(balance),cell(trDate(account.last)));
-   const act=document.createElement('td');const open=document.createElement('button');open.type='button';open.className='secondary';open.textContent='Cariyi aç';
+   const act=document.createElement('td');act.className='actions';const open=document.createElement('button');open.type='button';open.className='secondary';open.textContent='Cariyi aç';
    open.onclick=()=>{ldAccount=account.company;renderLedger();$('ldTitle').focus();};act.append(open);tr.append(act);body.append(tr);
   }
   $('ldEmpty').hidden=accounts.length>0;
@@ -408,8 +409,8 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    const list=entries.filter(e=>e.type===type).sort((a,b)=>b.date.localeCompare(a.date));
    for(const e of list){
     const tr=document.createElement('tr');
-    tr.append(cell(e.reference),cell(trDate(e.date)),cell(F.minorMoney(e.amount,e.currency),'num'),cell(e.note||'—'));
-    const act=document.createElement('td');const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';
+    tr.append(cell(e.reference,'nowrap'),cell(trDate(e.date),'nowrap'),cell(F.minorMoney(e.amount,e.currency),'num'),cell(e.note||'—'));
+    const act=document.createElement('td');act.className='actions';const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';
     del.onclick=()=>{
      if(!confirm(e.reference+' · '+F.minorMoney(e.amount,e.currency)+' kaydı silinsin mi? Silme denetim günlüğüne yazılır.'))return;
      attempt(()=>save('ledger',data.ledger.filter(x=>x.id!==e.id),e.reference+' silindi.'));

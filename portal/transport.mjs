@@ -50,6 +50,10 @@ export function normalizeTransport(rows, previous = []) {
       warehouse: text(row.warehouse, 'Depo', 200, false),
       deliveryAddress: text(row.deliveryAddress, 'Teslim adresi', 1000, false),
     };
+    // Kaydin nereden geldigi (or. 'NCTS ASC-2026-0007'). Aktarilan kaynak kayit
+    // silindiginde iz kaybolmasin diye tutulur.
+    const source = text(row.source, 'Kaynak', 60, false);
+    if (source) record.source = source;
 
     if (row.container !== undefined && typeof row.container !== 'boolean') throw Error('Konteyner evet/hayır olmalı');
     const container = row.container === true;
