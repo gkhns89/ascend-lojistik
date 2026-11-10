@@ -14,7 +14,7 @@ const session=(store,username)=>{const cookie='ascend_sid='+store.login(username
 // Lojistik finans alani da var: eski veride boyle artiklar kalabilir.
 const shipment={fileNo:'ASC-2026-0001',shipper:'DEMO Anadolu Dış Ticaret Ltd. Şti.',consignee:'Alıcı',salePrice:500,financeCurrency:'EUR',purchasePrice:300,profit:200,share:66.67,shareTL:3000,exchangeRate:45};
 const ncts={no:'ASC-2026-0002',sender:'DEMO Anadolu Dış Ticaret Ltd. Şti.',receiver:'Alıcı',freightFee:120,guaranteeFee:80,feeCurrency:'EUR',purchasePrice:999};
-const transport={id:'IN-2026-0001',company:'Vicem Yapı',customs:'Halkalı',warehouse:'Antrepo 3',deliveryAddress:'İstanbul',fee:2500,currency:'TRY',paid:false};
+const transport={id:'IN-2026-0001',company:'Vicem Yapı',customs:'Halkalı',warehouse:'Antrepo 3',deliveryAddress:'İstanbul',packages:5,weight:1200,container:false,fee:2500,currency:'TRY',paid:false};
 
 async function seeded(){
  const store=await createTenantStore();
@@ -215,5 +215,5 @@ test('Ic Nakliye rows are rebuilt from an allowlist',()=>{
  assert.throws(()=>normalizeTransport([{...transport,currency:'BTC'}]),/Döviz/);
  assert.throws(()=>normalizeTransport([{...transport,paid:'evet'}]),/evet\/hayır/);
  assert.throws(()=>normalizeTransport([transport,transport]),/tekrar/);
- assert.equal(normalizeTransport([{id:'IN-1',company:'A',fee:''}])[0].fee,null);
+ assert.equal(normalizeTransport([{id:'IN-1',company:'A',container:true,fee:''}])[0].fee,null);
 });

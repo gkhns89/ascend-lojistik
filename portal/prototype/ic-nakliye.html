@@ -16,7 +16,7 @@ button{cursor:pointer}
 .segment button{border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-weight:700;font-size:13px;padding:7px 15px}
 .segment button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary,#fff)}
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:820px}
+table{width:100%;border-collapse:collapse;min-width:1040px}
 th,td{text-align:left;padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
 th{font-size:13px;color:var(--muted);font-weight:700}
 td.money{white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -47,6 +47,9 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <div class="field"><label for="company">Firma *</label><input id="company" autocomplete="off" required maxlength="200"></div>
   <div class="field"><label for="customs">Gümrük adı</label><input id="customs" autocomplete="off" maxlength="200"></div>
   <div class="field"><label for="warehouse">Depo</label><input id="warehouse" autocomplete="off" maxlength="200"></div>
+  <div class="field"><span class="check"><input id="container" type="checkbox"><label for="container">Konteyner</label></span><small class="muted">İşaretliyse kap ve kilo isteğe bağlıdır.</small></div>
+  <div class="field"><label for="packages">Kap<span class="req"> *</span></label><input id="packages" type="number" min="1" step="1" inputmode="numeric"></div>
+  <div class="field"><label for="weight">Kilo<span class="req"> *</span></label><input id="weight" type="number" min="0.01" step="0.01" inputmode="decimal"></div>
   <div class="field wide"><label for="deliveryAddress">Teslim adresi</label><textarea id="deliveryAddress" maxlength="1000"></textarea></div>
   <div class="field finance"><label for="fee">Taşıma ücreti</label><input id="fee" type="number" min="0" step="0.01" inputmode="decimal"></div>
   <div class="field finance"><label for="currency">Döviz</label><select id="currency"><option>TRY</option><option>EUR</option><option>USD</option><option>GBP</option><option>CHF</option></select></div>
@@ -69,7 +72,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   </div>
  </div>
  <div class="table-wrap"><table>
-  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th>Teslim adresi</th><th class="finance">Taşıma ücreti</th><th class="finance">Ödeme</th><th>İşlem</th></tr></thead>
+  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th>Kap</th><th>Kilo</th><th>Konteyner</th><th>Teslim adresi</th><th class="finance">Taşıma ücreti</th><th class="finance">Ödeme</th><th>İşlem</th></tr></thead>
   <tbody id="rows"></tbody>
  </table></div>
  <p id="empty" class="empty" hidden></p>
@@ -127,6 +130,19 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const record={company:$('company').value.trim(),customs:$('customs').value.trim(),warehouse:$('warehouse').value.trim(),deliveryAddress:$('deliveryAddress').value.trim()};
   if(!record.company){$('company').setAttribute('aria-invalid','true');$('company').focus();throw Error('Firma zorunludur.');}
   $('company').removeAttribute('aria-invalid');
+  // Konteyner degilse kap ve kilo zorunlu; sunucu ayni kurali uygular.
+  record.container=$('container').checked;
+  const packages=$('packages').value.trim(),weight=$('weight').value.trim();
+  for(const id of ['packages','weight'])$(id).removeAttribute('aria-invalid');
+  if(packages!==''&&!(Number.isInteger(Number(packages))&&Number(packages)>0)){$('packages').setAttribute('aria-invalid','true');$('packages').focus();throw Error('Kap pozitif bir tam sayı olmalı.');}
+  if(weight!==''&&!(Number(weight)>0)){$('weight').setAttribute('aria-invalid','true');$('weight').focus();throw Error('Kilo pozitif bir sayı olmalı.');}
+  if(!record.container&&(packages===''||weight==='')){
+   const missing=packages===''?'packages':'weight';
+   $(missing).setAttribute('aria-invalid','true');$(missing).focus();
+   throw Error('Konteyner değilse kap ve kilo zorunludur.');
+  }
+  record.packages=packages===''?null:Number(packages);
+  record.weight=weight===''?null:Number(weight);
   if(finance){
    const raw=$('fee').value.trim();
    if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0)){$('fee').focus();throw Error('Taşıma ücreti sıfır veya pozitif bir sayı olmalı.');}
@@ -137,8 +153,10 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   return record;
  }
 
+ function syncCargoRule(){for(const el of document.querySelectorAll('.req'))el.hidden=$('container').checked;}
+ $('container').addEventListener('change',syncCargoRule);
  function resetForm(){
-  editing=null;$('entry').reset();$('currency').value='TRY';
+  editing=null;$('entry').reset();$('currency').value='TRY';syncCargoRule();
   $('formTitle').textContent='Yeni kayıt';$('saveBtn').textContent='Kaydet';$('cancelBtn').hidden=true;
  }
 
@@ -146,6 +164,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const r=rows.find(x=>x.id===id);if(!r)return;
   editing=id;
   $('company').value=r.company||'';$('customs').value=r.customs||'';$('warehouse').value=r.warehouse||'';$('deliveryAddress').value=r.deliveryAddress||'';
+  $('container').checked=r.container===true;$('packages').value=r.packages??'';$('weight').value=r.weight??'';syncCargoRule();
   if(finance){$('fee').value=r.fee??'';$('currency').value=r.currency||'TRY';$('paid').checked=r.paid===true;}
   $('formTitle').textContent='Kaydı düzenle · '+id;$('saveBtn').textContent='Değişiklikleri kaydet';$('cancelBtn').hidden=false;
   $('entry').scrollIntoView({behavior:'smooth',block:'start'});$('company').focus();
@@ -195,7 +214,8 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const body=$('rows');body.replaceChildren();
   for(const r of visible){
    const tr=document.createElement('tr');
-   tr.append(cell(r.id),cell(r.company),cell(r.customs||'—'),cell(r.warehouse||'—'),cell(r.deliveryAddress||'—'));
+   const kilo=r.weight==null?'—':Number(r.weight).toLocaleString('tr-TR',{maximumFractionDigits:2});
+   tr.append(cell(r.id),cell(r.company),cell(r.customs||'—'),cell(r.warehouse||'—'),cell(r.packages==null?'—':String(r.packages),'money'),cell(kilo,'money'),cell(r.container?'Konteyner':'—'),cell(r.deliveryAddress||'—'));
    if(finance){
     tr.append(cell(r.fee==null?'—':money(r.fee,r.currency||'TRY'),'money'));
     const td=document.createElement('td');

@@ -15,7 +15,7 @@ test('module pages and embedded data follow the permission table over HTTP',asyn
  const sync=async(cookie,body)=>{const {revision}=await (await call('/api/tenant/data',null,cookie)).json();return call('/api/tenant/sync',{_revision:revision,...body},cookie);};
  try{
   const admin=await login('yonetici.demo');
-  assert.equal((await sync(admin,{transport:[{id:'IN-2026-0001',company:'Vicem Yapı',fee:2500,currency:'TRY',paid:false}],ncts:[{no:'N-1',sender:'A',freightFee:120,feeCurrency:'EUR'}]})).status,200);
+  assert.equal((await sync(admin,{transport:[{id:'IN-2026-0001',company:'Vicem Yapı',packages:5,weight:1200,fee:2500,currency:'TRY',paid:false}],ncts:[{no:'N-1',sender:'A',freightFee:120,feeCurrency:'EUR'}]})).status,200);
 
   // Personel: Ic Nakliye kapali; sayfa reddedilir, gomulu veride kayit yok.
   const staff=await login('personel.demo');

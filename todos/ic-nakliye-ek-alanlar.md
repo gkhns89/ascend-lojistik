@@ -7,6 +7,13 @@
 
 ## Durum
 
+10 Kasım 2026: **Kap, Kilo ve Konteyner eklendi.** Konteyner işaretliyse kap
+ve kilo isteğe bağlı; değilse ikisi de zorunlu. Konteyner numarası
+tutulmuyor. Kural yalnız yeni kayda ve yük bilgisi değişen kayda uygulanıyor;
+eski kayıtlar kaydetmeyi engellemiyor (`test/transport-cargo.test.mjs`).
+Aşağıdaki diğer alanlar hâlâ karar bekliyor.
+
+
 Modül istenen alanlarla açıldı: Firma, Gümrük adı, Depo, Teslim adresi,
 Taşıma ücreti (döviziyle), Ödeme alındı.
 
