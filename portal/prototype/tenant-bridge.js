@@ -28,7 +28,8 @@
     +'@media print{.portal-shortcuts{display:none}}';
    document.head.append(style);
   }
-  const host=document.querySelector('header')||document.querySelector('.topbar')||document.body;
+  // Ana ekran kisayollari kendi 'Hizli erisim' alaninda gosterir; diger sayfalarda ust baslikta.
+  const host=document.getElementById('portalShortcuts')||document.querySelector('header')||document.querySelector('.topbar')||document.body;
   const nav=document.createElement('nav');nav.className='portal-shortcuts no-print';nav.setAttribute('aria-label','Kısayollar');
   const here=location.pathname.split('/').pop();
   const add=(href,text)=>{const a=document.createElement('a');a.href=href;a.className='portal-shortcut';a.textContent=text;if(here===href)a.setAttribute('aria-current','page');nav.append(a);return a;};
