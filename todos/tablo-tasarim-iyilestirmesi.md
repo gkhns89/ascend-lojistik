@@ -80,8 +80,13 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
 3. [ ] **Toplu "Ödendi" işaretleme** (Lojistik, NCTS, İç Nakliye). Satır
    başında seçim kutusu olacak; seçim varken alta sabit bir çubuk çıkacak:
    "N kayıt seçildi · Ödendi işaretle · Seçimi kaldır".
-   - **Önce karar gerek:** Lojistik'te ödeme bir tarihtir (`paymentDate`).
-     Toplu işaretlemede bugünün tarihi mi yazılacak, yoksa tarih mi sorulacak?
+   - **Karar verildi (kullanıcı, 11 Kasım 2026): her seferinde tarih sorulsun.**
+     Seçim çubuğunda bir ödeme tarihi alanı olur (varsayılan bugün ama
+     kullanıcı onaylamadan kaydedilmez). Lojistik'te `paymentDate` buna yazılır.
+   - **NCTS ve İç Nakliye'de tarih sorulmaz** (kullanıcı kararı, 11 Kasım 2026:
+     "oralarda tarihe gerek yok"). Ödeme orada evet/hayır (`paid`) olarak
+     kalır; toplu işlem yalnız `paid: true` yazar. Sunucuya tarih alanı eklenmez.
+     Yani tarih alanı seçim çubuğunda yalnız Lojistik sekmesinde görünür.
    - Tek `save()` çağrısı yeterli; sunucu zaten tek seferde yazıyor.
 4. [ ] **Toplamları sabit alt satıra taşı.** Lojistik, NCTS ve İç Nakliye'de
    toplamlar şu an tablonun altında ayrı kartlarda.
