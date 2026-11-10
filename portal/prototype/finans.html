@@ -289,6 +289,78 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  }
  function counter(id,shown,all){$(id).textContent=shown===all?all+' kayıt':shown+' / '+all+' kayıt';}
 
+ // ---------- Toplu "Odendi" ----------
+ // Yalniz odeme bekleyen satir secilebilir. Secim yalniz gorunen satirlarda
+ // kalir: arama ya da filtre bir satiri gizlerse secimden duser, gorunmeyen
+ // kayit toplu isleme girmez. Lojistik'te odeme bir tarihtir; kullanici
+ // karari geregi tarih her seferinde sorulur (varsayilan bugun).
+ const selected={logistics:new Set(),ncts:new Set(),transport:new Set()};
+ const selectable={logistics:[],ncts:[],transport:[]};
+ const bulk={};
+ function selectCell(cell,key,id){
+  cell.classList.add('has-select');
+  if(!id)return cell;
+  const box=document.createElement('input');box.type='checkbox';box.className='row-select';
+  box.checked=selected[key].has(id);box.setAttribute('aria-label',id+' seç');
+  box.onchange=()=>{if(box.checked)selected[key].add(id);else selected[key].delete(id);paintBulk(key);};
+  cell.prepend(box);
+  return cell;
+ }
+ function finishRows(key,ids){
+  selectable[key]=ids;
+  const visible=new Set(ids);
+  for(const id of [...selected[key]])if(!visible.has(id))selected[key].delete(id);
+  paintBulk(key);
+ }
+ function paintBulk(key){
+  const b=bulk[key],n=selected[key].size,total=selectable[key].length;
+  for(const box of b.table.querySelectorAll('tbody .row-select'))box.closest('tr').classList.toggle('is-selected',box.checked);
+  b.all.checked=n>0&&n===total;b.all.indeterminate=n>0&&n<total;b.all.disabled=!total;
+  if(n&&b.bar.hidden){b.note.textContent='';if(b.date)b.date.value=today();}
+  b.bar.hidden=!n;
+  b.count.textContent=n+' '+b.noun+' seçildi';
+ }
+ function markPaid(key){
+  const b=bulk[key],ids=new Set(selected[key]);if(!ids.size)return;
+  const date=b.date?b.date.value:'';
+  if(b.date&&!/^\d{4}-\d{2}-\d{2}$/.test(date)){b.note.textContent='Ödeme tarihini girin.';b.date.focus();return;}
+  const done=ids.size+' '+b.noun+' ödendi olarak işaretlendi'+(date?' (ödeme tarihi '+trDate(date)+').':'.');
+  const work={
+   logistics:()=>save('shipments',data.shipments.map(r=>ids.has(shipmentId(r))&&!r.paymentDate?{...r,paymentDate:date}:{...r}),done),
+   ncts:()=>save('ncts',data.ncts.map(r=>ids.has(nctsId(r))?{...r,paid:true}:{...r}),done),
+   transport:()=>save('transport',data.transport.map(r=>ids.has(r.id)?{...r,paid:true}:{...r}),done),
+  }[key];
+  b.mark.disabled=true;b.note.textContent='';
+  // Hata cubugun icinde de yazilir: kullanici tablonun altindayken sayfanin
+  // ustundeki durum satirini gormeyebilir. Secim korunur, tekrar denenebilir.
+  work().then(()=>{selected[key].clear();renderers[key]();},error=>{b.note.textContent=error.message;status(error.message);}).finally(()=>{b.mark.disabled=false;});
+ }
+ function setupBulk(key,bodyId,noun,withDate){
+  const table=$(bodyId).closest('table'),th=table.tHead.rows[0].cells[0];
+  th.classList.add('has-select');
+  const all=document.createElement('input');all.type='checkbox';all.className='row-select';
+  all.setAttribute('aria-label','Görünen ve ödeme bekleyen tüm kayıtları seç');
+  // Kutu siralanabilir basligin icinde: tiklama ve tus siralamaya gitmesin.
+  all.addEventListener('click',e=>e.stopPropagation());all.addEventListener('keydown',e=>e.stopPropagation());
+  all.onchange=()=>{selected[key]=new Set(all.checked?selectable[key]:[]);for(const box of table.querySelectorAll('tbody .row-select'))box.checked=all.checked;paintBulk(key);};
+  th.prepend(all);
+  const bar=document.createElement('div');bar.className='bulk-bar';bar.hidden=true;
+  bar.setAttribute('role','region');bar.setAttribute('aria-label','Seçili kayıtlar için toplu işlem');
+  const count=document.createElement('strong');count.setAttribute('aria-live','polite');
+  bar.append(count);
+  let date=null;
+  if(withDate){const label=document.createElement('label');label.className='bulk-date';label.textContent='Ödeme tarihi';date=document.createElement('input');date.type='date';date.required=true;label.append(date);bar.append(label);}
+  const mark=button('Ödendi işaretle',()=>markPaid(key),'primary');
+  const clear=button('Seçimi kaldır',()=>{selected[key].clear();for(const box of table.querySelectorAll('tbody .row-select'))box.checked=false;paintBulk(key);});
+  const note=document.createElement('span');note.className='bulk-note';note.setAttribute('role','alert');
+  bar.append(mark,clear,note);
+  table.closest('.table-wrap').after(bar);
+  bulk[key]={table,all,bar,count,date,mark,note,noun};
+ }
+ setupBulk('logistics','lgRows','dosya',true);
+ setupBulk('ncts','ncRows','NCTS kaydı',false);
+ setupBulk('transport','trRows','kayıt',false);
+
  const currencies=['EUR','USD','TRY','GBP','CHF'];
  for(const id of ['lgCurrency','ncCurrency','trCurrency'])for(const code of currencies)$(id).add(new Option(code,code));
 
@@ -322,7 +394,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   for(const r of rows){
    const m=F.logisticsMoney(r),id=shipmentId(r),tr=document.createElement('tr');
    const arrival=trDate(r.arrivalDate);
-   tr.append(stack(id,arrival?'Varış '+arrival:'','id'),parties(r.shipper,r.consignee,r.agent),td(m.priced?m.currency:'—','cur'),
+   tr.append(selectCell(stack(id,arrival?'Varış '+arrival:'','id'),'logistics',r.paymentDate?'':id),parties(r.shipper,r.consignee,r.agent),td(m.priced?m.currency:'—','cur'),
     td(fmt(m.purchase),'num'),td(fmt(m.sale),'num'),
     td(m.priced?fmt(m.profit):'—','num'+(m.priced&&m.profit<0?' neg':'')),td(m.priced?fmt(m.share):'—','num'+(m.priced&&m.share<0?' neg':'')),
     td(rateFmt(m.rate),'num'),td(m.priced&&m.rate?fmt(m.shareTL):'—','num'),
@@ -342,6 +414,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    tr.append(actions(button('Düzenle',()=>openLogistics(id))));
    body.append(tr);
   }
+  finishRows('logistics',rows.filter(r=>!r.paymentDate).map(shipmentId));
   counter('lgCount',rows.length,data.shipments.length);
   $('lgEmpty').hidden=rows.length>0;$('lgEmpty').textContent=data.shipments.length?'Aramaya uyan kayıt yok.':'Henüz sevkiyat yok.';
   const groups=F.currencyTotals(rows,r=>{const m=F.logisticsMoney(r);return m.priced?{currency:m.currency,values:{sale:m.sale??0,profit:m.profit,share:m.share}}:null;});
@@ -477,12 +550,13 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   for(const r of rows){
    const f=F.number(r.freightFee),g=F.number(r.guaranteeFee),id=nctsId(r),priced=f!==null||g!==null;
    const tr=document.createElement('tr');
-   tr.append(stack(id,trDate(r.date),'id'),parties(r.sender,r.receiver),td(priced?(r.feeCurrency||'—'):'—','cur'),
+   tr.append(selectCell(stack(id,trDate(r.date),'id'),'ncts',r.paid===true?'':id),parties(r.sender,r.receiver),td(priced?(r.feeCurrency||'—'):'—','cur'),
     td(fmt(f),'num'),td(fmt(g),'num'),td(priced?fmt((f??0)+(g??0)):'—','num'),
     paidCell(r.paid===true,id+' ödeme alındı',checked=>attempt(()=>save('ncts',data.ncts.map(x=>nctsId(x)===id?{...x,paid:checked}:{...x}),checked?id+' ödendi olarak işaretlendi.':id+' ödeme bekliyor.'))),
     actions(button('Düzenle',()=>openNcts(id))));
    body.append(tr);
   }
+  finishRows('ncts',rows.filter(r=>r.paid!==true).map(nctsId));
   counter('ncCount',rows.length,data.ncts.length);
   $('ncEmpty').hidden=rows.length>0;$('ncEmpty').textContent=data.ncts.length?'Aramaya uyan kayıt yok.':'Henüz NCTS kaydı yok.';
   // Dovizler birbirine eklenmez. Genel toplam = navlun + teminat.
@@ -518,13 +592,14 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const body=$('trRows');body.replaceChildren();
   for(const r of rows){
    const tr=document.createElement('tr');
-   tr.append(stack(r.id,r.source||'','id'),td(short(r.company),'name',r.company),stack(r.customs||'—',r.warehouse||'','name',[r.customs,r.warehouse].filter(Boolean).join(' · ')),
+   tr.append(selectCell(stack(r.id,r.source||'','id'),'transport',r.paid===true?'':r.id),td(short(r.company),'name',r.company),stack(r.customs||'—',r.warehouse||'','name',[r.customs,r.warehouse].filter(Boolean).join(' · ')),
     td(r.packages==null?'—':String(r.packages),'num'),td(r.weight==null?'—':Number(r.weight).toLocaleString('tr-TR',{maximumFractionDigits:2}),'num'),
     td(r.container?'Konteyner':'—','nowrap'),td(r.fee==null?'—':(r.currency||'TRY'),'cur'),td(r.fee==null?'—':fmt(r.fee),'num'),
     paidCell(r.paid===true,r.id+' ödeme alındı',checked=>attempt(()=>save('transport',data.transport.map(x=>x.id===r.id?{...x,paid:checked}:{...x}),checked?r.id+' ödendi olarak işaretlendi.':r.id+' ödeme bekliyor.'))),
     actions(button('Düzenle',()=>openTransport(r.id))));
    body.append(tr);
   }
+  finishRows('transport',rows.filter(r=>r.paid!==true).map(r=>r.id));
   counter('trCount',rows.length,data.transport.length);
   $('trEmpty').hidden=rows.length>0;$('trEmpty').textContent=data.transport.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok.';
   const groups=F.currencyTotals(rows,r=>r.fee==null?null:{currency:r.currency||'TRY',values:{all:r.fee,paid:r.paid?r.fee:0,wait:r.paid?0:r.fee}});

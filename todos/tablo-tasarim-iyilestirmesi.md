@@ -77,7 +77,23 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
    - Doğrulama: ekran görüntüsü 1440 px açık ve koyu tema, 390 px telefon
      (Playwright shell). Sayfa taşmıyor. Koyu temada satır zeminleri ölçüldü:
      hepsi aynı.
-3. [ ] **Toplu "Ödendi" işaretleme** (Lojistik, NCTS, İç Nakliye). Satır
+3. [x] **Toplu "Ödendi" işaretleme** (yapıldı, 11 Kasım 2026). Yapılan:
+   - Seçim kutusu ilk sütunun (kayıt no) içinde; kayıt no sabit sol sütun
+     olarak kalıyor. Yalnız ödeme bekleyen satır seçilebilir. Başlıktaki
+     kutu görünen bekleyen satırların hepsini seçer (kısmi seçimde yarım).
+   - Seçili satır renkli. Seçim varken tablonun altında sabit çubuk:
+     "N dosya seçildi · Ödeme tarihi (yalnız Lojistik) · Ödendi işaretle ·
+     Seçimi kaldır". Tarih boşsa kaydedilmez.
+   - Arama ya da filtre bir satırı gizlerse o satır seçimden düşer; görünmeyen
+     kayıt işleme girmez. Zaten ödenmiş dosyanın tarihi ezilmez.
+   - Hata çubuğun içinde de yazılır, seçim korunur.
+   - Doğrulama: `fetch` yakalanarak gönderilen kayıt denetlendi (tarih,
+     tümünü seç, tarihsiz deneme, sunucu hatası, aramayla düşen seçim).
+     Ekran görüntüsü 1440 açık/koyu, 390 telefon.
+
+   Önceki plan notları:
+
+   (Lojistik, NCTS, İç Nakliye). Satır
    başında seçim kutusu olacak; seçim varken alta sabit bir çubuk çıkacak:
    "N kayıt seçildi · Ödendi işaretle · Seçimi kaldır".
    - **Karar verildi (kullanıcı, 11 Kasım 2026): her seferinde tarih sorulsun.**
@@ -96,8 +112,9 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
 5. [ ] **Sütun göster/gizle ve "Varsayılana dön".** Yalnız Lojistik finans
    (12 sütun) için. Örnek: Alış ve Kur dar ekranda gizlenebilir. Seçim oturum
    deposunda tutulur.
-6. [ ] **Telefonda dokunma hedefleri.** Onay kutusu 16 px; telefonda en az
-   24 px olmalı. Düğmeler de biraz büyümeli (`@media (max-width:640px)`).
+6. [x] **Telefonda dokunma hedefleri** (yapıldı, 11 Kasım 2026). 640 px
+   altında onay kutuları ve (?) düğmesi 24 px, satır düğmeleri en az 36 px.
+   Seçim kutusu için ilk sütunun sol boşluğu 44 px'e çıkıyor.
 7. [ ] **Boş, yükleniyor ve hata durumları.**
    - Her tablonun boş mesajı ne yapılacağını söylemeli.
    - Kayıt hatası durum satırında görünüyor; tabloya yakın mı? Kontrol et.

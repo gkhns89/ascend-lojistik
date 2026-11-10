@@ -42,7 +42,8 @@
       if(cell.dataset.sort==='')return null;
       return numeric?Number(cell.dataset.sort):cell.dataset.sort;
     }
-    const box=cell.querySelector('input[type=checkbox]');
+    // Satir secim kutusu (.row-select) siralama degeri degildir.
+    const box=cell.querySelector('input[type=checkbox]:not(.row-select)');
     if(box)return box.checked?1:0;
     const text=primaryText(cell);
     if(!text||text==='—')return null;

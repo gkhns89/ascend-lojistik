@@ -75,3 +75,17 @@ test('dark theme keeps its zebra off the shared data table',()=>{
  const theme=readFileSync(new URL('../prototype/portal-theme.css',import.meta.url),'utf8');
  for(const rule of theme.match(/[^}]*nth-child\(even\)[^{]*\{/g)||[])assert.match(rule,/table:not\(\.data-table\)/,rule.trim());
 });
+
+test('bulk "paid" touches only selected unpaid rows and asks Lojistik for a date',()=>{
+ const html=readFileSync(new URL('../prototype/finans.html',import.meta.url),'utf8');
+ for(const [key,body] of [['logistics','lgRows'],['ncts','ncRows'],['transport','trRows']])assert.ok(html.includes("setupBulk('"+key+"','"+body+"'"),key);
+ assert.ok(html.includes("setupBulk('logistics','lgRows','dosya',true)"),'Lojistikte tarih sorulur');
+ // Zaten odenmis dosyanin tarihi ezilmez; yalniz secilen ve bekleyen satir yazilir.
+ assert.ok(html.includes("ids.has(shipmentId(r))&&!r.paymentDate?{...r,paymentDate:date}"));
+ assert.ok(html.includes(String.raw`if(b.date&&!/^\d{4}-\d{2}-\d{2}$/.test(date))`),'tarihsiz kayit yok');
+ // Yalniz bekleyen satirda secim kutusu; gorunmeyen satir secimden duser.
+ assert.ok(html.includes("'logistics',r.paymentDate?'':id)"));
+ assert.ok(html.includes("if(!visible.has(id))selected[key].delete(id)"));
+ // Secim kutusu siralama degeri sayilmaz.
+ assert.ok(source.includes("input[type=checkbox]:not(.row-select)"));
+});
