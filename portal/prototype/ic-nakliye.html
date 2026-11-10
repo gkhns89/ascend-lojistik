@@ -207,6 +207,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    if(isAdmin){const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';del.onclick=()=>remove(r.id);group.append(del);}
    actions.append(group);tr.append(actions);body.append(tr);
   }
+  AscendTable.highlight(body,$('search').value);
   view.apply();
   $('count').textContent=visible.length===rows.length?rows.length+' kayıt':visible.length+' / '+rows.length+' kayıt';
   const empty=$('empty');

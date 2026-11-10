@@ -43,7 +43,19 @@
 .data-table .muted-cell{color:var(--muted)}
 .data-table .warn{color:#b3541e;font-weight:600}
 .data-table .error{color:#c0392b;font-weight:700}
+/* Nis baslik aciklamasi: basliktaki kucuk (?) ve sayfanin ustundeki kabarcik. */
+.data-table th[data-help]{text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--muted)}
+.data-table th .th-help{display:inline-grid;place-items:center;width:16px;height:16px;min-height:0;margin-left:4px;padding:0;border:1px solid var(--border)!important;border-radius:50%!important;background:var(--card)!important;color:var(--muted)!important;font-size:10px;font-weight:700;line-height:1;vertical-align:1px;text-decoration:none;cursor:help}
+.data-table th .th-help:hover,.data-table th .th-help[aria-expanded=true]{color:var(--primary)!important;border-color:var(--primary)!important}
+.th-help-bubble{position:fixed;z-index:50;max-width:min(300px,calc(100vw - 16px));padding:8px 11px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:12.5px;font-weight:400;line-height:1.4;text-transform:none;letter-spacing:0;box-shadow:0 8px 24px rgb(0 0 0/.18)}
+.th-help-bubble[hidden]{display:none}
+/* Arama eslesmesi: metin rengi korunur, yalniz zemin isaretlenir. */
+.data-table mark{background:color-mix(in srgb,#f5c518 45%,transparent);color:inherit;border-radius:2px;padding:0 1px;margin:0 -1px}
 .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap;color:var(--text)}
-.pill.ok{background:var(--ok)}
-.pill.wait{background:var(--warn)}
+/* Durum rozetleri: renk ek isarettir, durum metni her zaman yazili. Tema
+   dosyasi koyu temada tum rozetleri ayni griye boyar; burada ayrilir. */
+.pill.ok{background:#e3f3e8;color:#17603a}
+.pill.wait{background:#fdefd2;color:#7a4b00}
+[data-theme=dark] .pill.ok{background:#163d35!important;color:#a7e3c6!important}
+[data-theme=dark] .pill.wait{background:#493a19!important;color:#f3d38f!important}
 .pill.part{background:var(--surface-soft,var(--soft));border:1px solid var(--border)}

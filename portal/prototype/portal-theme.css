@@ -37,7 +37,7 @@ th,.portal-intro,.report-track,.notice{background:var(--surface-soft)!important;
 @media screen{
 :root[data-theme=dark]{--soft:var(--surface-soft);--ok:#163d35;--warn:#493a19}
 [data-theme=dark] table,[data-theme=dark] tbody,[data-theme=dark] tfoot,[data-theme=dark] tbody tr,[data-theme=dark] tbody td,[data-theme=dark] tfoot td{background:var(--card)!important;color:var(--text)!important;border-color:var(--border)!important}
-[data-theme=dark] tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 90%,var(--surface-soft))!important}
+[data-theme=dark] table:not(.data-table) tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--card) 90%,var(--surface-soft))!important}
 [data-theme=dark] tbody tr:hover td{background:var(--surface-soft)!important}
 [data-theme=dark] thead,[data-theme=dark] th{background:var(--surface-soft)!important;color:var(--text)!important}
 [data-theme=dark] .ncts-fin-card,[data-theme=dark] .contact-card,[data-theme=dark] .check-group,[data-theme=dark] .doc-chip,[data-theme=dark] .finance-totals,[data-theme=dark] .mail-preview,[data-theme=dark] .table-wrap,[data-theme=dark] .ncts-tabs button,[data-theme=dark] button.danger{background:var(--card)!important;color:var(--text)!important;border-color:var(--border)!important}

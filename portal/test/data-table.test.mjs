@@ -40,3 +40,38 @@ test('finance and İç Nakliye pages load the shared table helper, and the porta
  assert.ok(!/nth-child\(even\)/.test(css),'rehber: zebra yok, ince cizgi');
  assert.match(css,/tr>:first-child\{position:sticky;left:0/,'ilk sutun yatay kaymada sabit');
 });
+
+test('niche finance headers carry an explanation that survives the sort hint',()=>{
+ const html=readFileSync(new URL('../prototype/finans.html',import.meta.url),'utf8');
+ for(const label of ['Pay (1/3)','Kur','Pay TL','Teminat','Pay aktarımı','Bakiye']){
+  assert.match(html,new RegExp('<th[^>]*data-help="[^"]+"[^>]*>'+label.replace(/[()]/g,c=>'\\'+c)+'</th>'),label);
+ }
+ // Siralama ipucu aciklamayi ezmemeli; ikisi birlikte yazilir.
+ assert.ok(source.includes("th.title=th.dataset.help?th.dataset.help+'\\n'+SORT_HINT:SORT_HINT"));
+});
+
+test('search highlight folds Turkish case and never writes markup',()=>{
+ const T=load();
+ assert.equal(T.fold('İSTANBUL'),'istanbul');
+ assert.equal(T.fold('HALKALI'),'halkali');
+ assert.equal(T.fold('Halkalı'),'halkali');
+ // Hucre metni kullanici verisidir: vurgu yalniz metin dugumlerini boler.
+ assert.ok(!/innerHTML|insertAdjacentHTML|outerHTML/.test(source),'yardimci HTML yazmamali');
+ for(const [page,inputs] of [['finans.html',['lgSearch','ncSearch','trSearch','ldSearch']],['ic-nakliye.html',['search']]]){
+  const html=readFileSync(new URL('../prototype/'+page,import.meta.url),'utf8');
+  for(const id of inputs)assert.ok(html.includes("AscendTable.highlight(body,$('"+id+"').value)"),page+' '+id);
+ }
+});
+
+test('status pills differ in both themes; the theme file paints every pill grey in dark mode',()=>{
+ const css=readFileSync(new URL('../prototype/data-table.css',import.meta.url),'utf8');
+ assert.match(css,/\.pill\.ok\{background:#/);
+ assert.match(css,/\.pill\.wait\{background:#/);
+ assert.match(css,/\[data-theme=dark\] \.pill\.ok\{[^}]*!important/);
+ assert.match(css,/\[data-theme=dark\] \.pill\.wait\{[^}]*!important/);
+});
+
+test('dark theme keeps its zebra off the shared data table',()=>{
+ const theme=readFileSync(new URL('../prototype/portal-theme.css',import.meta.url),'utf8');
+ for(const rule of theme.match(/[^}]*nth-child\(even\)[^{]*\{/g)||[])assert.match(rule,/table:not\(\.data-table\)/,rule.trim());
+});

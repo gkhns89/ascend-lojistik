@@ -1,5 +1,6 @@
-// Ortak veri tablosu davranisi: sutun basligindan siralama ve gorunumun
-// oturum boyunca korunmasi. Rehber: Pencil & Paper "Enterprise Data Tables"
+// Ortak veri tablosu davranisi: sutun basligindan siralama, gorunumun
+// oturum boyunca korunmasi, nis basliklarin aciklamasi (data-help) ve
+// aramada eslesmenin vurgulanmasi. Rehber: Pencil & Paper "Enterprise Data Tables"
 // (todos/tablo-tasarim-iyilestirmesi.md).
 //
 // Siralama DOM'daki satirlari yeniden dizer; sayfa her cizimden sonra
@@ -23,8 +24,18 @@
     const n=Number.parseFloat(cleaned);
     return Number.isFinite(n)?n:null;
   }
+  // Hucrenin ust satirdaki metni: alt satir (.sub) haric. Arama vurgusu metni
+  // <mark> parcalarina boldugu icin dogrudan metin ve mark birlikte okunur.
+  function primaryText(cell){
+    let text='';
+    for(const node of cell.childNodes){
+      if(node.nodeType===1&&node.classList.contains('sub'))break;
+      if(node.nodeType===3||node.nodeName==='MARK')text+=node.textContent;
+    }
+    return text.trim()||cell.textContent.trim();
+  }
   // Hucrenin siralama degeri: data-sort varsa o; onay kutusu varsa isaretli
-  // mi; yoksa ust satirdaki metin (alt satir .sub haric).
+  // mi; yoksa ust satirdaki metin.
   function cellValue(cell,numeric){
     if(!cell)return null;
     if(cell.dataset.sort!==undefined){
@@ -33,14 +44,90 @@
     }
     const box=cell.querySelector('input[type=checkbox]');
     if(box)return box.checked?1:0;
-    const first=cell.firstChild;
-    const text=(first&&first.nodeType===3?first.textContent:cell.textContent).trim();
+    const text=primaryText(cell);
     if(!text||text==='—')return null;
     return numeric?parseNumber(text):text;
   }
   const collator=new Intl.Collator('tr',{numeric:true,sensitivity:'base'});
 
+  // ---------- Baslik aciklamasi ----------
+  // Nis basliklar (Kur, Pay TL...) data-help ile aciklanir. Fareyle basligin
+  // title'i yeter; dokunmatik ve klavye icin basliga kucuk bir (?) dugmesi
+  // eklenir. Aciklama tablonun kaydirma kabinda kirpilmasin diye sayfanin
+  // ustunde tek bir kabarcikta gosterilir.
+  const SORT_HINT='Sıralamak için tıklayın (üçüncü tıklama varsayılan sıraya döner)';
+  let bubble=null,owner=null;
+  function closeHelp(){
+    if(!bubble||bubble.hidden)return;
+    bubble.hidden=true;owner?.setAttribute('aria-expanded','false');owner=null;
+  }
+  function openHelp(button,text){
+    if(!bubble){
+      bubble=document.createElement('div');
+      bubble.id='ascend-th-help';bubble.className='th-help-bubble';bubble.setAttribute('role','status');bubble.hidden=true;
+      document.body.append(bubble);
+      document.addEventListener('click',e=>{if(!e.target.closest?.('.th-help'))closeHelp();});
+      document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHelp();});
+      // Sayfa ya da tablo kayinca kabarcik dugmeyi izler; dugme gorunmez olunca kapanir.
+      addEventListener('scroll',placeHelp,true);addEventListener('resize',placeHelp);
+    }
+    if(owner===button){closeHelp();return;}
+    closeHelp();
+    bubble.textContent=text;bubble.hidden=false;owner=button;button.setAttribute('aria-expanded','true');
+    placeHelp();
+  }
+  function placeHelp(){
+    if(!bubble||bubble.hidden||!owner)return;
+    const r=owner.getBoundingClientRect(),view=document.documentElement;
+    if(!owner.isConnected||r.bottom<0||r.top>innerHeight||r.right<0||r.left>view.clientWidth){closeHelp();return;}
+    const width=bubble.offsetWidth,gap=8;
+    bubble.style.left=Math.max(gap,Math.min(r.left+r.width/2-width/2,view.clientWidth-width-gap))+'px';
+    bubble.style.top=(r.bottom+6)+'px';
+  }
+  function explain(table){
+    for(const th of table.querySelectorAll('thead th[data-help]')){
+      if(th.querySelector('.th-help'))continue;
+      const label=th.textContent.trim(),text=th.dataset.help;
+      th.title=text;
+      const b=document.createElement('button');
+      b.type='button';b.className='th-help';b.textContent='?';
+      b.setAttribute('aria-label',label+' ne demek?');b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','ascend-th-help');
+      // Dugme basligin icinde: tiklama ve Enter siralamaya gitmesin.
+      b.addEventListener('click',e=>{e.stopPropagation();openHelp(b,label+': '+text);});
+      b.addEventListener('keydown',e=>e.stopPropagation());
+      th.append(b);
+    }
+  }
+
+  // ---------- Arama vurgusu ----------
+  // Eslesen metin <mark> ile isaretlenir. Hucre metni kullanici verisidir:
+  // yalniz metin dugumleri bolunur, HTML olarak hicbir sey yazilmaz.
+  const fold=s=>String(s??'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i');
+  function highlight(root,query){
+    const q=fold(String(query??'').trim());
+    if(!root||!q)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement?.closest('button,label,mark,th,.pill')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+    const nodes=[];
+    while(walker.nextNode())nodes.push(walker.currentNode);
+    for(const node of nodes){
+      const text=node.nodeValue,folded=fold(text);
+      // Kucuk harfe cevirme uzunlugu degistirirse konumlar kayar; o metin atlanir.
+      if(folded.length!==text.length)continue;
+      let at=folded.indexOf(q);
+      if(at<0)continue;
+      const parts=document.createDocumentFragment();let from=0;
+      while(at>=0){
+        if(at>from)parts.append(text.slice(from,at));
+        const mark=document.createElement('mark');mark.textContent=text.slice(at,at+q.length);parts.append(mark);
+        from=at+q.length;at=folded.indexOf(q,from);
+      }
+      if(from<text.length)parts.append(text.slice(from));
+      node.replaceWith(parts);
+    }
+  }
+
   function sortable(table,key){
+    explain(table);
     const head=table.tHead?.rows[0];
     if(!head)return {apply(){},reset(){}};
     let state=read(key);
@@ -88,7 +175,7 @@
       if(th.classList.contains('actions')||th.dataset.sortable==='false'||!th.textContent.trim())return;
       th.classList.add('sortable');
       th.tabIndex=0;
-      th.title='Sıralamak için tıklayın (üçüncü tıklama varsayılan sıraya döner)';
+      th.title=th.dataset.help?th.dataset.help+'\n'+SORT_HINT:SORT_HINT;
       th.addEventListener('click',()=>choose(i));
       th.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i);}});
     });
@@ -96,5 +183,5 @@
     return {apply,reset(){state=null;write(key,null);paint();}};
   }
 
-  window.AscendTable={sortable,read,write,parseNumber};
+  window.AscendTable={sortable,explain,highlight,fold,read,write,parseNumber};
 })();

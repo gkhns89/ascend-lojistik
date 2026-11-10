@@ -50,17 +50,33 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
 
 ## Adım 2: sıradaki işler (önerilen sıra)
 
-1. [ ] **Niş başlıklara açıklama.** "Pay (1/3)", "Pay TL", "Kur", "Teminat" ve
-   "Pay aktarımı" başlıklarına kısa açıklama ekle. Örnek: "Kur: dosyanın
-   kuru; aktarım kuru ayrıdır".
-   - Dikkat: `AscendTable.sortable` başlığın `title` alanını "Sıralamak için
-     tıklayın" ile eziyor.
-   - Açıklamayı ya `data-help` gibi ayrı bir alana koy ve yardımcıda birleştir,
-     ya da başlığa küçük bir (?) ekle.
-2. [ ] **Aramada eşleşmeyi vurgula.** Finans sekmeleri ve İç Nakliye.
-   - Hücreler `textContent` ile yazılıyor; vurgu da `<mark>` öğesi
-     oluşturularak yapılmalı. `innerHTML` kullanma: depolanan XSS kuralı,
-     `test/markup-guard.test.mjs` bekçisi.
+1. [x] **Niş başlıklara açıklama** (yapıldı, 11 Kasım 2026).
+   - Başlıkta `data-help` var: Pay (1/3), Kur, Pay TL, Ödendi, Pay aktarımı,
+     Teminat, Aktarım, Henüz aktarılmamış pay, Bakiye. Kazanç ve Toplam
+     bilerek açıklamasız; başlık zaten açık, fazla (?) gürültü olur.
+   - Fareyle: başlığın `title`'ı açıklama + sıralama ipucu (ikisi birlikte).
+   - Dokunmatik ve klavye: başlıktaki küçük (?) düğmesi tek bir kabarcık
+     açar. Kabarcık tablonun kaydırma kabında kırpılmasın diye sayfanın
+     üstünde durur. Kaydırmada düğmeyi izler; Esc ya da dışarı tıklama kapatır.
+     (?) tıklaması sıralamayı tetiklemez.
+   - Açıklamalı başlık noktalı alt çizgiyle belli.
+2. [x] **Aramada eşleşmeyi vurgula** (yapıldı, 11 Kasım 2026).
+   - Finans'ın Lojistik, NCTS, İç Nakliye ve Cari sekmeleri ile İç Nakliye
+     listesi. `AscendTable.highlight` yalnız metin düğümlerini böler,
+     `<mark>` öğesi oluşturur; HTML yazmaz.
+   - Türkçe büyük/küçük harf eşleşir ("halkalı" → "HALKALI").
+   - Düğme, rozet ve başlık metni vurgulanmaz. Arama tam ünvanda eşleşip
+     hücrede kısa ad görünüyorsa vurgu çıkmaz; tam ünvan `title`'da.
+   - Sıralama, vurgulu hücrenin metnini doğru okuyor (`primaryText`).
+   - Bu sırada bulunan iki eski hata da düzeldi:
+     - "Ödendi/Bekliyor" rozetleri açık temada renksiz, koyu temada ikisi de
+       aynı griydi. Artık Ödendi yeşil, Bekliyor amber; metin aynen duruyor.
+     - `portal-theme.css` koyu temada her tabloya `!important` zebra
+       veriyordu. Adım 1'deki "zebra yok" yalnız açık temada geçerliydi.
+       Kural ortak tabloyu (`.data-table`) hariç tutacak şekilde daraltıldı.
+   - Doğrulama: ekran görüntüsü 1440 px açık ve koyu tema, 390 px telefon
+     (Playwright shell). Sayfa taşmıyor. Koyu temada satır zeminleri ölçüldü:
+     hepsi aynı.
 3. [ ] **Toplu "Ödendi" işaretleme** (Lojistik, NCTS, İç Nakliye). Satır
    başında seçim kutusu olacak; seçim varken alta sabit bir çubuk çıkacak:
    "N kayıt seçildi · Ödendi işaretle · Seçimi kaldır".
