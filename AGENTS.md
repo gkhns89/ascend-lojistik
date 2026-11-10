@@ -15,11 +15,13 @@
 - GA4 Measurement ID: `G-47EHL67FSH`. Tek script ve sayfa geçişi/event davranışını koru; çift ölçüm oluşturma.
 - Light/dark theme, mobil görünüm ve resmî Ascend logo varyantlarını koru. Logoları yeniden çizme, oranlarını bozma veya placeholder ile değiştirme.
 - Header CTA tam metni: `Dijital Portal — Yakında`; portalı çalışan bir ürün gibi sunma.
-- İletişim ve teklif formları şu an `mailto:info@ascendlojistik.com` ile kullanıcının e-posta uygulamasını açar. Backend gönderimi yoktur; sahte başarı/teslim edildi mesajı gösterme.
+- Teklif formu, `VITE_PORTAL_QUOTE_URL` tanımlıyken talebi portala kaydeder, referans numarası verir ve talep sahibine onay e-postası kuyruğa alır; tanımlı değilse `mailto:info@ascendlojistik.com` ile e-posta uygulamasını açar. Genel iletişim formu hâlâ yalnız `mailto` kullanır. Gerçekleşmemiş bir kayıt veya gönderim için başarı mesajı gösterme.
 - Production canonical domain: `https://www.ascendlojistik.com`. Sitemap, robots ve Organization/ContactPage/Service structured data'yı koru; tüm canonical adresleri absolute tut.
 - Hizmetler arasında **Gemi Acenteliği** bulunur.
 - Türkçe içerik, mevcut marka renkleri ve doğrulanmış kurumsal bilgiler korunmalıdır. Global ağ metinleri yalnızca doğrulanmış coğrafi kapsam ile acente/iş ortaklığı ağına dayanır; ofis, sayı, sertifika, servis sıklığı veya sahip olunan tesis uydurma.
-- Gelecekteki portalda müşteri **Profit / Share / Share TL** alanlarını göremez. **NCTS finans yalnız admin** erişimine açıktır. Sadece arayüzde gizlemek yeterli değildir: sunucu/API, veri sorgusu, export ve rol/tenant yetkilendirmesinde de bu sınırlar uygulanmalıdır. Gerçek müşteri veya finans verisini tanıtım arayüzüne koyma.
+- Müşteri **hiçbir modülde finans alanı göremez** (Alış, Kazanç/Profit, Pay/Share, Kur, Pay TL, NCTS ücret/teminat/dövizi, İç Nakliye ücreti ve ödeme durumu) ve İç Nakliye modülüne giremez. Bu kural yetki tablosuyla gevşetilemez.
+- Personelin finans erişimi **modül bazlı yetkiyle** belirlenir (10 Kasım 2026 kararı; `portal/permissions.mjs`). Yönetici her personel için NCTS / İç Nakliye / Lojistik modüllerinde ayrı ayrı "erişim" ve "finans bilgisi" yetkisi verir. Varsayılan: finans kapalı, İç Nakliye kapalı. Yönetici her şeyi görür ve kısıtlanamaz. Raporlar, Cari ve Teklif Yönetimi yalnız yöneticidedir; finans yetkisi bunları açmaz.
+- Sadece arayüzde gizlemek yeterli değildir: yetki `tenant-store.mjs` içindeki `records()` (okuma) ve `sync()` (yazma) üzerinden sunucuda uygulanır; sayfaya gömülen veri de buradan geçer. Müşteri bağlantısı (`customerCompanyIds`) ve kaynak teklif alanları finans yetkisiyle yazılamaz. Gerçek müşteri veya finans verisini tanıtım arayüzüne koyma.
 
 ## Varlıklar ve yerel çalışma
 
