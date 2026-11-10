@@ -9,6 +9,7 @@
     { key: 'ncts', label: 'NCTS' },
     { key: 'transport', label: 'İç Nakliye' },
     { key: 'ledger', label: 'Cari', adminOnly: true },
+    { key: 'shares', label: 'Pay Sahipleri', adminOnly: true },
     { key: 'reports', label: 'Raporlar', adminOnly: true },
   ];
 
@@ -107,5 +108,46 @@
 
   const minorMoney = (amount, currency) => money(amount / 100, currency);
 
-  root.AscendFinance = { TABS, financeTabs, logisticsMoney, currencyTotals, money, number, fold, minorUnits, ledgerAccounts, ledgerTotals, minorMoney };
+  // ---------- Pay ----------
+  // Kullanici karari: kar her dosyada 3 esit paya bolunur, 3 pay sahibi vardir.
+  // Bir pay sahibinin bir dosyadaki payi (dosyanin dovizinde, kurus) = kar / 3.
+  // Kar sifir ya da eksiyse aktarilacak pay yoktur.
+  const SHARE_COUNT = 3;
+  function holderShare(row) {
+    const m = logisticsMoney(row);
+    if (!m.priced || !(m.profit > 0)) return 0;
+    return Math.round((m.profit / SHARE_COUNT) * 100);
+  }
+  // Sunucudaki hesapla ayni: pay (kurus) x kur = TL (kurus).
+  const transferTL = (share, rate) => Math.round(share * rate);
+
+  // Pay sahibi basina: aktarilan TL toplami, aktarim sayisi ve henuz aktarilmamis
+  // paylar (doviz basina). Bekleyen yalniz aktif pay sahipleri icin hesaplanir.
+  function shareSummary(shipments, holders, transfers) {
+    return holders.map((holder) => {
+      const mine = transfers.filter((t) => t.holderId === holder.id);
+      const done = new Set(mine.map((t) => t.fileNo));
+      const pending = new Map();
+      if (holder.active) {
+        for (const row of shipments) {
+          const fileNo = String(row.fileNo || row.id || '');
+          const share = holderShare(row);
+          if (!share || done.has(fileNo)) continue;
+          const currency = String(row.financeCurrency || 'EUR');
+          const p = pending.get(currency) || { amount: 0, files: 0 };
+          p.amount += share; p.files += 1;
+          pending.set(currency, p);
+        }
+      }
+      return {
+        holder,
+        transferredTL: mine.reduce((sum, t) => sum + t.amountTL, 0),
+        transfers: mine.length,
+        pending: [...pending.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([currency, p]) => ({ currency, ...p })),
+      };
+    });
+  }
+
+
+  root.AscendFinance = { TABS, financeTabs, logisticsMoney, currencyTotals, money, number, fold, minorUnits, ledgerAccounts, ledgerTotals, minorMoney, SHARE_COUNT, holderShare, transferTL, shareSummary };
 })(typeof window !== 'undefined' ? window : globalThis);

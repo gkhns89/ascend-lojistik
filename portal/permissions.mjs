@@ -20,12 +20,20 @@ export const customerRoles = new Set(['Müşteri', 'Görüntüleme']);
 // Yetki sisteminin ilk surumu bunlari personele okutmaya devam ediyordu
 // (eski davranisi korumak icin); bu yuzden finans yetkisi olmayan personel
 // Finans bolumune girip navlun tutarlarini gorebiliyor, odeme isaretleyebiliyordu.
+// stray: baska bir modulun kaydina kacmis olabilecek, ADI AYIRT EDICI finans
+//   alanlari. Bunlar hangi kayitta gorulurse gorulsun sahibi modulun finans
+//   yetkisine baglidir (eski bir NCTS kaydinda kalmis alis fiyati gibi).
+//   'fee', 'currency', 'paid' gibi genel adlar buraya girmez: baska modullerde
+//   finansla ilgisi olmayan ayni adli alanlar vardir. Sevkiyattaki 'currency'
+//   esya degerinin dovizidir; ilk surum onu Ic Nakliye finansi sayip finans
+//   yetkisi olmayan personelden gizliyor ve duzeltmesini sessizce dusuruyordu.
 export const MODULES = {
   ncts: {
     label: 'NCTS / T1',
     collection: 'ncts',
-    hidden: ['freightFee', 'guaranteeFee', 'feeCurrency'],
-    protected: ['freightFee', 'guaranteeFee', 'feeCurrency'],
+    hidden: ['freightFee', 'guaranteeFee', 'feeCurrency', 'paid'],
+    protected: ['freightFee', 'guaranteeFee', 'feeCurrency', 'paid'],
+    stray: ['freightFee', 'guaranteeFee', 'feeCurrency'],
     staffDefault: true,
   },
   transport: {
@@ -33,6 +41,7 @@ export const MODULES = {
     collection: 'transport',
     hidden: ['fee', 'currency', 'paid'],
     protected: ['fee', 'currency', 'paid'],
+    stray: [],
     staffDefault: false,
   },
   logistics: {
@@ -40,6 +49,7 @@ export const MODULES = {
     collection: 'shipments',
     hidden: ['purchasePrice', 'profit', 'share', 'shareTL', 'exchangeRate', 'salePrice', 'financeCurrency', 'paymentDate', 'paymentDueDate'],
     protected: ['purchasePrice', 'profit', 'share', 'shareTL', 'exchangeRate', 'salePrice', 'financeCurrency', 'paymentDate', 'paymentDueDate'],
+    stray: ['purchasePrice', 'profit', 'share', 'shareTL', 'exchangeRate', 'salePrice', 'financeCurrency', 'paymentDate', 'paymentDueDate'],
     staffDefault: true,
   },
 };
@@ -94,32 +104,35 @@ export function sanitizePermissions(role, input) {
   return result;
 }
 
-// Personelin okuyacagi kayit. Bir finans alani, kaydin hangi modulde
-// durduguna bakilmadan, o alanin sahibi olan modulde finans yetkisi yoksa
-// silinir. Eski bir NCTS kaydinda alis fiyati kalmis olsa bile Lojistik
-// finansi olmayan biri onu NCTS uzerinden goremez. Yetki sistemi oncesinde
-// tum personelden butun finans alanlari birlikte siliniyordu; finans yetkisi
-// hic verilmemis personel icin sonuc aynidir.
+// Personelin okuyacagi kayit. Kendi modulunun finans alanlari o modulun
+// finans yetkisine baglidir. Baska bir modulun AYIRT EDICI finans alani
+// (stray) bu kayitta gorulurse, sahibi modulde finans yetkisi yoksa silinir.
 // Musteri izdusumu burada degil, tenant-store'daki izin listesiyle yapilir.
-export function staffView(record, permissions) {
-  let safe = record;
+export function staffView(record, permissions, moduleKey) {
+  const drop = new Set();
+  if (moduleKey && !permissions[moduleKey].finance) for (const field of MODULES[moduleKey].hidden) drop.add(field);
   for (const key of MODULE_KEYS) {
-    if (permissions[key].finance) continue;
-    if (safe === record) safe = { ...record };
-    for (const field of MODULES[key].hidden) delete safe[field];
+    if (key === moduleKey || permissions[key].finance) continue;
+    for (const field of MODULES[key].stray) drop.add(field);
   }
+  if (!drop.size) return record;
+  const safe = { ...record };
+  for (const field of drop) delete safe[field];
   return safe;
 }
 
 // Yonetici olmayan personelden gelen satir: yazamayacagi alanlar atilir,
-// boylece mevcut deger korunur. Baska bir modulun finans alani bu kayda hic
-// yazilamaz; kendi modulunun finans alanlari yalniz finans yetkisiyle yazilir.
+// boylece mevcut deger korunur. Baska bir modulun AYIRT EDICI finans alani
+// (stray) bu kayda hic yazilamaz; kendi modulunun finans alanlari yalniz
+// finans yetkisiyle yazilir. Genel adli alanlar (or. sevkiyattaki currency)
+// baska modulun finansi sayilmaz.
 export function staffWrite(incoming, moduleKey, permissions) {
   const safe = { ...incoming };
   for (const field of ADMIN_ONLY_FIELDS) delete safe[field];
+  if (!permissions[moduleKey].finance) for (const field of MODULES[moduleKey].protected) delete safe[field];
   for (const key of MODULE_KEYS) {
-    if (key === moduleKey && permissions[key].finance) continue;
-    for (const field of MODULES[key].protected) delete safe[field];
+    if (key === moduleKey) continue;
+    for (const field of MODULES[key].stray) delete safe[field];
   }
   return safe;
 }

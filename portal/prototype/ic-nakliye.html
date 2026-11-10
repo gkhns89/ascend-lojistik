@@ -1,17 +1,20 @@
 <!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · İç Nakliye</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><link rel="stylesheet" href="data-table.css"><script src="portal-theme.js"></script>
 <style>
-main{padding:24px;max-width:1280px;margin:0 auto}
+main{padding:20px 24px 40px;max-width:1360px;margin:0 auto}
 header{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:16px 24px}header img{height:48px}
-.card{padding:24px;margin:20px 0}
-.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
-.field{display:grid;gap:6px}.field.wide{grid-column:1/-1}
-input,select,textarea,button{padding:10px;font:inherit}textarea{width:100%;min-height:72px;resize:vertical}
+.card{padding:20px 22px;margin:16px 0}
+.card>h2{margin:0 0 14px;font-size:20px}
+.fields{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px 16px}
+.field{display:grid;gap:6px;grid-column:span 2;align-content:start}.field.wide{grid-column:1/-1}
+.field.check-field{align-content:end;padding-bottom:6px}
+@media (max-width:820px){.fields{grid-template-columns:1fr}.field,.field.wide{grid-column:1/-1}}
+input,select,textarea,button{font:inherit}input,select,textarea{padding:9px 10px}textarea{width:100%;min-height:72px;resize:vertical}
 button{cursor:pointer}
 .check{display:flex;align-items:center;gap:8px;font-weight:600}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 #status{padding:12px 0;min-height:1.4em}
-.toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}
-.toolbar .field{min-width:260px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar input[type=search]{min-width:300px}
 .toolbar .count{margin-left:auto;color:var(--muted);font-size:13px}
 button.remove{background:transparent!important;border:1px solid #c0392b!important;color:#c0392b!important;border-radius:8px;font-weight:600}
 button.remove:hover{background:#c0392b!important;color:#fff!important}
@@ -33,7 +36,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <div class="field"><label for="company">Firma *</label><input id="company" list="companyOptions" autocomplete="off" required maxlength="200" placeholder="Yazmaya başlayın, kayıtlı firmalardan seçin"></div>
   <div class="field"><label for="customs">Gümrük adı</label><input id="customs" list="customsOptions" autocomplete="off" maxlength="200"></div>
   <div class="field"><label for="warehouse">Depo</label><input id="warehouse" list="warehouseOptions" autocomplete="off" maxlength="200"></div>
-  <div class="field"><span class="check"><input id="container" type="checkbox"><label for="container">Konteyner</label></span><small class="muted">İşaretliyse kap ve kilo isteğe bağlıdır.</small></div>
+  <div class="field check-field"><span class="check"><input id="container" type="checkbox"><label for="container">Konteyner</label></span><small class="muted">İşaretliyse kap ve kilo isteğe bağlıdır.</small></div>
   <div class="field"><label for="packages">Kap<span class="req"> *</span></label><input id="packages" type="number" min="1" step="1" inputmode="numeric"></div>
   <div class="field"><label for="weight">Kilo<span class="req"> *</span></label><input id="weight" type="number" min="0.01" step="0.01" inputmode="decimal"></div>
   <div class="field wide"><label for="deliveryAddress">Teslim adresi</label><textarea id="deliveryAddress" maxlength="1000"></textarea></div>
@@ -48,12 +51,12 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
 <section id="listCard" class="card" hidden>
  <h2>Kayıtlar</h2>
  <div class="toolbar">
-  <div class="field"><label for="search">Ara</label><input id="search" placeholder="Kayıt no, firma, gümrük, depo, adres…" autocomplete="off"></div>
+  <input type="search" id="search" placeholder="Kayıt no, firma, gümrük, depo, adres…" aria-label="Kayıtlarda ara" autocomplete="off">
   <a id="financeLink" class="secondary" href="finans.html#transport" hidden>Taşıma ücretleri ve tahsilat → Finans</a>
   <span class="count" id="count"></span>
  </div>
  <div class="table-wrap"><table class="data-table">
-  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th class="num">Kap</th><th class="num">Kilo</th><th>Yük</th><th>Teslim adresi</th><th class="actions"></th></tr></thead>
+  <thead><tr><th>Kayıt</th><th>Firma</th><th>Gümrük / Depo</th><th class="num">Kap</th><th class="num">Kilo</th><th>Yük</th><th>Teslim adresi</th><th class="actions"></th></tr></thead>
   <tbody id="rows"></tbody>
  </table></div>
  <p id="empty" class="empty" hidden></p>
@@ -186,6 +189,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  const cell=(text,cls,title)=>{const td=document.createElement('td');td.textContent=text??'—';if(cls)td.className=cls;if(title)td.title=title;return td;};
  const clampCell=text=>{const td=document.createElement('td');td.className='clamp';const div=document.createElement('div');div.textContent=text||'—';div.title=text||'';td.append(div);return td;};
  const kilo=w=>w==null?'—':Number(w).toLocaleString('tr-TR',{maximumFractionDigits:2});
+ const stack=(main,sub,cls,title)=>{const c=cell(main,cls,title);if(sub){const s=document.createElement('span');s.className='sub';s.textContent=sub;c.append(s);}return c;};
 
  function render(){
   const q=normalize($('search').value.trim());
@@ -194,15 +198,14 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const body=$('rows');body.replaceChildren();
   for(const r of visible){
    const tr=document.createElement('tr');
-   const id=cell(r.id,'id');
-   if(r.source){const sub=document.createElement('span');sub.className='sub';sub.textContent=r.source;id.append(sub);}
-   tr.append(id,cell(shortName(r.company),'name',r.company),cell(r.customs||'—','name',r.customs),cell(r.warehouse||'—','name',r.warehouse),
+   tr.append(stack(r.id,r.source,'id'),cell(shortName(r.company),'name',r.company),stack(r.customs||'—',r.warehouse,'name',[r.customs,r.warehouse].filter(Boolean).join(' · ')),
     cell(r.packages==null?'—':String(r.packages),'num'),cell(kilo(r.weight),'num'),cell(r.container?'Konteyner':'—','nowrap'),clampCell(r.deliveryAddress));
    const actions=document.createElement('td');actions.className='actions';
+   const group=document.createElement('div');group.className='row-actions';
    const editBtn=document.createElement('button');editBtn.type='button';editBtn.className='secondary';editBtn.textContent='Düzenle';editBtn.onclick=()=>edit(r.id);
-   actions.append(editBtn);
-   if(isAdmin){const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';del.onclick=()=>remove(r.id);actions.append(del);}
-   tr.append(actions);body.append(tr);
+   group.append(editBtn);
+   if(isAdmin){const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';del.onclick=()=>remove(r.id);group.append(del);}
+   actions.append(group);tr.append(actions);body.append(tr);
   }
   $('count').textContent=visible.length===rows.length?rows.length+' kayıt':visible.length+' / '+rows.length+' kayıt';
   const empty=$('empty');

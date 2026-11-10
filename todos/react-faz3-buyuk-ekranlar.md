@@ -24,6 +24,8 @@ localStorage taklidi üzerinden çalışıyor.
 - [ ] Ortak Finans alanı (`prototype/finans.html`, `finance-center.js`):
       sekmeler yetkiden; modül ekranlarında para alanı yok.
 - [ ] İç Nakliye kap/kilo/konteyner kuralı.
+- [ ] Pay sahipleri ve pay aktarımı (Finans → Pay Sahipleri, Lojistik → Pay aktarımı).
+- [ ] NCTS ödendi ve tahsilat özeti.
 - [ ] Firma/gümrük/depo için aranabilen seçenekler (datalist).
 - [ ] Ortak veri tablosu görünümü (`data-table.css`): kısa ad, sabit başlık, kısaltma.
 

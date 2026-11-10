@@ -13,5 +13,36 @@
  window.portalLocal={getItem:k=>k==='ascend-portal-theme'?nativeStorage.getItem(k):cache[k]??null,setItem(k,v){if(k==='ascend-portal-theme'){nativeStorage.setItem(k,v);return;}if(cache[k]===String(v))return;cache[k]=String(v);save(k,v);},removeItem:k=>delete cache[k]};
  window.portalSession={getItem:k=>session[k]??null,setItem(k,v){if(session[k]===String(v))return;session[k]=String(v);save(k,v);},removeItem:k=>delete session[k]};
  window.portalSavePending=()=>queue;
- window.addEventListener('DOMContentLoaded',()=>{const link=document.createElement('a');link.href='control-center.html';link.className='secondary no-print';link.textContent='Evrak ve Hesap Merkezi';(document.querySelector('header')||document.querySelector('.topbar')||document.body).append(link);if(!['Müşteri','Görüntüleme'].includes(state.user.role)){const quote=document.createElement('a');quote.href='quote-center.html';quote.className='secondary no-print';quote.textContent='Hızlı Fiyat Al';(document.querySelector('header')||document.querySelector('.topbar')||document.body).append(quote);}if(state.user.role==='Yönetici'){const offers=document.createElement('a');offers.href='offer-center.html';offers.className='secondary no-print';offers.textContent='Teklif Yönetimi';const mailImport=document.createElement('a');mailImport.href='mail-import.html';mailImport.className='secondary no-print';mailImport.textContent='Mailden Talep / Fiyat';(document.querySelector('header')||document.querySelector('.topbar')||document.body).append(mailImport);const monitor=document.createElement('a');monitor.href='monitor-center.html';monitor.className='secondary no-print';monitor.textContent='Takip Merkezi';(document.querySelector('header')||document.querySelector('.topbar')||document.body).append(monitor);fetch('/api/tenant/monitor').then(r=>r.ok?r.json():Promise.reject()).then(data=>{const count=data.failures.length+data.offers.length+data.payments.length;monitor.textContent='Takip Merkezi'+(count?' · '+count+' uyarı':'');}).catch(()=>{monitor.textContent='Takip Merkezi · durum alınamadı';});(document.querySelector('header')||document.body).append(offers);}for(const b of document.querySelectorAll('button'))if(/^Çıkış(?: Yap)?$/.test(b.textContent.trim()))b.onclick=async()=>{await queue;await fetch('/api/tenant/logout',{method:'POST'});location.href='index.html';};});
+ // Sayfa ust kismina kisayollar. Eskiden her biri iri bir dugme olarak
+ // basliga ekleniyor ve iki satira tasiyordu; artik tek, kucuk bir serit.
+ window.addEventListener('DOMContentLoaded',()=>{
+  const role=state.user.role,customer=['Müşteri','Görüntüleme'].includes(role),admin=role==='Yönetici';
+  const anyFinance=admin||Object.values(state.user.permissions||{}).some(p=>p&&p.finance===true);
+  if(!document.getElementById('portalShortcutStyle')){
+   const style=document.createElement('style');style.id='portalShortcutStyle';
+   style.textContent='.portal-shortcuts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto}'
+    +'.portal-shortcut{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border,#d0d5dd);border-radius:999px;font-size:13px;font-weight:600;line-height:1.2;text-decoration:none;color:var(--text,inherit);background:var(--card,transparent);white-space:nowrap}'
+    +'.portal-shortcut:hover{background:var(--surface-soft,var(--soft,#f2f4f7))}'
+    +'.portal-shortcut[aria-current=page]{border-color:var(--primary,#302080);color:var(--primary,#302080)}'
+    +'.portal-shortcut .note{font-weight:500;color:var(--muted,#667085);font-size:12px}'
+    +'@media print{.portal-shortcuts{display:none}}';
+   document.head.append(style);
+  }
+  const host=document.querySelector('header')||document.querySelector('.topbar')||document.body;
+  const nav=document.createElement('nav');nav.className='portal-shortcuts no-print';nav.setAttribute('aria-label','Kısayollar');
+  const here=location.pathname.split('/').pop();
+  const add=(href,text)=>{const a=document.createElement('a');a.href=href;a.className='portal-shortcut';a.textContent=text;if(here===href)a.setAttribute('aria-current','page');nav.append(a);return a;};
+  if(anyFinance)add('finans.html','Finans');
+  add('control-center.html','Evrak ve Hesap Merkezi');
+  if(!customer)add('quote-center.html','Hızlı Fiyat Al');
+  if(admin){
+   add('offer-center.html','Teklif Yönetimi');
+   add('mail-import.html','Mailden Talep / Fiyat');
+   const monitor=add('monitor-center.html','Takip Merkezi');
+   const note=document.createElement('span');note.className='note';
+   fetch('/api/tenant/monitor').then(r=>r.ok?r.json():Promise.reject()).then(data=>{const count=data.failures.length+data.offers.length+data.payments.length;if(count){note.textContent=count+' uyarı';monitor.append(note);}}).catch(()=>{note.textContent='durum alınamadı';monitor.append(note);});
+  }
+  host.append(nav);
+  for(const b of document.querySelectorAll('button'))if(/^Çıkış(?: Yap)?$/.test(b.textContent.trim()))b.onclick=async()=>{await queue;await fetch('/api/tenant/logout',{method:'POST'});location.href='index.html';};
+ });
 })();
