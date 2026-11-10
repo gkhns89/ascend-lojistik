@@ -52,6 +52,7 @@ const assets = new Map([
   ['/finans.html', 'finans.html'],
   ['/finance-center.js', 'finance-center.js'],
   ['/data-table.css', 'data-table.css'],
+  ['/data-table.js', 'data-table.js'],
   ['/02_LOJISTIK_PORTAL_BRANDED_v14.html', '02_LOJISTIK_PORTAL_BRANDED_v14.html'],
   ['/03_KULLANICI_YONETIMI.html', '03_KULLANICI_YONETIMI.html'],
   ['/ascend_logo_correct.png', 'ascend_logo_correct.png'],

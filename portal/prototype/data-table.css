@@ -6,8 +6,26 @@
 .data-table thead th{position:sticky;top:0;z-index:1;background:var(--card);color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
 .data-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
 .data-table tbody tr:last-child td{border-bottom:0}
-.data-table tbody tr:nth-child(even) td{background:color-mix(in oklab,var(--surface-soft,var(--soft)) 50%,transparent)}
 .data-table tbody tr:hover td{background:var(--surface-soft,var(--soft))}
+/* Rehber: zebra yok (hover/secili durumlariyla catisir); satirlar ince cizgiyle ayrilir.
+   Ilk sutun (kayit no) yatay kaymada sabit kalir; sabit baslik kadar onemlidir. */
+.table-wrap .data-table tr>:first-child{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:inset -1px 0 0 var(--border)}
+.table-wrap .data-table thead tr>:first-child{z-index:3;background:var(--surface-soft,var(--card))}
+.table-wrap .data-table tbody tr:hover>:first-child{background:var(--surface-soft,var(--soft))}
+.data-table thead th{z-index:2}
+/* Siralanabilir baslik: ok her zaman yer kaplar, basligin hizasi kaymaz.
+   Sayi sutununda ok solda, metin sutununda sagda. */
+.data-table th.sortable{cursor:pointer;user-select:none}
+.data-table th.sortable:hover,.data-table th.sortable:focus-visible{color:var(--text)}
+.data-table th.sortable::after,.data-table th.sortable.num::before{content:'\2195';display:inline-block;width:1em;margin-left:4px;text-align:center;opacity:0;font-size:11px;transition:opacity .15s}
+/* Bos ok yalniz uzerine gelince gorunur; yer her zaman ayrili, hiza kaymaz. */
+.data-table th.sortable:hover::after,.data-table th.sortable:focus-visible::after,.data-table th.sortable.num:hover::before,.data-table th.sortable.num:focus-visible::before{opacity:.5}
+.data-table th.sortable.num::after{content:none}
+.data-table th.sortable.num::before{margin:0 4px 0 0}
+.data-table th.sortable[aria-sort=ascending]::after,.data-table th.sortable.num[aria-sort=ascending]::before{content:'\2191';opacity:1;color:var(--primary)}
+.data-table th.sortable[aria-sort=descending]::after,.data-table th.sortable.num[aria-sort=descending]::before{content:'\2193';opacity:1;color:var(--primary)}
+.data-table th.sortable.num[aria-sort]::after{content:none}
+.data-table th[aria-sort]{color:var(--text)}
 .data-table th.num,.data-table .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .data-table .id{white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
 .data-table .cur{white-space:nowrap;color:var(--muted);font-weight:700;font-size:12px}

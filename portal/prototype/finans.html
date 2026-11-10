@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · Finans</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><link rel="stylesheet" href="data-table.css"><script src="portal-theme.js"></script><script src="shared-portal.js"></script><script src="finance-center.js"></script><script src="portal-reports.js"></script>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · Finans</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><link rel="stylesheet" href="data-table.css"><script src="portal-theme.js"></script><script src="shared-portal.js"></script><script src="finance-center.js"></script><script src="data-table.js"></script><script src="portal-reports.js"></script>
 <style>
 main{padding:20px 24px 40px;max-width:1360px;margin:0 auto}
 header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:14px 24px}header img{height:44px}
@@ -78,7 +78,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  <div id="lgShares" hidden>
   <h3 class="section-title">Aktarılan paylar</h3>
   <div class="table-wrap"><table class="data-table">
-   <thead><tr><th>Pay sahibi</th><th class="num">Aktarılan (TL)</th><th class="num">Aktarım</th><th>Henüz aktarılmamış pay</th></tr></thead>
+   <thead><tr><th>Pay sahibi</th><th class="num">Aktarılan (TL)</th><th class="num">Aktarım</th><th data-sortable="false">Henüz aktarılmamış pay</th></tr></thead>
    <tbody id="lgShareRows"></tbody>
   </table></div>
  </div>
@@ -137,7 +137,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  <p class="hint" id="ldHelp"></p>
  <div id="ldList">
   <div class="table-wrap"><table class="data-table">
-   <thead><tr><th>Firma</th><th class="num">Dosya</th><th>Bakiye</th><th>Son işlem</th><th class="actions"></th></tr></thead>
+   <thead><tr><th>Firma</th><th class="num">Dosya</th><th data-sortable="false">Bakiye</th><th data-sort-type="date">Son işlem</th><th class="actions"></th></tr></thead>
    <tbody id="ldRows"></tbody>
   </table></div>
   <p id="ldEmpty" class="empty" hidden></p>
@@ -182,7 +182,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <div class="actions"><button type="submit" class="primary" id="shSave">Ekle</button><button type="button" class="secondary" id="shCancel" hidden>Vazgeç</button></div>
  </form>
  <div class="table-wrap"><table class="data-table">
-  <thead><tr><th>Pay sahibi</th><th>Tür</th><th>Durum</th><th class="num">Aktarılan (TL)</th><th>Henüz aktarılmamış pay</th><th class="actions"></th></tr></thead>
+  <thead><tr><th>Pay sahibi</th><th>Tür</th><th>Durum</th><th class="num">Aktarılan (TL)</th><th data-sortable="false">Henüz aktarılmamış pay</th><th class="actions"></th></tr></thead>
   <tbody id="shRows"></tbody>
  </table></div>
 </section>
@@ -250,7 +250,10 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  const pick=d=>({shipments:d.shipments||[],ncts:d.ncts||[],transport:d.transport||[],ledger:d.ledger||[],shareholders:d.shareholders||[],shareTransfers:d.shareTransfers||[]});
  let data=pick(boot);
  let revision=boot.revision;
- const filters={logistics:'',ncts:'',transport:''};
+ // Gorunum (odeme filtresi, siralama) bu sekmede oturum boyunca korunur.
+ const savedFilters=AscendTable.read('finans.filters')||{};
+ const filters={};
+ for(const key of ['logistics','ncts','transport'])filters[key]=['paid','wait'].includes(savedFilters[key])?savedFilters[key]:'';
  const status=text=>{$('status').textContent=text;};
  const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Istanbul'}).format(new Date());
  const shipmentId=r=>String(r.fileNo||r.id||'');
@@ -313,7 +316,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    if(filters.logistics==='paid'&&!r.paymentDate)return false;
    if(filters.logistics==='wait'&&r.paymentDate)return false;
    return true;
-  }).sort((a,b)=>shipmentId(b).localeCompare(shipmentId(a),'tr',{numeric:true}));
+  }).sort((a,b)=>Number(!!a.paymentDate)-Number(!!b.paymentDate)||shipmentId(b).localeCompare(shipmentId(a),'tr',{numeric:true}));
   for(const th of document.querySelectorAll('#panel-logistics .share-col'))th.hidden=!sharesShown();
   const body=$('lgRows');body.replaceChildren();
   for(const r of rows){
@@ -348,6 +351,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   $('lgTotalShareTL').textContent=F.money(shareTL,'TL');
   renderShareSummary($('lgShareRows'),false);
   $('lgShares').hidden=!sharesShown();
+  views.logistics.apply();
  }
  function saveShipment(id,changes,done){return save('shipments',data.shipments.map(r=>shipmentId(r)===id?{...r,...changes}:{...r}),done);}
  let lgEditing=null;
@@ -442,6 +446,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   alert.hidden=active===F.SHARE_COUNT;
   alert.textContent=active<F.SHARE_COUNT?'Şu an '+active+' aktif pay sahibi var. Kâr 3 eşit paya bölündüğü için '+(F.SHARE_COUNT-active)+' pay sahipsiz kalır.':'';
   renderShareSummary($('shRows'),true);
+  views.shares.apply();
  }
  function resetHolder(){shEditing=null;$('shForm').reset();$('shFormTitle').textContent='Pay sahibi ekle';$('shSave').textContent='Ekle';$('shCancel').hidden=true;}
  function editHolder(id){
@@ -466,7 +471,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    if(filters.ncts==='paid'&&r.paid!==true)return false;
    if(filters.ncts==='wait'&&r.paid===true)return false;
    return true;
-  }).sort((a,b)=>nctsId(b).localeCompare(nctsId(a),'tr',{numeric:true}));
+  }).sort((a,b)=>Number(a.paid===true)-Number(b.paid===true)||nctsId(b).localeCompare(nctsId(a),'tr',{numeric:true}));
   const body=$('ncRows');body.replaceChildren();
   for(const r of rows){
    const f=F.number(r.freightFee),g=F.number(r.guaranteeFee),id=nctsId(r),priced=f!==null||g!==null;
@@ -482,6 +487,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   // Dovizler birbirine eklenmez. Genel toplam = navlun + teminat.
   const groups=F.currencyTotals(rows,r=>{const f=F.number(r.freightFee),g=F.number(r.guaranteeFee);if(f===null&&g===null)return null;const all=(f??0)+(g??0);return {currency:r.feeCurrency||'Döviz yok',values:{all,paid:r.paid?all:0,wait:r.paid?0:all}};});
   fillTotals('ncTotalAll',groups,'all');fillTotals('ncTotalPaid',groups,'paid');fillTotals('ncTotalWait',groups,'wait');
+  views.ncts.apply();
  }
  let ncEditing=null;
  function openNcts(id){
@@ -506,7 +512,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    if(filters.transport==='paid'&&r.paid!==true)return false;
    if(filters.transport==='wait'&&r.paid===true)return false;
    return true;
-  }).sort((a,b)=>String(b.id).localeCompare(String(a.id),'tr',{numeric:true}));
+  }).sort((a,b)=>Number(a.paid===true)-Number(b.paid===true)||String(b.id).localeCompare(String(a.id),'tr',{numeric:true}));
   const body=$('trRows');body.replaceChildren();
   for(const r of rows){
    const tr=document.createElement('tr');
@@ -521,6 +527,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   $('trEmpty').hidden=rows.length>0;$('trEmpty').textContent=data.transport.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok.';
   const groups=F.currencyTotals(rows,r=>r.fee==null?null:{currency:r.currency||'TRY',values:{all:r.fee,paid:r.paid?r.fee:0,wait:r.paid?0:r.fee}});
   fillTotals('trTotalAll',groups,'all');fillTotals('trTotalPaid',groups,'paid');fillTotals('trTotalWait',groups,'wait');
+  views.transport.apply();
  }
  let trEditing=null;
  function openTransport(id){
@@ -560,10 +567,12 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    const totals=F.ledgerTotals(entriesOf(account.company),ldKind);
    const balance=totals.length?totals.map(t=>t.theyOwe?F.minorMoney(t.theyOwe,t.currency)+' bize borçlu':t.weOwe?F.minorMoney(t.weOwe,t.currency)+' borçluyuz':F.minorMoney(0,t.currency)).join(' · '):'Kayıt yok';
    const tr=document.createElement('tr');
-   tr.append(td(short(account.company),'name',account.company),td(String(account.count),'num'),td(balance,totals.length?'':'muted-cell'),td(trDate(account.last)||'—','nowrap'),
+   const lastCell=td(trDate(account.last)||'—','nowrap');lastCell.dataset.sort=account.last||'';
+   tr.append(td(short(account.company),'name',account.company),td(String(account.count),'num'),td(balance,totals.length?'':'muted-cell'),lastCell,
     actions(button('Cariyi aç',()=>{ldAccount=account.company;renderLedger();$('ldTitle').focus();})));
    body.append(tr);
   }
+  views.ledger.apply();
   $('ldEmpty').hidden=accounts.length>0;
   $('ldEmpty').textContent=$('ldSearch').value?'Aramaya uyan firma yok.':'Henüz cari hesap yok. Firma bir sevkiyatta '+(ldKind==='carrier'?'acente / taşıyıcı':'alıcı')+' olarak kullanıldığında burada görünür.';
  }
@@ -610,6 +619,16 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  $('reportLogistics').onclick=()=>openPortalReport('logistics');
  $('reportNcts').onclick=()=>openPortalReport('ncts');
 
+ // ---------- Siralama ----------
+ // Basliga tiklayinca siralanir; ucuncu tiklama varsayilan siraya
+ // (odeme bekleyen once, sonra en yeni) doner ve tablo yeniden cizilir.
+ const views={};
+ for(const [key,body,render] of [['logistics','lgRows',renderLogistics],['ncts','ncRows',renderNcts],['transport','trRows',renderTransport],['ledger','ldRows',renderLedger],['shares','shRows',renderShares]]){
+  const table=$(body).closest('table');
+  views[key]=AscendTable.sortable(table,'finans.'+key);
+  table.addEventListener('sortreset',render);
+ }
+
  // ---------- Sekmeler ----------
  const renderers={logistics:renderLogistics,ncts:renderNcts,transport:renderTransport,ledger:renderLedger,shares:renderShares,reports:()=>{}};
  function renderAll(){for(const tab of tabs)renderers[tab.key]();}
@@ -626,11 +645,16 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   b.setAttribute('aria-controls','panel-'+tab.key);b.onclick=()=>select(tab.key);$('tabs').append(b);
  }
  for(const d of document.querySelectorAll('dialog'))d.querySelector('[data-close]').onclick=()=>d.close();
- for(const group of document.querySelectorAll('[data-filter-for]'))for(const b of group.querySelectorAll('button'))b.onclick=()=>{
-  filters[group.dataset.filterFor]=b.dataset.filter;
-  for(const x of group.querySelectorAll('button'))x.setAttribute('aria-pressed',String(x===b));
-  renderers[group.dataset.filterFor]();
- };
+ for(const group of document.querySelectorAll('[data-filter-for]')){
+  const key=group.dataset.filterFor;
+  const press=()=>{for(const x of group.querySelectorAll('button'))x.setAttribute('aria-pressed',String(x.dataset.filter===filters[key]));};
+  for(const b of group.querySelectorAll('button'))b.onclick=()=>{
+   filters[key]=b.dataset.filter;press();
+   AscendTable.write('finans.filters',filters);
+   renderers[key]();
+  };
+  press();
+ }
  $('lgSearch').addEventListener('input',renderLogistics);$('ncSearch').addEventListener('input',renderNcts);$('trSearch').addEventListener('input',renderTransport);
  renderAll();
  const wanted=location.hash.slice(1);

@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · İç Nakliye</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><link rel="stylesheet" href="data-table.css"><script src="portal-theme.js"></script>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · İç Nakliye</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><link rel="stylesheet" href="data-table.css"><script src="portal-theme.js"></script><script src="data-table.js"></script>
 <style>
 main{padding:20px 24px 40px;max-width:1360px;margin:0 auto}
 header{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:16px 24px}header img{height:48px}
@@ -56,7 +56,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <span class="count" id="count"></span>
  </div>
  <div class="table-wrap"><table class="data-table">
-  <thead><tr><th>Kayıt</th><th>Firma</th><th>Gümrük / Depo</th><th class="num">Kap</th><th class="num">Kilo</th><th>Yük</th><th>Teslim adresi</th><th class="actions"></th></tr></thead>
+  <thead><tr><th>Kayıt</th><th>Firma</th><th>Gümrük / Depo</th><th class="num">Kap</th><th class="num">Kilo</th><th>Yük</th><th data-sortable="false">Teslim adresi</th><th class="actions"></th></tr></thead>
   <tbody id="rows"></tbody>
  </table></div>
  <p id="empty" class="empty" hidden></p>
@@ -207,12 +207,17 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    if(isAdmin){const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';del.onclick=()=>remove(r.id);group.append(del);}
    actions.append(group);tr.append(actions);body.append(tr);
   }
+  view.apply();
   $('count').textContent=visible.length===rows.length?rows.length+' kayıt':visible.length+' / '+rows.length+' kayıt';
   const empty=$('empty');
   empty.hidden=visible.length>0;
   empty.textContent=rows.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok. Yukarıdaki formdan ilk kaydı ekleyin.';
  }
 
+ // Basliga tiklayinca siralanir; ucuncu tiklama en yeni kayit uste doner.
+ const table=$('rows').closest('table');
+ const view=AscendTable.sortable(table,'ic-nakliye.list');
+ table.addEventListener('sortreset',render);
  $('search').addEventListener('input',render);
  render();fillOptions();
 })();
