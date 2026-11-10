@@ -64,6 +64,7 @@ input,select{padding:10px;border:1px solid #d4dde3;border-radius:8px;font-size:1
     <a class="module" data-module="ncts" href="01_NCTS_BRANDED_v15.html"><span class="module-tag">TRANSİT İŞLEMLERİ</span><strong>NCTS / T1</strong><span class="muted">Transit operasyonları ve kurumsal PDF çıktıları</span><b class="module-action">Çalışma alanını aç →</b></a>
     <a class="module" data-module="transport" href="ic-nakliye.html"><span class="module-tag">YURTİÇİ TAŞIMA</span><strong>İç Nakliye</strong><span class="muted">Gümrük · Depo · Teslim adresi · Taşıma ücreti ve tahsilat</span><b class="module-action">Çalışma alanını aç →</b></a>
     <a class="module" data-module="logistics" href="02_LOJISTIK_PORTAL_BRANDED_v14.html"><span class="module-tag">SEVKİYAT YÖNETİMİ</span><strong>Lojistik Operasyon</strong><span class="muted">Dosya Takip · Yük Bilgileri · Çıkış/Varış · Finans</span><b class="module-action">Çalışma alanını aç →</b></a>
+    <a class="module" data-finance href="finans.html"><span class="module-tag">FİNANS</span><strong>Finans</strong><span class="muted">Lojistik · NCTS · İç Nakliye · Raporlar</span><b class="module-action">Finans alanını aç →</b></a>
   </div>
 </div>
 </div>
@@ -108,6 +109,9 @@ function showPortal(s){
   // Yetkisi olmayan modul gosterilmez. Asil sinir sunucudadir; kart yalniz
   // kullaniciyi acinca bos ya da reddedilen bir ekrana gondermemek icin gizlenir.
   document.querySelectorAll('a.module[data-module]').forEach(a=>{a.style.display=s.permissions?.[a.dataset.module]?.access===true?'':'none';});
+  // Finans karti: yonetici ya da en az bir modulde finans yetkisi olan gorur.
+  const anyFinance=s.role==='Yönetici'||Object.values(s.permissions||{}).some(p=>p?.finance===true);
+  document.querySelectorAll('a.module[data-finance]').forEach(a=>{a.style.display=anyFinance?'':'none';});
   const companyButton=document.querySelector('#portalBox .topbar button');
   companyButton.style.display=view==='customer'?'none':'inline-block';
   companyButton.onclick=()=>location.href=view==='staff'?'02_LOJISTIK_PORTAL_BRANDED_v14.html?view=staff&section=companies':'02_LOJISTIK_PORTAL_BRANDED_v14.html?section=companies';

@@ -1,0 +1,341 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · Finans</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><script src="portal-theme.js"></script><script src="shared-portal.js"></script><script src="finance-center.js"></script><script src="portal-reports.js"></script>
+<style>
+main{padding:24px;max-width:1320px;margin:0 auto}
+header{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:16px 24px}header img{height:48px}
+.card{padding:24px;margin:20px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+.tabs button{border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-weight:700;font-size:14px;padding:9px 18px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary,#fff)}
+.toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}
+.field{display:grid;gap:6px}.toolbar .field{min-width:240px}
+input,select,button{padding:10px;font:inherit}button{cursor:pointer}
+.segment{display:flex;gap:6px;flex-wrap:wrap}
+.segment button{border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-weight:700;font-size:13px;padding:7px 15px}
+.segment button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary,#fff)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:700;white-space:nowrap}
+td.num{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}th.num{text-align:right}
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:16px}
+.total{border:1px solid var(--border);border-radius:10px;padding:14px}
+.total .label{color:var(--muted);font-size:13px;font-weight:700}
+.total .value{font-variant-numeric:tabular-nums;font-size:17px;font-weight:700;margin-top:4px}
+.badge-paid{background:var(--ok);padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.badge-wait{background:var(--warn);padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.check{display:flex;align-items:center;gap:8px}
+.empty{color:var(--muted);padding:18px 0}
+#status{padding:8px 0;min-height:1.4em}
+dialog{border:1px solid var(--border);border-radius:14px;padding:24px;max-width:560px;width:calc(100% - 32px);background:var(--card);color:var(--text)}
+dialog::backdrop{background:rgb(0 0 0 / .35)}
+dialog .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:16px 0}
+dialog .actions{display:flex;gap:8px;justify-content:flex-end}
+.reports{display:flex;gap:12px;flex-wrap:wrap}
+[hidden]{display:none!important}
+</style></head>
+<body>
+<header><img src="ascend-logo-light.svg" alt="ASCEND Lojistik"><a href="index.html">Ana Sayfa</a></header>
+<main>
+<h1>Finans</h1>
+<p class="muted">Tüm modüllerin finans kayıtları. Her sekme yalnız o modülde finans yetkisi olana görünür.</p>
+<p id="status" role="status" aria-live="polite"></p>
+<section id="denied" class="card" hidden><h2>Erişim yok</h2><p>Finans bilgisi için yetkiniz bulunmuyor. Yöneticinizden ilgili modülde finans yetkisi isteyin.</p></section>
+<div id="tabs" class="tabs" role="tablist" aria-label="Finans bölümleri"></div>
+
+<section id="panel-logistics" class="card" role="tabpanel" hidden>
+ <h2>Lojistik finans</h2>
+ <div class="toolbar">
+  <div class="field"><label for="lgSearch">Ara</label><input id="lgSearch" placeholder="Dosya no, firma, acente…" autocomplete="off"></div>
+  <div class="segment" role="group" aria-label="Ödeme durumu" data-filter-for="logistics">
+   <button type="button" data-filter="" aria-pressed="true">Tümü</button><button type="button" data-filter="wait" aria-pressed="false">Ödeme bekleyen</button><button type="button" data-filter="paid" aria-pressed="false">Ödendi</button>
+  </div>
+ </div>
+ <div class="table-wrap"><table>
+  <thead><tr><th>Dosya No</th><th>Gönderici</th><th>Alıcı</th><th>Acente / Taşıyıcı</th><th class="num">Navlun alış</th><th class="num">Navlun satış</th><th class="num">Kazanç</th><th class="num">Pay (1/3)</th><th class="num">Kur</th><th class="num">Pay TL</th><th>Varış</th><th>Ödeme tarihi</th><th>Ödendi</th><th>İşlem</th></tr></thead>
+  <tbody id="lgRows"></tbody>
+ </table></div>
+ <p id="lgEmpty" class="empty" hidden></p>
+ <div class="totals">
+  <div class="total"><div class="label">Toplam navlun satış</div><div class="value" id="lgTotalSale"></div></div>
+  <div class="total"><div class="label">Toplam kazanç</div><div class="value" id="lgTotalProfit"></div></div>
+  <div class="total"><div class="label">Toplam pay</div><div class="value" id="lgTotalShare"></div></div>
+  <div class="total"><div class="label">Toplam pay TL</div><div class="value" id="lgTotalShareTL"></div></div>
+ </div>
+</section>
+
+<section id="panel-ncts" class="card" role="tabpanel" hidden>
+ <h2>NCTS finans</h2>
+ <div class="toolbar"><div class="field"><label for="ncSearch">Ara</label><input id="ncSearch" placeholder="NCTS no, firma…" autocomplete="off"></div></div>
+ <div class="table-wrap"><table>
+  <thead><tr><th>NCTS No</th><th>Tarih</th><th>Gönderici</th><th>Alıcı</th><th class="num">Navlun ücreti</th><th class="num">Teminat ücreti</th><th class="num">Toplam</th><th>İşlem</th></tr></thead>
+  <tbody id="ncRows"></tbody>
+ </table></div>
+ <p id="ncEmpty" class="empty" hidden></p>
+ <div class="totals">
+  <div class="total"><div class="label">Toplam navlun</div><div class="value" id="ncTotalFreight"></div></div>
+  <div class="total"><div class="label">Toplam teminat</div><div class="value" id="ncTotalGuarantee"></div></div>
+  <div class="total"><div class="label">Genel toplam</div><div class="value" id="ncTotalAll"></div></div>
+ </div>
+</section>
+
+<section id="panel-transport" class="card" role="tabpanel" hidden>
+ <h2>İç Nakliye finans</h2>
+ <div class="toolbar">
+  <div class="field"><label for="trSearch">Ara</label><input id="trSearch" placeholder="Kayıt no, firma, gümrük, depo…" autocomplete="off"></div>
+  <div class="segment" role="group" aria-label="Ödeme durumu" data-filter-for="transport">
+   <button type="button" data-filter="" aria-pressed="true">Tümü</button><button type="button" data-filter="wait" aria-pressed="false">Ödeme bekleyen</button><button type="button" data-filter="paid" aria-pressed="false">Ödendi</button>
+  </div>
+ </div>
+ <div class="table-wrap"><table>
+  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th class="num">Kap</th><th class="num">Kilo</th><th>Konteyner</th><th class="num">Taşıma ücreti</th><th>Ödeme</th><th>İşlem</th></tr></thead>
+  <tbody id="trRows"></tbody>
+ </table></div>
+ <p id="trEmpty" class="empty" hidden></p>
+ <div class="totals">
+  <div class="total"><div class="label">Toplam taşıma ücreti</div><div class="value" id="trTotalAll"></div></div>
+  <div class="total"><div class="label">Tahsil edilen</div><div class="value" id="trTotalPaid"></div></div>
+  <div class="total"><div class="label">Ödeme bekleyen</div><div class="value" id="trTotalWait"></div></div>
+ </div>
+</section>
+
+<section id="panel-reports" class="card" role="tabpanel" hidden>
+ <h2>Raporlar</h2>
+ <p class="muted">Firma bazında dosya sayısı ve kazanç. Her rapor tek bir döviz için hesaplanır.</p>
+ <div class="reports"><button type="button" class="primary" id="reportLogistics">Lojistik raporu</button><button type="button" class="primary" id="reportNcts">NCTS raporu</button></div>
+</section>
+
+<dialog id="lgDialog" aria-labelledby="lgDialogTitle"><form method="dialog" id="lgForm" novalidate>
+ <h2 id="lgDialogTitle">Lojistik finans</h2><p id="lgDialogSub" class="muted"></p>
+ <div class="fields">
+  <div class="field"><label for="lgPurchase">Navlun alış</label><input id="lgPurchase" type="number" min="0" step="0.01" inputmode="decimal"></div>
+  <div class="field"><label for="lgSale">Navlun satış</label><input id="lgSale" type="number" min="0" step="0.01" inputmode="decimal"></div>
+  <div class="field"><label for="lgCurrency">Döviz</label><select id="lgCurrency"></select></div>
+  <div class="field"><label for="lgRate">Kur (TL)</label><input id="lgRate" type="number" min="0" step="0.000001" inputmode="decimal"></div>
+  <div class="field"><label for="lgPayment">Ödeme tarihi</label><input id="lgPayment" type="date"></div>
+ </div>
+ <div class="actions"><button type="button" class="secondary" data-close>Vazgeç</button><button type="submit" class="primary">Kaydet</button></div>
+</form></dialog>
+
+<dialog id="ncDialog" aria-labelledby="ncDialogTitle"><form method="dialog" id="ncForm" novalidate>
+ <h2 id="ncDialogTitle">NCTS finans</h2><p id="ncDialogSub" class="muted"></p>
+ <div class="fields">
+  <div class="field"><label for="ncFreight">Navlun ücreti</label><input id="ncFreight" type="number" min="0" step="0.01" inputmode="decimal"></div>
+  <div class="field"><label for="ncGuarantee">Teminat ücreti</label><input id="ncGuarantee" type="number" min="0" step="0.01" inputmode="decimal"></div>
+  <div class="field"><label for="ncCurrency">Döviz *</label><select id="ncCurrency"></select></div>
+ </div>
+ <div class="actions"><button type="button" class="secondary" data-close>Vazgeç</button><button type="submit" class="primary">Kaydet</button></div>
+</form></dialog>
+
+<dialog id="trDialog" aria-labelledby="trDialogTitle"><form method="dialog" id="trForm" novalidate>
+ <h2 id="trDialogTitle">İç Nakliye finans</h2><p id="trDialogSub" class="muted"></p>
+ <div class="fields">
+  <div class="field"><label for="trFee">Taşıma ücreti</label><input id="trFee" type="number" min="0" step="0.01" inputmode="decimal"></div>
+  <div class="field"><label for="trCurrency">Döviz</label><select id="trCurrency"></select></div>
+  <div class="field"><span class="check"><input id="trPaid" type="checkbox"><label for="trPaid">Ödeme alındı</label></span></div>
+ </div>
+ <div class="actions"><button type="button" class="secondary" data-close>Vazgeç</button><button type="submit" class="primary">Kaydet</button></div>
+</form></dialog>
+
+<script>
+(() => {
+ const $=id=>document.getElementById(id);
+ const F=window.AscendFinance;
+ const boot=window.portalBootstrap;
+ if(!boot){location.href='index.html?login';return;}
+ const user=boot.user||{};
+ const tabs=F.financeTabs(user);
+ if(!tabs.length){$('denied').hidden=false;return;}
+
+ let data={shipments:boot.shipments||[],ncts:boot.ncts||[],transport:boot.transport||[]};
+ let revision=boot.revision;
+ const filters={logistics:'',transport:''};
+ const status=text=>{$('status').textContent=text;};
+ const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Istanbul'}).format(new Date());
+ const shipmentId=r=>String(r.fileNo||r.id||'');
+ const nctsId=r=>String(r.no||r.id||'');
+ const normalize=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i');
+ const matches=(q,parts)=>!q||normalize(parts.join(' ')).includes(q);
+ const cell=(text,cls)=>{const td=document.createElement('td');td.textContent=text??'—';if(cls)td.className=cls;return td;};
+ const amount=(value,currency)=>value===null?'—':F.money(value,currency);
+ const currencies=['EUR','USD','TRY','GBP','CHF'];
+ for(const id of ['lgCurrency','ncCurrency','trCurrency'])for(const code of currencies)$(id).add(new Option(code,code));
+
+ // Sunucu tek dogru kaynaktir: kayittan sonra veri ondan yeniden okunur.
+ async function save(collection,rows,done){
+  const response=await fetch('/api/tenant/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_revision:revision,[collection]:rows})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok){
+   if(response.status===409)throw Error('Kayıt başka bir oturumda değişti. Sayfayı yenileyip tekrar deneyin.');
+   throw Error(result.error||'Kayıt tamamlanamadı.');
+  }
+  const fresh=await fetch('/api/tenant/data').then(r=>r.ok?r.json():Promise.reject(Error('Liste yenilenemedi.')));
+  data={shipments:fresh.shipments||[],ncts:fresh.ncts||[],transport:fresh.transport||[]};revision=fresh.revision;
+  renderAll();status(done);
+ }
+ const attempt=async(work)=>{try{await work();}catch(error){status(error.message);}};
+
+ function fillTotals(id,groups,name){
+  const node=$(id);node.replaceChildren();
+  if(!groups.length){node.textContent='—';return;}
+  for(const g of groups){const line=document.createElement('div');line.textContent=F.money(g.values[name],g.currency);node.append(line);}
+ }
+
+ // ---------- Lojistik ----------
+ function renderLogistics(){
+  const q=normalize($('lgSearch').value.trim());
+  const rows=data.shipments.filter(r=>{
+   if(!matches(q,[r.fileNo,r.shipper,r.consignee,r.agent]))return false;
+   if(filters.logistics==='paid'&&!r.paymentDate)return false;
+   if(filters.logistics==='wait'&&r.paymentDate)return false;
+   return true;
+  }).sort((a,b)=>shipmentId(b).localeCompare(shipmentId(a),'tr',{numeric:true}));
+  const body=$('lgRows');body.replaceChildren();
+  for(const r of rows){
+   const m=F.logisticsMoney(r),tr=document.createElement('tr');
+   tr.append(cell(shipmentId(r)),cell(r.shipper||'—'),cell(r.consignee||'—'),cell(r.agent||'—'),
+    cell(amount(m.purchase,m.currency),'num'),cell(amount(m.sale,m.currency),'num'),
+    cell(m.priced?F.money(m.profit,m.currency):'—','num'),cell(m.priced?F.money(m.share,m.currency):'—','num'),
+    cell(m.rate===null?'—':String(m.rate),'num'),cell(m.priced&&m.rate?F.money(m.shareTL,'TL'):'—','num'),
+    cell(r.arrivalDate||'—'),cell(r.paymentDate||'—'));
+   const paidCell=document.createElement('td');
+   const box=document.createElement('input');box.type='checkbox';box.checked=!!r.paymentDate;
+   box.setAttribute('aria-label',shipmentId(r)+' ödeme alındı');
+   box.onchange=()=>attempt(()=>{box.disabled=true;return saveShipment(shipmentId(r),{paymentDate:box.checked?today():''},box.checked?shipmentId(r)+' ödendi olarak işaretlendi.':shipmentId(r)+' ödeme bekliyor.');}).finally(()=>{box.disabled=false;});
+   paidCell.append(box);tr.append(paidCell);
+   const act=document.createElement('td');const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openLogistics(shipmentId(r));act.append(edit);tr.append(act);
+   body.append(tr);
+  }
+  $('lgEmpty').hidden=rows.length>0;$('lgEmpty').textContent=data.shipments.length?'Aramaya uyan kayıt yok.':'Henüz sevkiyat yok.';
+  const groups=F.currencyTotals(rows,r=>{const m=F.logisticsMoney(r);return m.priced?{currency:m.currency,values:{sale:m.sale??0,profit:m.profit,share:m.share}}:null;});
+  fillTotals('lgTotalSale',groups,'sale');fillTotals('lgTotalProfit',groups,'profit');fillTotals('lgTotalShare',groups,'share');
+  // Pay TL kurla TL'ye cevrildigi icin tek toplamdir.
+  const shareTL=rows.reduce((sum,r)=>{const m=F.logisticsMoney(r);return sum+(m.priced&&m.rate?m.shareTL:0);},0);
+  $('lgTotalShareTL').textContent=F.money(shareTL,'TL');
+ }
+ function saveShipment(id,changes,done){
+  return save('shipments',data.shipments.map(r=>shipmentId(r)===id?{...r,...changes}:{...r}),done);
+ }
+ let lgEditing=null;
+ function openLogistics(id){
+  const r=data.shipments.find(x=>shipmentId(x)===id);if(!r)return;lgEditing=id;
+  $('lgDialogSub').textContent=id+' · '+(r.shipper||'—')+' → '+(r.consignee||'—');
+  $('lgPurchase').value=r.purchasePrice??'';$('lgSale').value=r.salePrice??'';$('lgCurrency').value=r.financeCurrency||'EUR';
+  $('lgRate').value=r.exchangeRate??'';$('lgPayment').value=r.paymentDate||'';
+  $('lgDialog').showModal();
+ }
+ $('lgForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const values={purchasePrice:$('lgPurchase').value.trim(),salePrice:$('lgSale').value.trim(),exchangeRate:$('lgRate').value.trim()};
+  for(const [key,value] of Object.entries(values))if(value!==''&&!(Number(value)>=0)){status('Tutar ve kur sıfır veya pozitif olmalı.');return;}
+  attempt(async()=>{await saveShipment(lgEditing,{...values,financeCurrency:$('lgCurrency').value,paymentDate:$('lgPayment').value},lgEditing+' güncellendi.');$('lgDialog').close();});
+ });
+
+ // ---------- NCTS ----------
+ function renderNcts(){
+  const q=normalize($('ncSearch').value.trim());
+  const rows=data.ncts.filter(r=>matches(q,[r.no,r.sender,r.receiver])).sort((a,b)=>nctsId(b).localeCompare(nctsId(a),'tr',{numeric:true}));
+  const body=$('ncRows');body.replaceChildren();
+  for(const r of rows){
+   const f=F.number(r.freightFee),g=F.number(r.guaranteeFee),code=r.feeCurrency||'';
+   const tr=document.createElement('tr');
+   tr.append(cell(nctsId(r)),cell(r.date||'—'),cell(r.sender||'—'),cell(r.receiver||'—'),
+    cell(f===null?'—':F.money(f,code),'num'),cell(g===null?'—':F.money(g,code),'num'),
+    cell(f===null&&g===null?'—':F.money((f??0)+(g??0),code),'num'));
+   const act=document.createElement('td');const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openNcts(nctsId(r));act.append(edit);tr.append(act);
+   body.append(tr);
+  }
+  $('ncEmpty').hidden=rows.length>0;$('ncEmpty').textContent=data.ncts.length?'Aramaya uyan kayıt yok.':'Henüz NCTS kaydı yok.';
+  // Eski NCTS ekrani dovizleri birbirine ekliyordu; burada her doviz ayri.
+  const groups=F.currencyTotals(rows,r=>{const f=F.number(r.freightFee),g=F.number(r.guaranteeFee);if(f===null&&g===null)return null;return {currency:r.feeCurrency||'Döviz yok',values:{freight:f??0,guarantee:g??0,all:(f??0)+(g??0)}};});
+  fillTotals('ncTotalFreight',groups,'freight');fillTotals('ncTotalGuarantee',groups,'guarantee');fillTotals('ncTotalAll',groups,'all');
+ }
+ let ncEditing=null;
+ function openNcts(id){
+  const r=data.ncts.find(x=>nctsId(x)===id);if(!r)return;ncEditing=id;
+  $('ncDialogSub').textContent=id+' · '+(r.sender||'—')+' → '+(r.receiver||'—');
+  $('ncFreight').value=r.freightFee??'';$('ncGuarantee').value=r.guaranteeFee??'';$('ncCurrency').value=r.feeCurrency||'EUR';
+  $('ncDialog').showModal();
+ }
+ $('ncForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const freight=$('ncFreight').value.trim(),guarantee=$('ncGuarantee').value.trim();
+  if([freight,guarantee].some(v=>v!==''&&!(Number(v)>=0))){status('Ücretler sıfır veya pozitif olmalı.');return;}
+  if(!$('ncCurrency').value){status('Finans dövizini seçin.');return;}
+  const changes={freightFee:freight===''?0:Number(freight),guaranteeFee:guarantee===''?0:Number(guarantee),feeCurrency:$('ncCurrency').value};
+  attempt(async()=>{await save('ncts',data.ncts.map(r=>nctsId(r)===ncEditing?{...r,...changes}:{...r}),ncEditing+' güncellendi.');$('ncDialog').close();});
+ });
+
+ // ---------- Ic Nakliye ----------
+ function renderTransport(){
+  const q=normalize($('trSearch').value.trim());
+  const rows=data.transport.filter(r=>{
+   if(!matches(q,[r.id,r.company,r.customs,r.warehouse,r.deliveryAddress]))return false;
+   if(filters.transport==='paid'&&r.paid!==true)return false;
+   if(filters.transport==='wait'&&r.paid===true)return false;
+   return true;
+  }).sort((a,b)=>String(b.id).localeCompare(String(a.id),'tr',{numeric:true}));
+  const body=$('trRows');body.replaceChildren();
+  for(const r of rows){
+   const tr=document.createElement('tr');
+   tr.append(cell(r.id),cell(r.company),cell(r.customs||'—'),cell(r.warehouse||'—'),
+    cell(r.packages==null?'—':String(r.packages),'num'),cell(r.weight==null?'—':Number(r.weight).toLocaleString('tr-TR',{maximumFractionDigits:2}),'num'),
+    cell(r.container?'Konteyner':'—'),cell(r.fee==null?'—':F.money(r.fee,r.currency||'TRY'),'num'));
+   const paidCell=document.createElement('td');
+   const box=document.createElement('input');box.type='checkbox';box.checked=r.paid===true;box.setAttribute('aria-label',r.id+' ödeme alındı');
+   const tag=document.createElement('span');tag.className=r.paid?'badge-paid':'badge-wait';tag.textContent=r.paid?'Ödendi':'Bekliyor';
+   box.onchange=()=>attempt(()=>{box.disabled=true;return save('transport',data.transport.map(x=>x.id===r.id?{...x,paid:box.checked}:{...x}),box.checked?r.id+' ödendi olarak işaretlendi.':r.id+' ödeme bekliyor.');}).finally(()=>{box.disabled=false;});
+   const wrap=document.createElement('span');wrap.className='check';wrap.append(box,tag);paidCell.append(wrap);tr.append(paidCell);
+   const act=document.createElement('td');const edit=document.createElement('button');edit.type='button';edit.className='secondary';edit.textContent='Düzenle';edit.onclick=()=>openTransport(r.id);act.append(edit);tr.append(act);
+   body.append(tr);
+  }
+  $('trEmpty').hidden=rows.length>0;$('trEmpty').textContent=data.transport.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok.';
+  const groups=F.currencyTotals(rows,r=>r.fee==null?null:{currency:r.currency||'TRY',values:{all:r.fee,paid:r.paid?r.fee:0,wait:r.paid?0:r.fee}});
+  fillTotals('trTotalAll',groups,'all');fillTotals('trTotalPaid',groups,'paid');fillTotals('trTotalWait',groups,'wait');
+ }
+ let trEditing=null;
+ function openTransport(id){
+  const r=data.transport.find(x=>x.id===id);if(!r)return;trEditing=id;
+  $('trDialogSub').textContent=id+' · '+r.company;
+  $('trFee').value=r.fee??'';$('trCurrency').value=r.currency||'TRY';$('trPaid').checked=r.paid===true;
+  $('trDialog').showModal();
+ }
+ $('trForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const fee=$('trFee').value.trim();
+  if(fee!==''&&!(Number(fee)>=0)){status('Taşıma ücreti sıfır veya pozitif olmalı.');return;}
+  const changes={fee:fee===''?null:Number(fee),currency:$('trCurrency').value,paid:$('trPaid').checked};
+  attempt(async()=>{await save('transport',data.transport.map(r=>r.id===trEditing?{...r,...changes}:{...r}),trEditing+' güncellendi.');$('trDialog').close();});
+ });
+
+ // ---------- Raporlar ----------
+ $('reportLogistics').onclick=()=>openPortalReport('logistics');
+ $('reportNcts').onclick=()=>openPortalReport('ncts');
+
+ // ---------- Sekmeler ----------
+ const renderers={logistics:renderLogistics,ncts:renderNcts,transport:renderTransport,reports:()=>{}};
+ function renderAll(){for(const tab of tabs)renderers[tab.key]();}
+ function select(key){
+  for(const tab of tabs){
+   const on=tab.key===key;
+   $('panel-'+tab.key).hidden=!on;
+   document.querySelector('#tabs [data-tab="'+tab.key+'"]').setAttribute('aria-selected',String(on));
+  }
+  history.replaceState(null,'','#'+key);
+ }
+ for(const tab of tabs){
+  const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.dataset.tab=tab.key;b.textContent=tab.label;
+  b.setAttribute('aria-controls','panel-'+tab.key);b.onclick=()=>select(tab.key);$('tabs').append(b);
+ }
+ for(const d of document.querySelectorAll('dialog'))d.querySelector('[data-close]').onclick=()=>d.close();
+ for(const group of document.querySelectorAll('[data-filter-for]'))for(const b of group.querySelectorAll('button'))b.onclick=()=>{
+  filters[group.dataset.filterFor]=b.dataset.filter;
+  for(const x of group.querySelectorAll('button'))x.setAttribute('aria-pressed',String(x===b));
+  renderers[group.dataset.filterFor]();
+ };
+ $('lgSearch').addEventListener('input',renderLogistics);$('ncSearch').addEventListener('input',renderNcts);$('trSearch').addEventListener('input',renderTransport);
+ renderAll();
+ const wanted=location.hash.slice(1);
+ select(tabs.some(t=>t.key===wanted)?wanted:tabs[0].key);
+})();
+</script>
+</body></html>

@@ -21,6 +21,9 @@ localStorage taklidi üzerinden çalışıyor.
 - [ ] Finans görünürlüğü rolden değil yetkiden gelir (`user.permissions`).
 - [ ] Kullanıcı Yönetimi'nde modül yetki tablosu.
 - [ ] İç Nakliye ekranı (`prototype/ic-nakliye.html`).
+- [ ] Ortak Finans alanı (`prototype/finans.html`, `finance-center.js`):
+      sekmeler yetkiden; modül ekranlarında para alanı yok.
+- [ ] İç Nakliye kap/kilo/konteyner kuralı.
 
 ## Yapılacak
 

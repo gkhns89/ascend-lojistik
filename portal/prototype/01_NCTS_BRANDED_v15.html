@@ -614,8 +614,10 @@ function isNctsAdmin(){const s=nctsSession();if(s?.role==='Yönetici')return !nc
 function applyNctsRoleVisibility(){
  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden-role',!isNctsAdmin()));
 }
+// NCTS finansi ortak Finans alaninda (finans.html).
 function showNctsFinance(){
  if(!isNctsAdmin()){alert('Bu bölüm için NCTS finans yetkisi gerekir.');return;}
+ location.href='finans.html#ncts';return;
  nctsListSection.classList.add('hidden');
  nctsFormSection.classList.add('hidden');
  nctsFinanceEditSection.classList.add('hidden');

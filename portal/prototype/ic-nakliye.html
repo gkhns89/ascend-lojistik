@@ -51,9 +51,6 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <div class="field"><label for="packages">Kap<span class="req"> *</span></label><input id="packages" type="number" min="1" step="1" inputmode="numeric"></div>
   <div class="field"><label for="weight">Kilo<span class="req"> *</span></label><input id="weight" type="number" min="0.01" step="0.01" inputmode="decimal"></div>
   <div class="field wide"><label for="deliveryAddress">Teslim adresi</label><textarea id="deliveryAddress" maxlength="1000"></textarea></div>
-  <div class="field finance"><label for="fee">Taşıma ücreti</label><input id="fee" type="number" min="0" step="0.01" inputmode="decimal"></div>
-  <div class="field finance"><label for="currency">Döviz</label><select id="currency"><option>TRY</option><option>EUR</option><option>USD</option><option>GBP</option><option>CHF</option></select></div>
-  <div class="field finance"><span class="check"><input id="paid" type="checkbox"><label for="paid">Ödeme alındı</label></span></div>
  </div>
  <div class="actions">
   <button class="primary" type="submit" id="saveBtn">Kaydet</button>
@@ -65,22 +62,13 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  <h2>Kayıtlar</h2>
  <div class="toolbar">
   <div class="field"><label for="search">Ara</label><input id="search" placeholder="Firma, gümrük, depo, adres…" autocomplete="off"></div>
-  <div class="segment finance" role="group" aria-label="Ödeme durumu">
-   <button type="button" data-filter="" aria-pressed="true">Tümü</button>
-   <button type="button" data-filter="wait" aria-pressed="false">Ödeme bekleyen</button>
-   <button type="button" data-filter="paid" aria-pressed="false">Ödendi</button>
-  </div>
+  <a id="financeLink" class="secondary" href="finans.html#transport" hidden>Taşıma ücretleri ve tahsilat → Finans</a>
  </div>
  <div class="table-wrap"><table>
-  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th>Kap</th><th>Kilo</th><th>Konteyner</th><th>Teslim adresi</th><th class="finance">Taşıma ücreti</th><th class="finance">Ödeme</th><th>İşlem</th></tr></thead>
+  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th>Kap</th><th>Kilo</th><th>Konteyner</th><th>Teslim adresi</th><th>İşlem</th></tr></thead>
   <tbody id="rows"></tbody>
  </table></div>
  <p id="empty" class="empty" hidden></p>
- <div class="totals finance">
-  <div class="total"><div class="label">Toplam taşıma ücreti</div><div class="value" id="totalAll"></div></div>
-  <div class="total"><div class="label">Tahsil edilen</div><div class="value" id="totalPaid"></div></div>
-  <div class="total"><div class="label">Ödeme bekleyen</div><div class="value" id="totalWait"></div></div>
- </div>
 </section>
 </main>
 
@@ -90,19 +78,17 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  const boot=window.portalBootstrap;
  if(!boot){location.href='index.html?login';return;}
 
- // Yetki sunucudan gelir ve sunucuda uygulanir. Burada yalniz ekran
- // duzenlenir: finans alanlari zaten veriyle birlikte gelmez.
+ // Yetki sunucudan gelir ve sunucuda uygulanir. Bu ekran yalniz operasyon
+ // bilgisini tutar; ucret, doviz ve odeme ortak Finans alanindadir.
  const permission=boot.user?.permissions?.transport||{access:false,finance:false};
- const finance=permission.finance===true;
  const isAdmin=boot.user?.role==='Yönetici';
  if(!permission.access){$('denied').hidden=false;return;}
  $('entry').hidden=false;$('listCard').hidden=false;
- for(const el of document.querySelectorAll('.finance'))el.hidden=!finance;
+ $('financeLink').hidden=permission.finance!==true;
 
  let rows=Array.isArray(boot.transport)?boot.transport.map(r=>({...r})):[];
- let revision=boot.revision,editing=null,filter='';
+ let revision=boot.revision,editing=null;
  const status=text=>{$('status').textContent=text;};
- const money=(n,code)=>Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+code;
 
  function nextId(){
   const year=new Intl.DateTimeFormat('en',{year:'numeric',timeZone:'Europe/Istanbul'}).format(new Date());
@@ -143,20 +129,13 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   }
   record.packages=packages===''?null:Number(packages);
   record.weight=weight===''?null:Number(weight);
-  if(finance){
-   const raw=$('fee').value.trim();
-   if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0)){$('fee').focus();throw Error('Taşıma ücreti sıfır veya pozitif bir sayı olmalı.');}
-   record.fee=raw===''?null:Number(raw);
-   record.currency=$('currency').value;
-   record.paid=$('paid').checked;
-  }
   return record;
  }
 
  function syncCargoRule(){for(const el of document.querySelectorAll('.req'))el.hidden=$('container').checked;}
  $('container').addEventListener('change',syncCargoRule);
  function resetForm(){
-  editing=null;$('entry').reset();$('currency').value='TRY';syncCargoRule();
+  editing=null;$('entry').reset();syncCargoRule();
   $('formTitle').textContent='Yeni kayıt';$('saveBtn').textContent='Kaydet';$('cancelBtn').hidden=true;
  }
 
@@ -165,7 +144,6 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   editing=id;
   $('company').value=r.company||'';$('customs').value=r.customs||'';$('warehouse').value=r.warehouse||'';$('deliveryAddress').value=r.deliveryAddress||'';
   $('container').checked=r.container===true;$('packages').value=r.packages??'';$('weight').value=r.weight??'';syncCargoRule();
-  if(finance){$('fee').value=r.fee??'';$('currency').value=r.currency||'TRY';$('paid').checked=r.paid===true;}
   $('formTitle').textContent='Kaydı düzenle · '+id;$('saveBtn').textContent='Değişiklikleri kaydet';$('cancelBtn').hidden=false;
   $('entry').scrollIntoView({behavior:'smooth',block:'start'});$('company').focus();
  }
@@ -183,13 +161,6 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  });
  $('cancelBtn').onclick=()=>{resetForm();status('');};
 
- async function togglePaid(id,checkbox){
-  const next=rows.map(r=>r.id===id?{...r,paid:checkbox.checked}:{...r});
-  checkbox.disabled=true;
-  try{await save(next,checkbox.checked?id+' ödendi olarak işaretlendi.':id+' ödeme bekliyor olarak işaretlendi.');}
-  catch(err){checkbox.checked=!checkbox.checked;checkbox.disabled=false;status(err.message);}
- }
-
  // Silme yalniz yoneticiye acik: personelin kaydi sunucuda birlestirilir ve
  // satir silemez, bu yuzden dugmeyi ona gostermek yaniltici olurdu.
  async function remove(id){
@@ -206,8 +177,6 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const q=normalize($('search').value.trim());
   const visible=rows.filter(r=>{
    if(q&&!normalize([r.id,r.company,r.customs,r.warehouse,r.deliveryAddress].join(' ')).includes(q))return false;
-   if(finance&&filter==='paid'&&r.paid!==true)return false;
-   if(finance&&filter==='wait'&&r.paid===true)return false;
    return true;
   }).sort((a,b)=>String(b.id).localeCompare(String(a.id),'tr',{numeric:true}));
 
@@ -216,15 +185,6 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    const tr=document.createElement('tr');
    const kilo=r.weight==null?'—':Number(r.weight).toLocaleString('tr-TR',{maximumFractionDigits:2});
    tr.append(cell(r.id),cell(r.company),cell(r.customs||'—'),cell(r.warehouse||'—'),cell(r.packages==null?'—':String(r.packages),'money'),cell(kilo,'money'),cell(r.container?'Konteyner':'—'),cell(r.deliveryAddress||'—'));
-   if(finance){
-    tr.append(cell(r.fee==null?'—':money(r.fee,r.currency||'TRY'),'money'));
-    const td=document.createElement('td');
-    const box=document.createElement('input');box.type='checkbox';box.checked=r.paid===true;
-    box.setAttribute('aria-label',r.id+' ödeme alındı');
-    box.onchange=()=>togglePaid(r.id,box);
-    const tag=document.createElement('span');tag.className=r.paid?'badge-paid':'badge-wait';tag.textContent=r.paid?'Ödendi':'Bekliyor';
-    const wrap=document.createElement('span');wrap.className='check';wrap.append(box,tag);td.append(wrap);tr.append(td);
-   }
    const actions=document.createElement('td');
    const editBtn=document.createElement('button');editBtn.type='button';editBtn.className='secondary';editBtn.textContent='Düzenle';editBtn.onclick=()=>edit(r.id);
    actions.append(editBtn);
@@ -234,32 +194,9 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   const empty=$('empty');
   empty.hidden=visible.length>0;
   empty.textContent=rows.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok. Yukarıdaki formdan ilk kaydı ekleyin.';
-
-  if(finance)renderTotals(visible);
- }
-
- // Dovizler birbirine eklenmez: her doviz ayri satirda toplanir.
- function renderTotals(list){
-  const buckets=new Map();
-  for(const r of list){
-   if(r.fee==null)continue;
-   const code=String(r.currency||'TRY');
-   const b=buckets.get(code)||{all:0,paid:0,wait:0};
-   b.all+=Number(r.fee);if(r.paid)b.paid+=Number(r.fee);else b.wait+=Number(r.fee);
-   buckets.set(code,b);
-  }
-  const codes=[...buckets.keys()].sort();
-  const fill=(id,pick)=>{const node=$(id);node.replaceChildren();if(!codes.length){node.textContent='—';return;}
-   for(const code of codes){const line=document.createElement('div');line.textContent=money(pick(buckets.get(code)),code);node.append(line);}};
-  fill('totalAll',b=>b.all);fill('totalPaid',b=>b.paid);fill('totalWait',b=>b.wait);
  }
 
  $('search').addEventListener('input',render);
- for(const b of document.querySelectorAll('.segment button'))b.onclick=()=>{
-  filter=b.dataset.filter;
-  for(const x of document.querySelectorAll('.segment button'))x.setAttribute('aria-pressed',String(x===b));
-  render();
- };
  render();
 })();
 </script>

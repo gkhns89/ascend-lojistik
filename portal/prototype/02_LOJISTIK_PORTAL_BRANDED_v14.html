@@ -323,9 +323,9 @@ table{border-radius:8px;overflow:hidden}th{background:#eef3f6;color:#302080;text
 </div>
 <div class="doc-chips" id="otherDocChips"></div>
 </div>
-<div class="field admin-only"><label>Navlun Alış</label><input id="purchasePrice" type="number" step=".01"></div>
-<div class="field"><label>Navlun Satış</label><input id="salePrice" type="number" step=".01"></div>
-<div class="field"><label>Para Birimi</label><select id="loadCurrency"><option>EUR</option><option>USD</option><option>TRY</option><option>CNY</option><option>GBP</option><option>CHF</option><option>JPY</option><option>AED</option><option>SAR</option><option>RUB</option><option>Diğer</option></select></div>
+<div class="field admin-only" style="display:none"><label>Navlun Alış</label><input id="purchasePrice" type="number" step=".01"></div>
+<div class="field" style="display:none"><label>Navlun Satış</label><input id="salePrice" type="number" step=".01"></div>
+<div class="field" style="display:none"><label>Para Birimi</label><select id="loadCurrency"><option>EUR</option><option>USD</option><option>TRY</option><option>CNY</option><option>GBP</option><option>CHF</option><option>JPY</option><option>AED</option><option>SAR</option><option>RUB</option><option>Diğer</option></select></div>
 </div>
 
 <datalist id="companyNames"></datalist>
@@ -408,7 +408,7 @@ table{border-radius:8px;overflow:hidden}th{background:#eef3f6;color:#302080;text
 <div class="toolbar">
   <div><h2 style="margin-bottom:3px">Yükleme Takip / Finans</h2>
   <div class="muted">Sevkiyat bazlı alış, satış, kazanç, pay ve kur takibi</div></div>
-  <div class="actions no-print"><button class="secondary" onclick="openCustomerAccounts()">Firma Carileri</button><button class="secondary" onclick="show('operations')">Lojistik Operasyona Dön</button></div>
+  <div class="actions no-print"><button class="secondary" style="display:none" onclick="openCustomerAccounts()">Firma Carileri</button><button class="secondary" onclick="show('operations')">Lojistik Operasyona Dön</button></div>
 </div>
 <div class="card" style="overflow:auto">
 <table>
@@ -802,9 +802,10 @@ function renderEditOtherDocs(){renderChips(eOtherDocChips,parseOtherDocs(eOtherD
 
 function show(id){
  if(logisticsView==='staff'&&id==='customerAccounts')return;
- // Finans bolumu finans yetkisi olmayan personele kapali. Veri zaten
- // sunucudan gelmez (permissions.mjs); bu, bos bir tablo yerine bolumu hic acmaz.
- if(staffNoFinance()&&['finance','financeEdit','financeShipmentPrint'].includes(id))return;
+ // Lojistik finansi ortak Finans alaninda. Eski bolume giden her yol oraya
+ // yonlenir; finans yetkisi olmayan hicbir yere gitmez (veri de gelmez).
+ if(['finance','financeEdit'].includes(id)){openFinance();return;}
+ if(staffNoFinance()&&id==='financeShipmentPrint')return;
  if(logisticsReadOnly()&&['loadForm','newLoad','companies','companyEdit'].includes(id))return;
  document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
  document.getElementById(id).classList.remove('hidden');
@@ -827,7 +828,7 @@ function saveLoad(){
   shipperAddress:findCompany(shipper.value).address.trim(),consigneeAddress:findCompany(consignee.value).address.trim(),
   country:country.value, packages:packages.value, weight:weight.value,
   loadingDate:loadingDate.value, arrivalDate:'', agent:agent.value, goods:goods.value,
-  departureIssued:false, mailHistory:[], plate:'', billNo:'', containerNo:'', purchasePrice:isFinanceAdmin()?purchasePrice.value:'', salePrice:staffNoFinance()?'':salePrice.value, financeCurrency:loadCurrency.value, paymentDate:'', exchangeRate:'', originalDocs:[...document.querySelectorAll('input[name="origDoc"]:checked')].map(x=>x.value).concat(parseOtherDocs(otherDocInput.value)), value:'', currency:'EUR', customs:'', doc:'',
+  departureIssued:false, mailHistory:[], plate:'', billNo:'', containerNo:'', purchasePrice:'', salePrice:'', financeCurrency:'', paymentDate:'', exchangeRate:'', originalDocs:[...document.querySelectorAll('input[name="origDoc"]:checked')].map(x=>x.value).concat(parseOtherDocs(otherDocInput.value)), value:'', currency:'EUR', customs:'', doc:'',
   incoterm:'', reg:'', warehouse:'', warehouseNo:'', guarantee:''
  };
  rows.push(r); persist(); render(); renderTracking(); show('tracking');
@@ -1095,10 +1096,11 @@ function applyFinanceRoleVisibility(){
  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden-role',!isFinanceAdmin()));
 }
 
+// Lojistik finansi ortak Finans alaninda (finans.html). Bu bolum artik
+// kullanilmiyor; dugmeler oraya goturur.
 function openFinance(){
- if(staffNoFinance())return;
- renderFinance();
- show('finance');
+ if(!isFinanceAdmin())return;
+ location.href='finans.html#logistics';
 }
 
 function renderFinance(){
@@ -1168,6 +1170,7 @@ function renderFinance(){
 
 
 function openCustomerAccounts(){
+ return;
  if(logisticsView==='staff')return;
  renderCustomerAccounts();show('customerAccounts');
 }

@@ -49,6 +49,8 @@ const assets = new Map([
   ['/index.html', 'index.html'],
   ['/01_NCTS_BRANDED_v15.html', '01_NCTS_BRANDED_v15.html'],
   ['/ic-nakliye.html', 'ic-nakliye.html'],
+  ['/finans.html', 'finans.html'],
+  ['/finance-center.js', 'finance-center.js'],
   ['/02_LOJISTIK_PORTAL_BRANDED_v14.html', '02_LOJISTIK_PORTAL_BRANDED_v14.html'],
   ['/03_KULLANICI_YONETIMI.html', '03_KULLANICI_YONETIMI.html'],
   ['/ascend_logo_correct.png', 'ascend_logo_correct.png'],
@@ -220,6 +222,9 @@ export async function createPortalServer(env = process.env) {
     // Lojistik sayfasi burada yok: ayni sayfa Firma Kartlari'ni da tasir.
     const pageModule={'/01_NCTS_BRANDED_v15.html':'ncts','/ic-nakliye.html':'transport'}[pathname];
     if(principal&&pageModule&&!permissionsFor(principal)[pageModule].access)return send(403,'Bu modüle erişim yetkiniz yok.');
+    // Finans alani: yonetici ya da en az bir modulde finans yetkisi olan.
+    // Sekmeler sayfada yetkiye gore acilir; veri zaten records()'tan suzulmus gelir.
+    if(principal&&pathname==='/finans.html'&&!Object.values(permissionsFor(principal)).some(p=>p.finance))return send(403,'Finans bilgisi için yetkiniz yok.');
 
     const filename = assets.get(pathname);
     if (!filename) return send(404, 'Not found');

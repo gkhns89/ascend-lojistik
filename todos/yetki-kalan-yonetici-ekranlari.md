@@ -10,8 +10,8 @@
 Modül bazlı yetki NCTS, İç Nakliye ve Lojistik için çalışıyor. Şu ekranlar
 hâlâ yalnız yöneticiye açık ve yetki tablosunda yok:
 
-- Raporlar (`reports.read`, `reports.export`)
-- Cari / müşteri hesapları (Lojistik ekranındaki Cari bölümü)
+- Raporlar: 10 Kasım'dan beri Finans alanında, yalnız yönetici sekmesi.
+- Cari: yeniden yapılıyor; bkz. [cari-sunucuda.md](cari-sunucuda.md).
 - Teklif Yönetimi (`offer-center.html`)
 - Mailden Talep / Fiyat (`mail-import.html`)
 - Takip Merkezi (`monitor-center.html`)
