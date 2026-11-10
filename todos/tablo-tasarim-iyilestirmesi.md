@@ -104,7 +104,17 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
      kalır; toplu işlem yalnız `paid: true` yazar. Sunucuya tarih alanı eklenmez.
      Yani tarih alanı seçim çubuğunda yalnız Lojistik sekmesinde görünür.
    - Tek `save()` çağrısı yeterli; sunucu zaten tek seferde yazıyor.
-4. [ ] **Toplamları sabit alt satıra taşı.** Lojistik, NCTS ve İç Nakliye'de
+4. [x] **Toplamlar: kartlar kaldı, bilerek** (karar, 11 Kasım 2026).
+   - Neden sabit alt satır değil: tablo kendi kabında (en fazla ekranın
+     %72'si) kayıyor ve kartlar kabın hemen altında. Toplamlar zaten
+     tabloyla birlikte görünüyor. NCTS ve İç Nakliye toplamları
+     "tahsil edilen / bekleyen" diye ayrılıyor; bu ayrım sütunlara denk
+     gelmiyor. Lojistik'te Pay TL tek TL toplamı, döviz satırlarına bölünmüyor.
+   - Eklenen: arama ya da filtre varken kartların üstünde "toplamlar yalnız
+     uyan N kaydı kapsar (toplam M kayıt)" notu. Önceden kısmi toplam, tüm
+     toplam sanılabiliyordu.
+
+   Önceki not: **Toplamları sabit alt satıra taşı.** Lojistik, NCTS ve İç Nakliye'de
    toplamlar şu an tablonun altında ayrı kartlarda.
    - `tfoot` ile sabit alt satır denenebilir.
    - Döviz başına çok satırlı toplam tek satıra sığmayabilir. Ekran görüntüsüyle
@@ -115,9 +125,20 @@ bağımsızdır; bitirdiğin adımı işaretle ve altına ne yapıldığını ya
 6. [x] **Telefonda dokunma hedefleri** (yapıldı, 11 Kasım 2026). 640 px
    altında onay kutuları ve (?) düğmesi 24 px, satır düğmeleri en az 36 px.
    Seçim kutusu için ilk sütunun sol boşluğu 44 px'e çıkıyor.
-7. [ ] **Boş, yükleniyor ve hata durumları.**
-   - Her tablonun boş mesajı ne yapılacağını söylemeli.
-   - Kayıt hatası durum satırında görünüyor; tabloya yakın mı? Kontrol et.
+7. [x] **Boş ve hata durumları** (yapıldı, 11 Kasım 2026).
+   - Boş tablo nedenini ve yapılacağı söylüyor: arama mı, filtre mi, ikisi
+     mi daraltıyor ("Aramayı temizleyin ya da Tümü'ne geçin"); hiç kayıt
+     yoksa kayıtların nereden geldiği.
+   - Durum mesajı (Finans ve İç Nakliye) sayfa kayarken üstte yapışık
+     kalıyor; hata kırmızı çizgili ve tıklanana dek duruyor, başarı 6 sn
+     sonra kayboluyor. Ortak yardımcı: `AscendTable.notify`.
+   - Bulunan eski hata: modal pencere açıkken doğrulama hatası arka plandaki
+     sayfaya yazılıyor, görünmüyordu. Artık pencerenin içinde de çıkıyor.
+   - Bulunan eski hata: satırdaki "Ödendi" kutusu işaretlenip kayıt
+     başarısız olunca kutu işaretli kalıyordu. Artık hatadan sonra tablo
+     sunucudaki veriyle yeniden çiziliyor.
+   - "Yükleniyor" durumu yok: veri sayfaya gömülü geliyor, kayıttan sonra
+     yeniden okuma kısa sürüyor. React'te ortak bileşen ele alacak.
 8. [ ] **Diğer prototip tabloları.** Lojistik operasyon listesi, NCTS listesi,
    Firma Kartları, Kullanıcı Yönetimi ve Teklif Yönetimi ortak
    `data-table.css`'i kullanmıyor.

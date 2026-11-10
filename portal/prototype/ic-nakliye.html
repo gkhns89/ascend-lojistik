@@ -12,7 +12,6 @@ input,select,textarea,button{font:inherit}input,select,textarea{padding:9px 10px
 button{cursor:pointer}
 .check{display:flex;align-items:center;gap:8px;font-weight:600}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-#status{padding:12px 0;min-height:1.4em}
 .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .toolbar input[type=search]{min-width:300px}
 .toolbar .count{margin-left:auto;color:var(--muted);font-size:13px}
@@ -26,7 +25,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
 <main>
 <h1>İç Nakliye</h1>
 <p class="muted">Gümrükten depoya ve teslim adresine yapılan yurtiçi taşımalar.</p>
-<p id="status" role="status" aria-live="polite"></p>
+<p id="status" class="page-status" role="status" aria-live="polite"></p>
 
 <section id="denied" class="card" hidden><h2>Erişim yok</h2><p>Bu modül için yetkiniz bulunmuyor. Yöneticinizden İç Nakliye erişimi isteyin.</p></section>
 
@@ -82,7 +81,8 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  let ncts=Array.isArray(boot.ncts)?boot.ncts:[];
  const companies=Array.isArray(boot.companies)?boot.companies:[];
  let revision=boot.revision,editing=null;
- const status=text=>{$('status').textContent=text;};
+ // Basari yalniz kayittan gelir (save); diger tum mesajlar hatadir.
+ const status=(text,kind='error')=>AscendTable.notify($('status'),text,kind);
  const normalize=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i');
  // Tabloda kisa ad, tam unvan uzerine gelince. Kisa ad Firma Kartlari'ndan gelir.
  const shortName=name=>{const c=companies.find(x=>x.name===name)||companies.find(x=>normalize(x.name)===normalize(name));return c?.shortName||name;};
@@ -127,7 +127,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
    throw Error(result.error||'Kayıt tamamlanamadı.');
   }
  }
- async function save(next,done){await sync({transport:next});await refresh();status(done);}
+ async function save(next,done){await sync({transport:next});await refresh();status(done,'ok');}
 
  function readForm(){
   const record={company:$('company').value.trim(),customs:$('customs').value.trim(),warehouse:$('warehouse').value.trim(),deliveryAddress:$('deliveryAddress').value.trim()};
@@ -212,7 +212,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   $('count').textContent=visible.length===rows.length?rows.length+' kayıt':visible.length+' / '+rows.length+' kayıt';
   const empty=$('empty');
   empty.hidden=visible.length>0;
-  empty.textContent=rows.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok. Yukarıdaki formdan ilk kaydı ekleyin.';
+  empty.textContent=rows.length?'Aramaya uyan kayıt yok. Aramayı temizleyin ya da başka bir kelime deneyin.':'Henüz iç nakliye kaydı yok. Yukarıdaki formdan ilk kaydı ekleyin.';
  }
 
  // Basliga tiklayinca siralanir; ucuncu tiklama en yeni kayit uste doner.

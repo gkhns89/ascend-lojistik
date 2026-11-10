@@ -89,3 +89,21 @@ test('bulk "paid" touches only selected unpaid rows and asks Lojistik for a date
  // Secim kutusu siralama degeri sayilmaz.
  assert.ok(source.includes("input[type=checkbox]:not(.row-select)"));
 });
+
+test('messages stay visible: sticky page status, errors inside an open dialog, honest empty tables',()=>{
+ const css=readFileSync(new URL('../prototype/data-table.css',import.meta.url),'utf8');
+ assert.match(css,/\.page-status:not\(:empty\)\{position:sticky/);
+ assert.ok(!css.includes('\u0000'),'CSS icinde NUL yok');
+ assert.ok(source.includes("dialog.querySelector('div.actions')"),'hata acik pencerenin icine yazilir');
+ for(const page of ['finans.html','ic-nakliye.html']){
+  const html=readFileSync(new URL('../prototype/'+page,import.meta.url),'utf8');
+  assert.ok(html.includes('<p id="status" class="page-status"'),page);
+  assert.ok(html.includes("AscendTable.notify($('status'),text,kind)"),page);
+  assert.ok(!/'Aramaya uyan kayıt yok\.'/.test(html),page+': bos mesaj ne yapilacagini soyler');
+ }
+ const finans=readFileSync(new URL('../prototype/finans.html',import.meta.url),'utf8');
+ // Kayit basarisizsa "Odendi" kutusu kaydedilmemis durumda kalmaz.
+ assert.ok(finans.includes('catch(error){status(error.message);renderAll();}'));
+ // Filtreli toplam, tum toplam sanilmasin.
+ for(const id of ['lgTotalsNote','ncTotalsNote','trTotalsNote'])assert.ok(finans.includes('id="'+id+'"'),id);
+});

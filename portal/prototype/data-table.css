@@ -76,6 +76,14 @@
   .bulk-bar{bottom:8px;padding:10px 12px}
   .bulk-bar button{flex:1 1 auto}
 }
+/* Sayfa durum bildirimi: sayfa kayarken ustte yapisik kalir; tiklayinca kapanir. */
+.page-status{margin:0}
+.page-status:not(:empty){position:sticky;top:8px;z-index:30;margin:8px 0;padding:10px 40px 10px 14px;border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:10px;background:var(--card);color:var(--text);font-weight:600;box-shadow:0 8px 24px rgb(0 0 0/.14);cursor:pointer}
+.page-status[data-kind=error]:not(:empty){border-left-color:#c0392b}
+.page-status:not(:empty)::after{content:'\00D7';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px;font-weight:400}
+/* Modal pencere acikken hata pencerenin icinde gorunur. */
+.dialog-status{margin:10px 0 0;color:#c0392b;font-weight:600;font-size:14px}
+.dialog-status:empty{display:none}
 /* Durum rozetleri: renk ek isarettir, durum metni her zaman yazili. Tema
    dosyasi koyu temada tum rozetleri ayni griye boyar; burada ayrilir. */
 .pill.ok{background:#e3f3e8;color:#17603a}

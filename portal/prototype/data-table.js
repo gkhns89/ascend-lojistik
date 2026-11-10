@@ -127,6 +127,34 @@
     }
   }
 
+  // ---------- Durum bildirimi ----------
+  // Sayfanin durum satiri (.page-status) sayfa kaysa da gorunur kalir (CSS:
+  // sticky); kullanici tablonun altindayken de sonucu gorur. Modal pencere
+  // acikken sayfa ortulu oldugundan hata pencerenin icine de yazilir. Basari
+  // birkac saniye sonra kaybolur; hata tiklanip kapatilana ya da yeni mesaj
+  // gelene dek kalir.
+  let notifyTimer=0;
+  function notify(node,text,kind){
+    if(!node)return;
+    clearTimeout(notifyTimer);
+    node.textContent=text||'';node.dataset.kind=kind;
+    if(!node.dataset.dismiss){
+      node.dataset.dismiss='1';node.title='Kapatmak için tıklayın';
+      node.addEventListener('click',()=>{node.textContent='';});
+    }
+    if(text&&kind==='ok')notifyTimer=setTimeout(()=>{node.textContent='';},6000);
+    const dialog=document.querySelector('dialog[open]');
+    if(!dialog)return;
+    let box=dialog.querySelector('.dialog-status');
+    if(!box){
+      box=document.createElement('p');box.className='dialog-status';box.setAttribute('role','alert');
+      const actions=dialog.querySelector('div.actions');
+      if(actions)actions.before(box);else dialog.append(box);
+      dialog.addEventListener('close',()=>{box.textContent='';});
+    }
+    box.textContent=kind==='error'?(text||''):'';
+  }
+
   function sortable(table,key){
     explain(table);
     const head=table.tHead?.rows[0];
@@ -184,5 +212,5 @@
     return {apply,reset(){state=null;write(key,null);paint();}};
   }
 
-  window.AscendTable={sortable,explain,highlight,fold,read,write,parseNumber};
+  window.AscendTable={sortable,explain,highlight,notify,fold,read,write,parseNumber};
 })();

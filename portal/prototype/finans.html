@@ -19,6 +19,7 @@ button{cursor:pointer}
 .segment{display:flex;gap:6px;flex-wrap:wrap}
 .segment button{border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-weight:700;font-size:13px;padding:6px 14px}
 .segment button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary,#fff)}
+.hint.totals-note{margin:14px 0 0}
 .totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
 .total{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:var(--card)}
 .total .label{color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
@@ -28,7 +29,6 @@ button{cursor:pointer}
 .empty{color:var(--muted);padding:14px 2px}
 .hint{color:var(--muted);font-size:13px;margin:0 0 12px}
 .alert{border-left:4px solid #b3541e;padding:10px 14px;background:var(--surface-soft,var(--soft));margin:0 0 14px;font-size:14px}
-#status{padding:6px 0;min-height:1.4em}
 dialog{border:1px solid var(--border);border-radius:14px;padding:22px;max-width:620px;width:calc(100% - 32px);background:var(--card);color:var(--text)}
 dialog.wide{max-width:860px}
 dialog::backdrop{background:rgb(0 0 0 / .45)}
@@ -51,7 +51,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
 <main>
 <h1>Finans</h1>
 <p class="muted lead">Tüm modüllerin finans kayıtları. Her sekme yalnız o modülde finans yetkisi olana görünür.</p>
-<p id="status" role="status" aria-live="polite"></p>
+<p id="status" class="page-status" role="status" aria-live="polite"></p>
 <section id="denied" class="card" hidden><h2>Erişim yok</h2><p>Finans bilgisi için yetkiniz bulunmuyor. Yöneticinizden ilgili modülde finans yetkisi isteyin.</p></section>
 <div id="tabs" class="tabs" role="tablist" aria-label="Finans bölümleri"></div>
 
@@ -69,6 +69,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <tbody id="lgRows"></tbody>
  </table></div>
  <p id="lgEmpty" class="empty" hidden></p>
+ <p id="lgTotalsNote" class="hint totals-note" hidden></p>
  <div class="totals">
   <div class="total"><div class="label">Navlun satış</div><div class="value" id="lgTotalSale"></div></div>
   <div class="total"><div class="label">Kazanç</div><div class="value" id="lgTotalProfit"></div></div>
@@ -98,6 +99,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <tbody id="ncRows"></tbody>
  </table></div>
  <p id="ncEmpty" class="empty" hidden></p>
+ <p id="ncTotalsNote" class="hint totals-note" hidden></p>
  <div class="totals">
   <div class="total"><div class="label">Genel toplam</div><div class="value" id="ncTotalAll"></div></div>
   <div class="total"><div class="label">Tahsil edilen</div><div class="value" id="ncTotalPaid"></div></div>
@@ -119,6 +121,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   <tbody id="trRows"></tbody>
  </table></div>
  <p id="trEmpty" class="empty" hidden></p>
+ <p id="trTotalsNote" class="hint totals-note" hidden></p>
  <div class="totals">
   <div class="total"><div class="label">Genel toplam</div><div class="value" id="trTotalAll"></div></div>
   <div class="total"><div class="label">Tahsil edilen</div><div class="value" id="trTotalPaid"></div></div>
@@ -254,7 +257,8 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
  const savedFilters=AscendTable.read('finans.filters')||{};
  const filters={};
  for(const key of ['logistics','ncts','transport'])filters[key]=['paid','wait'].includes(savedFilters[key])?savedFilters[key]:'';
- const status=text=>{$('status').textContent=text;};
+ // Basari yalniz kayittan gelir (save); diger tum mesajlar hatadir.
+ const status=(text,kind='error')=>AscendTable.notify($('status'),text,kind);
  const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Istanbul'}).format(new Date());
  const shipmentId=r=>String(r.fileNo||r.id||'');
  const nctsId=r=>String(r.no||r.id||'');
@@ -287,7 +291,21 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   if(!groups.length){node.textContent='—';return;}
   for(const g of groups){const line=document.createElement('div');line.textContent=F.money(g.values[name],g.currency);node.append(line);}
  }
- function counter(id,shown,all){$(id).textContent=shown===all?all+' kayıt':shown+' / '+all+' kayıt';}
+ // Bos tablo ne yapilacagini soyler: arama mi, filtre mi daraltiyor.
+ function emptyText(key,total,query,none){
+  if(!total)return none;
+  const f=filters[key];
+  if(query)return f?'Aramaya ve seçili ödeme filtresine uyan kayıt yok. Aramayı temizleyin ya da "Tümü"ne geçin.':'Aramaya uyan kayıt yok. Aramayı temizleyin ya da başka bir kelime deneyin.';
+  return f==='wait'?'Ödeme bekleyen kayıt yok.':'Ödendi olarak işaretlenmiş kayıt yok.';
+ }
+ // Toplam kartlari yalniz gorunen satirlari toplar; arama ya da filtre varken
+ // bu acikca yazilir ki kismi toplam tum toplam sanilmasin.
+ function counter(id,shown,all){
+  $(id).textContent=shown===all?all+' kayıt':shown+' / '+all+' kayıt';
+  const note=$(id.replace('Count','TotalsNote'));
+  note.hidden=shown===all||!shown;
+  note.textContent='Aşağıdaki toplamlar yalnız aramaya ve filtreye uyan '+shown+' kaydı kapsar (toplam '+all+' kayıt).';
+ }
 
  // ---------- Toplu "Odendi" ----------
  // Yalniz odeme bekleyen satir secilebilir. Secim yalniz gorunen satirlarda
@@ -374,9 +392,11 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   }
   const fresh=await fetch('/api/tenant/data').then(r=>r.ok?r.json():Promise.reject(Error('Liste yenilenemedi.')));
   data=pick(fresh);revision=fresh.revision;
-  renderAll();status(done);
+  renderAll();status(done,'ok');
  }
- const attempt=async work=>{try{await work();}catch(error){status(error.message);}};
+ // Kayit basarisizsa tablo sunucudaki son veriyle yeniden cizilir: satirdaki
+ // "Odendi" kutusu kaydedilmemis durumu gostermeye devam etmesin.
+ const attempt=async work=>{try{await work();}catch(error){status(error.message);renderAll();}};
 
  // ---------- Lojistik ----------
  const sharesShown=()=>isAdmin&&data.shareholders.length>0;
@@ -416,7 +436,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   }
   finishRows('logistics',rows.filter(r=>!r.paymentDate).map(shipmentId));
   counter('lgCount',rows.length,data.shipments.length);
-  $('lgEmpty').hidden=rows.length>0;$('lgEmpty').textContent=data.shipments.length?'Aramaya uyan kayıt yok.':'Henüz sevkiyat yok.';
+  $('lgEmpty').hidden=rows.length>0;$('lgEmpty').textContent=emptyText('logistics',data.shipments.length,q,'Henüz sevkiyat yok. Dosyalar Lojistik modülünde açılır ve burada listelenir.');
   const groups=F.currencyTotals(rows,r=>{const m=F.logisticsMoney(r);return m.priced?{currency:m.currency,values:{sale:m.sale??0,profit:m.profit,share:m.share}}:null;});
   fillTotals('lgTotalSale',groups,'sale');fillTotals('lgTotalProfit',groups,'profit');fillTotals('lgTotalShare',groups,'share');
   // Pay TL kurla TL'ye cevrildigi icin tek toplamdir.
@@ -558,7 +578,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   }
   finishRows('ncts',rows.filter(r=>r.paid!==true).map(nctsId));
   counter('ncCount',rows.length,data.ncts.length);
-  $('ncEmpty').hidden=rows.length>0;$('ncEmpty').textContent=data.ncts.length?'Aramaya uyan kayıt yok.':'Henüz NCTS kaydı yok.';
+  $('ncEmpty').hidden=rows.length>0;$('ncEmpty').textContent=emptyText('ncts',data.ncts.length,q,'Henüz NCTS kaydı yok. Kayıtlar NCTS modülünde açılır ve burada listelenir.');
   // Dovizler birbirine eklenmez. Genel toplam = navlun + teminat.
   const groups=F.currencyTotals(rows,r=>{const f=F.number(r.freightFee),g=F.number(r.guaranteeFee);if(f===null&&g===null)return null;const all=(f??0)+(g??0);return {currency:r.feeCurrency||'Döviz yok',values:{all,paid:r.paid?all:0,wait:r.paid?0:all}};});
   fillTotals('ncTotalAll',groups,'all');fillTotals('ncTotalPaid',groups,'paid');fillTotals('ncTotalWait',groups,'wait');
@@ -601,7 +621,7 @@ button.remove:hover{background:#c0392b!important;color:#fff!important}
   }
   finishRows('transport',rows.filter(r=>r.paid!==true).map(r=>r.id));
   counter('trCount',rows.length,data.transport.length);
-  $('trEmpty').hidden=rows.length>0;$('trEmpty').textContent=data.transport.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok.';
+  $('trEmpty').hidden=rows.length>0;$('trEmpty').textContent=emptyText('transport',data.transport.length,q,'Henüz iç nakliye kaydı yok. Kayıtlar İç Nakliye sayfasından eklenir.');
   const groups=F.currencyTotals(rows,r=>r.fee==null?null:{currency:r.currency||'TRY',values:{all:r.fee,paid:r.paid?r.fee:0,wait:r.paid?0:r.fee}});
   fillTotals('trTotalAll',groups,'all');fillTotals('trTotalPaid',groups,'paid');fillTotals('trTotalWait',groups,'wait');
   AscendTable.highlight(body,$('trSearch').value);
