@@ -33,6 +33,7 @@ Son tarama: 10 Kasım 2026.
 | --- | --- | --- |
 | [Teklif zincirini canlıda uçtan uca dene](teklif-zinciri-canli-test.md) — bekletiliyor | kullanıcı | küçük |
 | [Oturumlar bellekte; her dağıtımda herkes düşüyor](altyapi-oturumlar-kalici.md) | kod | orta |
+| [Dosya numarasını sunucu versin](numaralandirma-sunucuda.md) | kod | küçük |
 | [Yetki tablosuna kalan yönetici ekranları](yetki-kalan-yonetici-ekranlari.md) | karar | orta |
 | [İç Nakliye için ek alanlar](ic-nakliye-ek-alanlar.md) | karar | küçük |
 | [İki paralel yetki politikası](guvenlik-access-policy-birlestir.md) | kod | orta |

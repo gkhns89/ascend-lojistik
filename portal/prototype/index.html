@@ -43,7 +43,7 @@ input,select{padding:10px;border:1px solid #d4dde3;border-radius:8px;font-size:1
 </div>
 
 <div id="loginBox" class="login-card hidden">
-  <h2>Giriş Yap</h2><p class="muted">Denetim demosu · Yönetici, personel veya müşteri hesabınızla giriş yapın. Firma erişimi sunucu oturumuyla denetlenir. Otomatik e-posta servisi henüz bağlı değildir.</p>
+  <h2>Giriş Yap</h2><p class="muted">Kullanıcı adınız ve şifrenizle giriş yapın. Erişebileceğiniz modüller hesabınıza tanımlı yetkilere göre açılır.</p>
   <div class="field"><label>Kullanıcı Adı</label><input id="loginUser" autocomplete="username"></div>
   <div class="field"><label>Şifre</label><input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"></div>
   <div class="field"><label for="loginOtp">İki aşamalı doğrulama kodu (etkinse)</label><input id="loginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div><a href="control-center.html#reset">Şifremi sıfırla</a><button class="primary" onclick="login()">Giriş Yap</button>

@@ -4,6 +4,13 @@
 const demoLoginSession=JSON.parse(sessionStorage.getItem('ascend_session')||'null');
 const logisticsView=demoLoginSession?(['Müşteri','Görüntüleme'].includes(demoLoginSession.role)?'customer':demoLoginSession.role==='Yönetici'?null:'staff'):new URLSearchParams(location.search).get('view');
 const logisticsPreview=['staff','customer'].includes(logisticsView);
+// Rol onizlemesi iki seyi birden tasiyordu: personel ve musteri kisitlari
+// ve sunucu yokken rolleri gostermek icin yazilmis demo (kurgusal kayitlar,
+// ASC-DEMO numarasi, demo calisma alanina donus, 'kurgusal' bandi). Sunucu
+// oturumu olan gercek bir kullanicida (window.portalBootstrap) kisitlar
+// kalir, demo hic calismaz; yoksa personelin actigi gercek dosya sahte
+// numarayla kaydedilir ve Ana Sayfa onu demo ekranina goturur.
+const logisticsDemo=logisticsPreview&&!window.portalBootstrap;
 function logisticsReadOnly(){return logisticsView==='customer';}
 function logisticsDemoCompanies(){return ['DEMO Avrupa Tedarik','DEMO Anadolu Dış Ticaret'].map((name,i)=>({name,shortName:i?'DEMO Anadolu':'DEMO Avrupa',country:i?'Türkiye':'Almanya',location:i?'Yurtiçi':'Yurtdışı',address:'Demo adres, '+(i?'İstanbul':'Berlin'),taxOffice:'Demo Vergi Dairesi',taxNo:'0000000000',contacts:[{first:'Demo',last:'Yetkili',email:'demo@example.com',notifyDeparture:true,notifyArrival:true}]}));}
 function logisticsDemoRows(){return [{fileNo:'ASC-DEMO-0001',direction:'İthalat',shipper:'DEMO Avrupa Tedarik',consignee:'DEMO Anadolu Dış Ticaret',agent:logisticsReadOnly()?'':'DEMO Taşıyıcı',country:'Almanya',packages:12,weight:2400,loadingDate:'2026-09-14',departureIssued:true,departureDate:'2026-09-14',arrivalDate:'',plate:'34 DEMO 01',billNo:'DEMO-BL-001',containerNo:'',goods:'Demo ürün',originalDocs:['Fatura','Çeki Listesi'],reg:'',warehouse:'',warehouseNo:'',mailHistory:[],salePrice:2250,financeCurrency:'EUR',currency:'USD',value:15000}];}
@@ -548,9 +555,9 @@ table{border-radius:8px;overflow:hidden}th{background:#eef3f6;color:#302080;text
 <script src="notification-templates.js"></script>
 <script src="account-ledger.js"></script>
 <script>
-let rows=logisticsPreview?(JSON.parse(sessionStorage.getItem('ascend_logistics_demo_'+logisticsView)||'null')||logisticsDemoRows()):JSON.parse(localStorage.getItem('ascend_shipments')||'[]'),
+let rows=logisticsPreview?(JSON.parse(sessionStorage.getItem('ascend_logistics_demo_'+logisticsView)||'null')||(logisticsDemo?logisticsDemoRows():[])):JSON.parse(localStorage.getItem('ascend_shipments')||'[]'),
 editIndex=null, financeIndex=null, counter=parseInt(localStorage.getItem('ascend_counter')||'1'),
-companies=logisticsPreview?(JSON.parse(sessionStorage.getItem('ascend_logistics_demo_companies')||'null')||logisticsDemoCompanies()):JSON.parse(localStorage.getItem('ascend_companies')||'[]'),
+companies=logisticsPreview?(JSON.parse(sessionStorage.getItem('ascend_logistics_demo_companies')||'null')||(logisticsDemo?logisticsDemoCompanies():[])):JSON.parse(localStorage.getItem('ascend_companies')||'[]'),
 companyEditIndex=null, quickTargetField=null;
 
 function parseOtherDocs(text){
@@ -812,7 +819,7 @@ function saveLoad(){
   if(!checkCompanyField(field,role)){openQuickCompany(field,role,document.getElementById(field).value.trim());return;}
  }
  const r={
-  fileNo:logisticsPreview?'ASC-DEMO-'+String(rows.length+1).padStart(4,'0'):nextPortalNumber(),
+  fileNo:logisticsDemo?'ASC-DEMO-'+String(rows.length+1).padStart(4,'0'):nextPortalNumber(),
   direction:direction.value, shipper:shipper.value, consignee:consignee.value,
   shipperAddress:findCompany(shipper.value).address.trim(),consigneeAddress:findCompany(consignee.value).address.trim(),
   country:country.value, packages:packages.value, weight:weight.value,
@@ -1247,7 +1254,7 @@ function logoutAscend(){
   sessionStorage.removeItem('ascend_session');
   window.location.href='index.html';
 }
-function goHomeAscend(){window.location.href=demoLoginSession?.demo?'index.html':logisticsPreview?'role-preview.html?role='+logisticsView:'index.html';}
+function goHomeAscend(){window.location.href=demoLoginSession?.demo?'index.html':logisticsDemo?'role-preview.html?role='+logisticsView:'index.html';}
 </script>
 
 <script>
@@ -1280,5 +1287,5 @@ function logisticsPreviewUi(){
  }
  const body=document.getElementById('trackingBody');if(body)[...body.children].forEach((tr,i)=>{if(tr.querySelector('.demo-pdf'))return;const r=rows[i];if(!r)return;for(const event of ['departure','arrival'])if(event==='departure'?r.departureIssued:!!r.arrivalDate){const b=document.createElement('button');b.className='secondary demo-pdf';b.textContent=(event==='departure'?'Çıkış':'Varış')+' PDF';b.onclick=()=>{const data=AscendNotifications.create(r,event);document.getElementById(event+'Grid').innerHTML=cells(Object.fromEntries(data.fields));printSection(event+'Print');};tr.lastElementChild.append(b);}});
 }
-window.addEventListener('DOMContentLoaded',()=>{if(!logisticsPreview)return;const note=document.createElement('p');note.className='no-print';note.style.cssText='padding:8px 24px;background:#eeebf8;font-size:12px';note.textContent=(logisticsReadOnly()?'Müşteri':'Operasyon Personeli')+' · Ortak Lojistik ekranı · Kurgusal demo verileri';document.querySelector('header').after(note);logisticsPreviewUi();new MutationObserver(logisticsPreviewUi).observe(document.querySelector('main')||document.body,{childList:true,subtree:true});});
+window.addEventListener('DOMContentLoaded',()=>{if(!logisticsPreview)return;if(logisticsDemo){const note=document.createElement('p');note.className='no-print';note.style.cssText='padding:8px 24px;background:#eeebf8;font-size:12px';note.textContent=(logisticsReadOnly()?'Müşteri':'Operasyon Personeli')+' · Ortak Lojistik ekranı · Kurgusal demo verileri';document.querySelector('header').after(note);}logisticsPreviewUi();new MutationObserver(logisticsPreviewUi).observe(document.querySelector('main')||document.body,{childList:true,subtree:true});});
 </script></body></html>

@@ -4,6 +4,13 @@
 const demoLoginSession=JSON.parse(sessionStorage.getItem('ascend_session')||'null');
 const nctsViewRole=demoLoginSession?(['Müşteri','Görüntüleme'].includes(demoLoginSession.role)?'customer':demoLoginSession.role==='Yönetici'?null:'staff'):new URLSearchParams(location.search).get('view');
 const nctsRolePreview=['staff','customer'].includes(nctsViewRole);
+// Rol onizlemesi iki seyi birden tasiyordu: personel ve musteri kisitlari
+// ve sunucu yokken rolleri gostermek icin yazilmis demo (kurgusal kayitlar,
+// ASC-DEMO numarasi, demo calisma alanina donus, 'kurgusal' bandi). Sunucu
+// oturumu olan gercek bir kullanicida (window.portalBootstrap) kisitlar
+// kalir, demo hic calismaz; yoksa personelin actigi gercek dosya sahte
+// numarayla kaydedilir ve Ana Sayfa onu demo ekranina goturur.
+const nctsDemo=nctsRolePreview&&!window.portalBootstrap;
 function nctsReadOnly(){return nctsViewRole==='customer';}
 function nctsDemoRecords(){return [{no:'ASC-DEMO-0003',date:'2026-09-14',sender:'DEMO Avrupa Tedarik GmbH',receiver:'DEMO Anadolu Dış Ticaret Ltd. Şti.',origin:'Almanya',packages:'20',gross:'980',destCustoms:'Erenköy Gümrük Müdürlüğü',items:[['000000000000','20','980','880','DEMO ürün','15500','Almanya']],fields:{nctsNo:'ASC-DEMO-0003',nctsFormDate:'2026-09-14',nctsPreparedBy:'Demo Operasyon',nSender:'DEMO Avrupa Tedarik GmbH',field_4:'Almanya',field_5:'Demo Strasse 10, Berlin',nReceiver:'DEMO Anadolu Dış Ticaret Ltd. Şti.',field_9:'Türkiye',field_10:'Demo Mahallesi, Tuzla, İstanbul',field_16:'DEMO-OZET-0003',field_17:'2026-09-14',nOriginCountry:'Almanya',nTotalPackages:'20',nGross:'980',field_21:'880',field_22:'Kapıkule Gümrük Müdürlüğü',nDestCustoms:'Erenköy Gümrük Müdürlüğü',field_30:'DEMO Antrepo',field_31:'15500',nValueCurrency:'USD',field_32:'125000',field_33:'DEMO-FAT-0003',field_34:'2026-09-14'}}];}
 </script><script src="shared-portal.js"></script>
@@ -590,7 +597,7 @@ function renumber(){
 
 addRow();
 
-let nctsRecords=nctsRolePreview?JSON.parse(sessionStorage.getItem('ascend_ncts_role_demo')||'null')||nctsDemoRecords():JSON.parse(localStorage.getItem('ascend_ncts_records')||'[]');
+let nctsRecords=nctsRolePreview?JSON.parse(sessionStorage.getItem('ascend_ncts_role_demo')||'null')||(nctsDemo?nctsDemoRecords():[]):JSON.parse(localStorage.getItem('ascend_ncts_records')||'[]');
 let nctsEditIndex=null;
 
 function persistNcts(){if(nctsReadOnly())return;if(nctsRolePreview){sessionStorage.setItem('ascend_ncts_role_demo',JSON.stringify(nctsRecords));return;}localStorage.setItem('ascend_ncts_records',JSON.stringify(nctsRecords));}
@@ -718,7 +725,7 @@ function restoreNcts(rec){
 function saveNcts(){
  if(nctsReadOnly())return;
  if(!validateNctsRequired())return;
- if(nctsEditIndex===null)nctsNo.value=nctsRolePreview?'ASC-DEMO-'+String(nctsRecords.length+4).padStart(4,'0'):nextPortalNumber();
+ if(nctsEditIndex===null)nctsNo.value=nctsDemo?'ASC-DEMO-'+String(nctsRecords.length+4).padStart(4,'0'):nextPortalNumber();
  const rec=captureNcts();
  if(!rec.no) return alert('NCTS / Dosya No giriniz.');
  if(nctsEditIndex===null){ rec.freightFee=0;rec.guaranteeFee=0;
@@ -770,7 +777,7 @@ function logoutAscend(){
   sessionStorage.removeItem('ascend_session');
   window.location.href='index.html';
 }
-function goHomeAscend(){ window.location.href=demoLoginSession?.demo?'index.html':nctsRolePreview?'role-preview.html?role='+nctsViewRole:'index.html'; }
+function goHomeAscend(){ window.location.href=demoLoginSession?.demo?'index.html':nctsDemo?'role-preview.html?role='+nctsViewRole:'index.html'; }
 </script>
 
 <script>requireLogin();</script>
@@ -831,7 +838,7 @@ function applyNctsPreview(){
 }
 window.addEventListener('DOMContentLoaded',()=>{
  if(!nctsRolePreview)return;
- const note=document.createElement('p');note.className='no-print';note.style.cssText='padding:8px 24px;background:#eeebf8;margin:0;color:#302080;font-size:12px';note.textContent=(nctsReadOnly()?'Müşteri':'Operasyon Personeli')+' · Yöneticiyle ortak NCTS ekranı · Kurgusal demo kayıtları';document.querySelector('header').after(note);
+ if(nctsDemo){const note=document.createElement('p');note.className='no-print';note.style.cssText='padding:8px 24px;background:#eeebf8;margin:0;color:#302080;font-size:12px';note.textContent=(nctsReadOnly()?'Müşteri':'Operasyon Personeli')+' · Yöneticiyle ortak NCTS ekranı · Kurgusal demo kayıtları';document.querySelector('header').after(note);}
  applyNctsPreview();
 });
 </script></body>
