@@ -46,7 +46,7 @@ gidiyordu ve personel onu değiştirebiliyordu. Kapandı.
 
 ## Açık kalan
 
-- [../guvenlik-depolanan-xss-yetki-yukseltme.md](../guvenlik-depolanan-xss-yetki-yukseltme.md):
-  personel hesabı açılmadan önce kapanmalı.
+- Depolanan XSS aynı gün kapatıldı:
+  [2026-11-10-depolanan-xss-yetki-yukseltme.md](2026-11-10-depolanan-xss-yetki-yukseltme.md).
 - [../yetki-kalan-yonetici-ekranlari.md](../yetki-kalan-yonetici-ekranlari.md)
 - [../ic-nakliye-ek-alanlar.md](../ic-nakliye-ek-alanlar.md)

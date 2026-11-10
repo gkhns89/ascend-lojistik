@@ -85,7 +85,7 @@ function init(){
 function createFirstAdmin(){
   const name=frName.value.trim(), user=frUser.value.trim(), email=frEmail.value.trim(), p=frPass.value, p2=frPass2.value;
   if(!name||!user||!email||!p){frMsg.textContent='Tüm alanları doldurun.';return}
-  if(p.length<12){frMsg.textContent='Şifre en az 12 karakter olmalı.';return}
+  if(p.length<8){frMsg.textContent='Şifre en az 8 karakter olmalı.';return}
   if(p!==p2){frMsg.textContent='Şifreler eşleşmiyor.';return}
   setUsers([{name,username:user,email,password:p,role:'Yönetici',active:true}]);
   sessionStorage.setItem('ascend_session',JSON.stringify({name,username:user,email,role:'Yönetici'}));

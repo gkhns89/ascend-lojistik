@@ -600,6 +600,9 @@ function nctsSession(){return JSON.parse(sessionStorage.getItem('ascend_session'
 // NCTS finansi: yonetici ya da NCTS modulunde finans yetkisi verilmis
 // personel. Kural sunucuda da uygulanir; yetkisi olmayana ucret ve
 // teminat alanlari hic gelmez.
+// Kullanicidan gelen metni HTML'e yazmadan once kacirir; tirnaklar da
+// kacirilir ki oznitelik icinde de guvenli olsun.
+function nctsEscape(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function isNctsAdmin(){const s=nctsSession();if(s?.role==='Yönetici')return !nctsRolePreview;return nctsViewRole==='staff'&&s?.permissions?.ncts?.finance===true;}
 function applyNctsRoleVisibility(){
  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden-role',!isNctsAdmin()));
@@ -622,7 +625,7 @@ function renderNctsFinance(){
    const f=parseFloat(r.freightFee||0), g=parseFloat(r.guaranteeFee||0), t=f+g;
    freight+=f;guarantee+=g;grand+=t;
    const tr=document.createElement('tr');
-   tr.innerHTML=`<td>${r.no||''}</td><td>${r.date||''}</td><td>${r.sender||''}</td><td>${r.receiver||''}</td>
+   tr.innerHTML=`<td>${nctsEscape(r.no||'')}</td><td>${nctsEscape(r.date||'')}</td><td>${nctsEscape(r.sender||'')}</td><td>${nctsEscape(r.receiver||'')}</td>
    <td>${f.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
    <td>${g.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
    <td>${t.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -745,7 +748,7 @@ function renderNctsList(){
  nctsListBody.innerHTML='';
  nctsRecords.forEach((r,i)=>{
    const tr=document.createElement('tr');
-   tr.innerHTML=`<td>${r.no||''}</td><td>${r.date||''}</td><td>${r.sender||''}</td><td>${r.receiver||''}</td><td>${r.origin||''}</td><td>${r.packages||''}</td><td>${r.gross||''}</td><td>${r.destCustoms||''}</td>
+   tr.innerHTML=`<td>${nctsEscape(r.no||'')}</td><td>${nctsEscape(r.date||'')}</td><td>${nctsEscape(r.sender||'')}</td><td>${nctsEscape(r.receiver||'')}</td><td>${nctsEscape(r.origin||'')}</td><td>${nctsEscape(r.packages||'')}</td><td>${nctsEscape(r.gross||'')}</td><td>${nctsEscape(r.destCustoms||'')}</td>
    <td><button class="secondary" onclick="openNcts(${i})">Aç / Düzenle</button> <button class="secondary" onclick="deleteNcts(${i})">Sil</button></td>`;
    nctsListBody.appendChild(tr);
  });

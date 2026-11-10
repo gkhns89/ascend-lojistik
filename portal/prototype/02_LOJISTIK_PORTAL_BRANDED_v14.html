@@ -682,12 +682,12 @@ function contactTemplate(c={},prefix='c'){
  const deptOptions=['Yönetim','Satınalma','Lojistik','Dış Ticaret','İthalat','İhracat','Finans','Muhasebe','Operasyon','Gümrük','Depo','Satış','Üretim','Diğer'];
  return `<div class="contact-card">
  <div class="contact-grid">
-  <div class="field"><label>Ad</label><input class="${prefix}First" value="${c.first||''}"></div>
-  <div class="field"><label>Soyad</label><input class="${prefix}Last" value="${c.last||''}"></div>
+  <div class="field"><label>Ad</label><input class="${prefix}First" value="${trackingEscape(c.first||'')}"></div>
+  <div class="field"><label>Soyad</label><input class="${prefix}Last" value="${trackingEscape(c.last||'')}"></div>
   <div class="field"><label>Pozisyon</label><select class="${prefix}Position">${posOptions.map(x=>`<option ${x===(c.position||'')?'selected':''}>${x}</option>`).join('')}</select></div>
   <div class="field"><label>Birim / Departman</label><select class="${prefix}Department">${deptOptions.map(x=>`<option ${x===(c.department||'')?'selected':''}>${x}</option>`).join('')}</select></div>
-  <fieldset class="field"><legend>Sorumlu olduğu taşıma türleri</legend><small>Bir veya birden fazla seçim yapabilirsiniz.</small><div style="display:flex;gap:12px;flex-wrap:wrap">${['Kara','Hava','Deniz','Demiryolu'].map(mode=>`<label style="display:flex;align-items:center;gap:6px"><input type="checkbox" class="${prefix}TransportMode" value="${mode}" ${(c.transportModes||[c.transportMode]).includes(mode)?'checked':''}>${mode}</label>`).join('')}</div></fieldset><div class="field"><label>Telefon</label><input class="${prefix}Phone" value="${c.phone||''}"></div>
-  <div class="field"><label>E-posta</label><input type="email" class="${prefix}Email" value="${c.email||''}"></div>
+  <fieldset class="field"><legend>Sorumlu olduğu taşıma türleri</legend><small>Bir veya birden fazla seçim yapabilirsiniz.</small><div style="display:flex;gap:12px;flex-wrap:wrap">${['Kara','Hava','Deniz','Demiryolu'].map(mode=>`<label style="display:flex;align-items:center;gap:6px"><input type="checkbox" class="${prefix}TransportMode" value="${mode}" ${(c.transportModes||[c.transportMode]).includes(mode)?'checked':''}>${mode}</label>`).join('')}</div></fieldset><div class="field"><label>Telefon</label><input class="${prefix}Phone" value="${trackingEscape(c.phone||'')}"></div>
+  <div class="field"><label>E-posta</label><input type="email" class="${prefix}Email" value="${trackingEscape(c.email||'')}"></div>
  </div>
  <div class="notify-pref">
    <label><input type="checkbox" class="${prefix}NotifyDeparture" ${c.notifyDeparture?'checked':''}> Çıkış Bildirimi</label>
@@ -762,10 +762,10 @@ function renderCompanies(){
   if(tab==='carrier'){if(c.isCarrier!==true) return;}else if(tab && c.location!==tab) return;
   if(role && !roles.includes(role)) return;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${c.name}</td><td>${trackingEscape(c.shortName||'—')}</td><td><span class="pill">${c.location||''}</span></td><td>${c.country||''}</td><td>${roles.join(' / ')||'Henüz gönderi yok'}</td>
-  <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>`${[x.first,x.last].filter(Boolean).join(' ')}${x.position?' · '+x.position:''}`).join('<br>'):'—'}</td>
-  <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>x.phone||'—').join('<br>'):'—'}</td>
-  <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>x.email||'—').join('<br>'):'—'}</td><td>${c.taxNo||'—'}</td>
+  tr.innerHTML=`<td>${trackingEscape(c.name)}</td><td>${trackingEscape(c.shortName||'—')}</td><td><span class="pill">${trackingEscape(c.location||'')}</span></td><td>${trackingEscape(c.country||'')}</td><td>${roles.join(' / ')||'Henüz gönderi yok'}</td>
+  <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>`${trackingEscape([x.first,x.last].filter(Boolean).join(' '))}${x.position?' · '+trackingEscape(x.position):''}`).join('<br>'):'—'}</td>
+  <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>trackingEscape(x.phone||'—')).join('<br>'):'—'}</td>
+  <td>${(c.contacts&&c.contacts.length)?c.contacts.map(x=>trackingEscape(x.email||'—')).join('<br>'):'—'}</td><td>${trackingEscape(c.taxNo||'—')}</td>
   <td><button class="secondary" onclick="editCompany(${i})">Düzenle</button></td>`;
   companyBody.appendChild(tr);
  });
@@ -779,7 +779,7 @@ function clearTrackingFilters(){
  trackSearch.value='';trackStart.value='';trackEnd.value='';trackStatus.value='';trackFinanceStatus.value='';hideCompleted.checked=false;renderTracking();
 }
 function renderChips(container, items){
- container.innerHTML=items.map(x=>`<span class="doc-chip">${x}</span>`).join('');
+ container.innerHTML=items.map(x=>`<span class="doc-chip">${trackingEscape(x)}</span>`).join('');
 }
 function toggleOtherDoc(){
  otherDocWrap.classList.toggle('hidden',!otherDocCheck.checked);
@@ -828,8 +828,8 @@ function render(){
  rows.forEach((r,i)=>{
   const tr=document.createElement('tr');
   const arrivalEnabled=r.departureIssued;
-  tr.innerHTML=`<td>${r.fileNo}</td><td>${r.direction}</td><td>${r.shipper}</td><td>${r.consignee}</td>
-  <td>${r.country}</td><td>${r.packages}</td><td>${r.weight}</td><td>${r.loadingDate||''}</td><td>${r.arrivalDate||'—'}</td>
+  tr.innerHTML=`<td>${trackingEscape(r.fileNo)}</td><td>${trackingEscape(r.direction)}</td><td>${trackingEscape(r.shipper)}</td><td>${trackingEscape(r.consignee)}</td>
+  <td>${trackingEscape(r.country)}</td><td>${trackingEscape(r.packages)}</td><td>${trackingEscape(r.weight)}</td><td>${trackingEscape(r.loadingDate||'')}</td><td>${trackingEscape(r.arrivalDate||'—')}</td>
   <td><span class="badge ${r.departureIssued?'ok':''}">${r.departureIssued?(r.arrivalDate?'Varış bildirimi hazır':'Çıkış bildirildi'):'Operasyonda'}</span></td>
   <td><div class="row-actions">
    <button class="secondary" onclick="edit(${i})">Revize / Güncelle</button>
@@ -899,7 +899,7 @@ function openMailHistory(i){
  mailHistoryBody.innerHTML='';
  (r.mailHistory||[]).slice().reverse().forEach(m=>{
    const tr=document.createElement('tr');
-   tr.innerHTML=`<td>${m.at}</td><td>${m.type}</td><td>${m.to}</td><td>${m.cc||'—'}</td><td>${m.sender}</td><td>${m.status}</td>`;
+   tr.innerHTML=`<td>${trackingEscape(m.at)}</td><td>${trackingEscape(m.type)}</td><td>${trackingEscape(m.to)}</td><td>${trackingEscape(m.cc||'—')}</td><td>${trackingEscape(m.sender)}</td><td>${trackingEscape(m.status)}</td>`;
    mailHistoryBody.appendChild(tr);
  });
  show('mailHistorySection');
@@ -942,7 +942,7 @@ function saveEdit(){
 }
 
 function cells(data){
- return Object.entries(data).map(([k,v])=>`<div class="print-cell"><b>${k}</b>${v||'—'}</div>`).join('');
+ return Object.entries(data).map(([k,v])=>`<div class="print-cell"><b>${trackingEscape(k)}</b>${trackingEscape(v||'—')}</div>`).join('');
 }
 
 function shipmentToday(now=new Date()){
@@ -1044,18 +1044,18 @@ function renderTracking(){
 
    const tr=document.createElement('tr');
    tr.innerHTML=`
-   <td>${r.fileNo}</td>
-   <td>${r.direction||''}</td>
+   <td>${trackingEscape(r.fileNo)}</td>
+   <td>${trackingEscape(r.direction||'')}</td>
    <td>${trackingCompany(r.shipper)}</td>
    <td>${trackingCompany(r.consignee)}</td>
    <td>${trackingCompany(r.agent)}</td>
    <td>${trackingTransport(r)}</td>
-   <td>${r.country||''}</td>
-   <td>${r.packages||''}</td>
-   <td>${r.weight||''}</td>
-   <td>${r.loadingDate||'—'}</td>
-   <td>${r.departureIssued?'<span class="badge green">'+(r.departureDate||'Yapıldı')+'</span>':'<span class="badge gray">Bekliyor</span>'}</td>
-   <td>${r.arrivalDate||'—'}</td>
+   <td>${trackingEscape(r.country||'')}</td>
+   <td>${trackingEscape(r.packages||'')}</td>
+   <td>${trackingEscape(r.weight||'')}</td>
+   <td>${trackingEscape(r.loadingDate||'—')}</td>
+   <td>${r.departureIssued?'<span class="badge green">'+trackingEscape(r.departureDate||'Yapıldı')+'</span>':'<span class="badge gray">Bekliyor</span>'}</td>
+   <td>${trackingEscape(r.arrivalDate||'—')}</td>
    <td>${(r.departureIssued&&r.arrivalDate)?'<span class="badge blue">Aktif</span>':'<span class="badge gray">Pasif</span>'}</td>
    <td><span class="badge ${fs==='Finans Tamam'?'green':(fs==='Kur Bekleniyor'?'orange':'gray')}">${fs}</span></td>
    <td><span class="badge">${st}</span></td>
@@ -1111,19 +1111,19 @@ function renderFinance(){
    byCurrency.set(code,bucket);totalShareTL+=shareTL;
    const tr=document.createElement('tr');
    tr.innerHTML=`
-   <td>${r.fileNo}</td>
+   <td>${trackingEscape(r.fileNo)}</td>
    <td>${trackingCompany(r.shipper)}</td>
    <td>${trackingCompany(r.consignee)}</td>
    <td>${trackingCompany(r.agent)}</td>
    <td class="admin-only">${isFinanceAdmin()?purchase.toFixed(2):''}</td>
    <td>${sale.toFixed(2)}</td>
-   <td>${r.financeCurrency||'EUR'}</td>
+   <td>${trackingEscape(r.financeCurrency||'EUR')}</td>
    <td class="admin-only">${isFinanceAdmin()?profit.toFixed(2):''}</td>
    <td class="admin-only">${isFinanceAdmin()?share.toFixed(2):''}</td>
    <td class="paid-cell"></td>
-   <td>${r.arrivalDate||'—'}</td>
-   <td>${r.paymentDate||'—'}</td>
-   <td class="admin-only">${isFinanceAdmin()?(r.exchangeRate||'—'):''}</td>
+   <td>${trackingEscape(r.arrivalDate||'—')}</td>
+   <td>${trackingEscape(r.paymentDate||'—')}</td>
+   <td class="admin-only">${isFinanceAdmin()?trackingEscape(r.exchangeRate||'—'):''}</td>
    <td class="admin-only">${isFinanceAdmin()&&rate ? shareTL.toFixed(2) : ''}</td>
    <td><button class="secondary" onclick="${logisticsReadOnly()?"viewFinanceShipment":"editFinance"}(${i})">${logisticsReadOnly()?"Görüntüle":logisticsView==="staff"?"Tarihleri Güncelle":"Düzenle"}</button></td>`;
    // Odeme tiki mevcut paymentDate alanini kullanir: isaretlemek bugunun

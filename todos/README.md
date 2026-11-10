@@ -21,7 +21,6 @@ Son tarama: 10 Kasım 2026.
 
 | İş | Kim | Boyut |
 | --- | --- | --- |
-| [Depolanan XSS ile yetki yükseltme](guvenlik-depolanan-xss-yetki-yukseltme.md) — **personel hesabı açmadan önce** | kod | orta |
 | [Teklif formu hız sınırı proxy adresine bağlı](guvenlik-teklif-formu-hiz-siniri.md) | kod | küçük |
 | [Önizleme kapısı değişkeni silinirse portal açılmaz](altyapi-onizleme-kapisi-varsayilani.md) | kod | küçük |
 | [TOTP'yi etkinleştir](guvenlik-totp-etkinlestir.md) | kullanıcı | küçük |

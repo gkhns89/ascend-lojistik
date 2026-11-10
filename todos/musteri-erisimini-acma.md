@@ -7,7 +7,7 @@
 
 ## Ön koşullar
 
-- [ ] [guvenlik-depolanan-xss-yetki-yukseltme.md](guvenlik-depolanan-xss-yetki-yukseltme.md) kapanmış olmalı.
+- [x] Depolanan XSS kapandı: [completed/2026-11-10-depolanan-xss-yetki-yukseltme.md](completed/2026-11-10-depolanan-xss-yetki-yukseltme.md).
 - [ ] Rol × firma × uç × dışa aktarma test matrisi.
 - [ ] İki gerçek müşteri hesabıyla çapraz erişim denemesi: A firması B'nin
       kaydını, belgesini, aramasını göremez.

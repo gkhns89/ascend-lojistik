@@ -110,7 +110,7 @@ export async function createPortalServer(env = process.env) {
         const {token,expiresMinutes}=await tenants.security('reset-create',system,{username:target.username});
         console.warn('[kurtarma] Kullanici adi: '+target.username);
         console.warn('[kurtarma] Jeton ('+expiresMinutes+' dakika gecerli): '+token);
-        console.warn('[kurtarma] control-center.html > Sifre sifirla bolumune bu jetonu ve yeni parolani gir (en az 12 karakter).');
+        console.warn('[kurtarma] control-center.html > Sifre sifirla bolumune bu jetonu ve yeni parolani gir (en az 8 karakter).');
         console.warn('[kurtarma] Bittiginde PORTAL_RECOVERY degiskenini SIL.');
       }
     }catch(error){

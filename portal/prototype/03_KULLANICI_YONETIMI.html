@@ -114,7 +114,7 @@ function saveUser(){
  let list=users();
  if(editUserIndex===null){
    if(!password){msg.textContent='Yeni kullanıcı için şifre zorunludur.';return}
-   if(password.length<12){msg.textContent='Şifre en az 12 karakter olmalı.';return}
+   if(password.length<8){msg.textContent='Şifre en az 8 karakter olmalı.';return}
    if(list.some(x=>x.username===username)){msg.textContent='Bu kullanıcı adı zaten kullanılıyor.';return}
    list.push({name,username,email,password,role,companyId,companyName,active:true,permissions:readPermissions(role)});
  }else{
@@ -122,7 +122,7 @@ function saveUser(){
    const current=list[editUserIndex];
    current.name=name;current.username=username;current.email=email;current.role=role;current.companyId=companyId;current.companyName=companyName;current.permissions=readPermissions(role);
    if(password){
-     if(password.length<12){msg.textContent='Şifre en az 12 karakter olmalı.';return}
+     if(password.length<8){msg.textContent='Şifre en az 8 karakter olmalı.';return}
      current.password=password;
    }
    list[editUserIndex]=current;
@@ -156,7 +156,7 @@ function toggleUser(i){
  list[i].active=!list[i].active;setUsers(list);render();
 }
 function resetPassword(i){
- const p=prompt('Yeni şifreyi girin (en az 12 karakter):'); if(!p||p.length<12) return;
+ const p=prompt('Yeni şifreyi girin (en az 8 karakter):'); if(!p||p.length<8) return;
  let list=users();list[i].password=p;setUsers(list);alert('Şifre güncellendi.');
 }
 function deleteUser(i){
@@ -167,7 +167,7 @@ function deleteUser(i){
 function render(){
  userBody.innerHTML='';users().forEach((u,i)=>{
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${u.name}</td><td>${u.username}</td><td>${u.email||'—'}</td><td>${escapeUser(u.role)}</td><td>${escapeUser(u.companyName||'—')}</td><td>${escapeUser(permSummary(u))}</td><td>${u.active?'Aktif':'Pasif'}</td>
+  tr.innerHTML=`<td>${escapeUser(u.name)}</td><td>${escapeUser(u.username)}</td><td>${escapeUser(u.email||'—')}</td><td>${escapeUser(u.role)}</td><td>${escapeUser(u.companyName||'—')}</td><td>${escapeUser(permSummary(u))}</td><td>${u.active?'Aktif':'Pasif'}</td>
   <td><button class="secondary" onclick="editUser(${i})">Düzenle</button> <button class="secondary" onclick="toggleUser(${i})">${u.active?'Pasife Al':'Aktif Et'}</button>
   <button class="secondary" onclick="resetPassword(${i})">Şifre Yenile</button>
   <button class="secondary" onclick="deleteUser(${i})">Sil</button></td>`;
