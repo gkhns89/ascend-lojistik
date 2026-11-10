@@ -817,7 +817,7 @@ function saveLoad(){
   shipperAddress:findCompany(shipper.value).address.trim(),consigneeAddress:findCompany(consignee.value).address.trim(),
   country:country.value, packages:packages.value, weight:weight.value,
   loadingDate:loadingDate.value, arrivalDate:'', agent:agent.value, goods:goods.value,
-  departureIssued:false, mailHistory:[], plate:'', billNo:'', containerNo:'', purchasePrice:isFinanceAdmin()?purchasePrice.value:'', salePrice:logisticsView==='staff'?'':salePrice.value, financeCurrency:loadCurrency.value, paymentDate:'', exchangeRate:'', originalDocs:[...document.querySelectorAll('input[name="origDoc"]:checked')].map(x=>x.value).concat(parseOtherDocs(otherDocInput.value)), value:'', currency:'EUR', customs:'', doc:'',
+  departureIssued:false, mailHistory:[], plate:'', billNo:'', containerNo:'', purchasePrice:isFinanceAdmin()?purchasePrice.value:'', salePrice:staffNoFinance()?'':salePrice.value, financeCurrency:loadCurrency.value, paymentDate:'', exchangeRate:'', originalDocs:[...document.querySelectorAll('input[name="origDoc"]:checked')].map(x=>x.value).concat(parseOtherDocs(otherDocInput.value)), value:'', currency:'EUR', customs:'', doc:'',
   incoterm:'', reg:'', warehouse:'', warehouseNo:'', guarantee:''
  };
  rows.push(r); persist(); render(); renderTracking(); show('tracking');
@@ -1076,7 +1076,11 @@ function renderTracking(){
 
 
 function currentSession(){return JSON.parse(sessionStorage.getItem('ascend_session')||'null');}
-function isFinanceAdmin(){return !logisticsPreview&&currentSession()?.role==='Yönetici';}
+// Lojistik finansi: yonetici ya da Lojistik modulunde finans yetkisi
+// verilmis personel. Ayni kural sunucuda uygulanir; yetkisi olmayana bu
+// alanlar hic gelmez, burada yalniz ekran duzenlenir.
+function isFinanceAdmin(){const s=currentSession();if(s?.role==='Yönetici')return !logisticsPreview;return logisticsView==='staff'&&s?.permissions?.logistics?.finance===true;}
+function staffNoFinance(){return logisticsView==='staff'&&!isFinanceAdmin();}
 function applyFinanceRoleVisibility(){
  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden-role',!isFinanceAdmin()));
 }
@@ -1159,7 +1163,7 @@ function openCustomerAccounts(){
 function renderCustomerAccounts(){renderAccountLedger();}
 function editFinance(i){
  if(logisticsReadOnly()){viewFinanceShipment(i);return;}
- document.querySelectorAll('#financeEdit input,#financeEdit select').forEach(e=>{e.disabled=e.id==='fFileNo'||(logisticsView==='staff'&&!['fArrival','fPayment'].includes(e.id));});
+ document.querySelectorAll('#financeEdit input,#financeEdit select').forEach(e=>{e.disabled=e.id==='fFileNo'||(staffNoFinance()&&!['fArrival','fPayment'].includes(e.id));});
  financeIndex=i; const r=rows[i];
  fFileNo.value=r.fileNo??'';
  fShipper.value=r.shipper||'';
@@ -1177,7 +1181,7 @@ function editFinance(i){
 function saveFinanceEdit(){
  if(logisticsReadOnly())return;
  const r=rows[financeIndex];if(!r)return;
- if(logisticsView==='staff'){
+ if(staffNoFinance()){
  r.arrivalDate=fArrival.value;r.paymentDate=fPayment.value;
  persist();render();renderTracking();renderFinance();show('finance');return;
  }
@@ -1254,8 +1258,9 @@ window.addEventListener('storage',event=>{if(!logisticsPreview&&event.key==='asc
 function logisticsPreviewUi(){
  if(!logisticsPreview)return;
  const hide=e=>{if(e&&!e.classList.contains('hidden'))e.classList.add('hidden');};
- document.querySelectorAll('.admin-only,.report-launch').forEach(hide);
- if(logisticsView==='staff'){
+ // Raporlar sunucuda yalniz yoneticiye acik; finans yetkisi onlari acmaz.
+ document.querySelectorAll(isFinanceAdmin()?'.report-launch':'.admin-only,.report-launch').forEach(hide);
+ if(staffNoFinance()){
  ['salePrice','loadCurrency','trackFinanceStatus'].forEach(id=>hide(document.getElementById(id)?.closest('.field')));
  hide(document.getElementById('sumFinance')?.parentElement);
  document.querySelectorAll('table').forEach(t=>[...t.querySelectorAll('thead th')].forEach((h,i)=>{if(h.textContent.trim()==='Finans'){hide(h);t.querySelectorAll('tbody tr').forEach(row=>hide(row.children[i]));}}));

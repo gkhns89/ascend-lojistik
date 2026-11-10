@@ -9,6 +9,7 @@ import { createTenantStore } from './tenant-store.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { createHash, timingSafeEqual } from 'node:crypto';
+import { permissionsFor } from './permissions.mjs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
@@ -47,6 +48,7 @@ const assets = new Map([
   ['/', 'index.html'],
   ['/index.html', 'index.html'],
   ['/01_NCTS_BRANDED_v15.html', '01_NCTS_BRANDED_v15.html'],
+  ['/ic-nakliye.html', 'ic-nakliye.html'],
   ['/02_LOJISTIK_PORTAL_BRANDED_v14.html', '02_LOJISTIK_PORTAL_BRANDED_v14.html'],
   ['/03_KULLANICI_YONETIMI.html', '03_KULLANICI_YONETIMI.html'],
   ['/ascend_logo_correct.png', 'ascend_logo_correct.png'],
@@ -213,6 +215,11 @@ export async function createPortalServer(env = process.env) {
       }catch(error){return json(error.status||400,{error:error.status===403?'Bu işlem için yetkiniz yok.':error.message||'İşlem kaydedilemedi.'});}
     }
     if(principal&&tenants.customer(principal)&&['/03_KULLANICI_YONETIMI.html','/role-preview.html'].includes(pathname))return send(403,'Bu sayfaya erişim yetkiniz yok.');
+    // Modul sayfasi: asil sinir records()'tadir ve veri zaten suzulur; bu
+    // kontrol yetkisiz kullaniciya bos bir ekran yerine acik bir ret gosterir.
+    // Lojistik sayfasi burada yok: ayni sayfa Firma Kartlari'ni da tasir.
+    const pageModule={'/01_NCTS_BRANDED_v15.html':'ncts','/ic-nakliye.html':'transport'}[pathname];
+    if(principal&&pageModule&&!permissionsFor(principal)[pageModule].access)return send(403,'Bu modüle erişim yetkiniz yok.');
 
     const filename = assets.get(pathname);
     if (!filename) return send(404, 'Not found');

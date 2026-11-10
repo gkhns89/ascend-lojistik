@@ -6,7 +6,7 @@ const html=readFileSync(new URL('../prototype/03_KULLANICI_YONETIMI.html',import
 const save=html.slice(html.indexOf('function saveUser(){'),html.indexOf('function editUser('));
 function setup(companyValue,role='Görüntüleme'){
  let saved;const field=value=>({value,setAttribute(){},removeAttribute(){},focus(){}});
- const ctx={uName:field('Test'),uUsername:field('test'),uEmail:field('test@example.com'),uPassword:field('TestPassword'),uRole:field(role),uCompany:field(companyValue),companyList:()=>[{id:'c1',name:'Test Firma'}],editUserIndex:null,msg:{},users:()=>[],setUsers:list=>saved=list,cancelUserEdit(){},render(){}};
+ const ctx={uName:field('Test'),uUsername:field('test'),uEmail:field('test@example.com'),uPassword:field('TestPassword'),uRole:field(role),uCompany:field(companyValue),companyList:()=>[{id:'c1',name:'Test Firma'}],editUserIndex:null,readPermissions:()=>undefined,msg:{},users:()=>[],setUsers:list=>saved=list,cancelUserEdit(){},render(){}};
  vm.createContext(ctx);vm.runInContext(save+';saveUser()',ctx);return {ctx,saved};
 }
 test('view-only users require a registered company, including forged IDs',()=>{for(const id of ['', 'missing']){const {saved,ctx}=setup(id);assert.equal(saved,undefined);assert.match(ctx.msg.textContent,/firma seçmelisiniz/);}});

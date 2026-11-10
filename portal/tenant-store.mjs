@@ -4,15 +4,18 @@ import {createHash} from 'node:crypto';
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
-const customerRoles=new Set(['Müşteri','Görüntüleme']);
+import {customerRoles,MODULES,moduleForCollection,permissionsFor,sanitizePermissions,staffView,staffWrite} from './permissions.mjs';
+import {normalizeTransport} from './transport.mjs';
 const hash=(password,salt)=>scryptSync(password,salt,32).toString('hex');
 const pick=(obj,keys)=>Object.fromEntries(keys.filter(k=>obj[k]!==undefined).map(k=>[k,obj[k]]));
 const publicLogistics=['id','fileNo','direction','shipper','consignee','country','packages','weight','loadingDate','departureIssued','departureDate','arrivalDate','plate','billNo','containerNo','goods','originalDocs','reg','warehouse','warehouseNo','salePrice','financeCurrency','currency','value','paymentDate','customs','doc'];
 const publicNcts=['id','no','date','sender','receiver','origin','packages','gross','destCustoms','items'];
 const publicNctsFields=['nctsNo','nctsFormDate','nSender','field_4','field_5','nReceiver','field_9','field_10','field_16','field_17','nOriginCountry','nTotalPackages','nGross','field_21','field_22','nDestCustoms','field_30','field_31','nValueCurrency','field_32','field_33','field_34'];
 export async function createTenantStore(path,options={}){
- let state={users:[],companies:[],shipments:[],ncts:[]};
+ let state={users:[],companies:[],shipments:[],ncts:[],transport:[]};
  const database=await openPortalDatabase(path,options),vault=await secretVault(path);let revision=database.current()?.revision??-1;if(database.current())state=JSON.parse(database.current().body);
+ // Ic Nakliye sonradan eklendi; onceki surumlerin kaydinda bu anahtar yoktur.
+ if(!Array.isArray(state.transport))state.transport=[];
  function user(data){const salt=randomBytes(16).toString('hex');return {...pick(data,['username','name','role','companyId','companyName','active','email']),salt,passwordHash:hash(data.password,salt)};}
  // Ilk acilista tek bir yonetici olusturulur ve parolasi cagirandan gelir.
  // Uretimde bu deger PORTAL_BOOTSTRAP_PASSWORD'dur (bkz. server.mjs); boylece
@@ -37,29 +40,38 @@ export async function createTenantStore(path,options={}){
  function persist(actor='system',detail={}){revision=database.save(state,revision,actor,detail);return Promise.resolve();}
  if(!database.current())await persist();const sessions=new Map(),failures=new Map(),enrollments=new Map();
  const fingerprint=u=>u.passwordHash+'|'+u.role+'|'+u.companyId+'|'+u.active;
- const visibleUser=u=>pick(u,['username','name','role','companyId','companyName','email','active']);
+ const visibleUser=u=>pick(u,['username','name','role','companyId','companyName','email','active','permissions']);
  function principal(req){const token=(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('ascend_sid='))?.slice(11);const session=sessions.get(token);if(!session||session.expires<Date.now())return null;return state.users.find(u=>u.username===session.username&&u.active&&fingerprint(u)===session.fingerprint)||null;}
  function own(u,r,module){if(!customerRoles.has(u.role))return true;if(!u.companyId)return false;const c=state.companies.find(c=>String(c.id||c.name)===u.companyId);if(!c)return false;const ids=r.customerCompanyIds;if(Array.isArray(ids))return ids.includes(u.companyId);return false;}
- function records(u,module){return state[module].filter(r=>own(u,r,module)).map(r=>{if(u.role==='Yönetici')return r;if(!customerRoles.has(u.role)){const safe={...r};for(const k of ['purchasePrice','profit','share','shareTL','exchangeRate','freightFee','guaranteeFee'])delete safe[k];return safe;}if(module==='shipments')return pick(r,publicLogistics);return {...pick(r,publicNcts),fields:pick(r.fields||{},publicNctsFields)};});}
- function data(u){const companies=customerRoles.has(u.role)?state.companies.filter(c=>String(c.id||c.name)===u.companyId).map(c=>pick(c,['id','name','shortName','country','address'])):state.companies;return {revision,user:{...visibleUser(u),twoFactorEnabled:!!u.totpSecret},companies,shipments:records(u,'shipments'),ncts:records(u,'ncts'),users:u.role==='Yönetici'?state.users.map(visibleUser):[]};}
+ // Sunucudan cikan her kayit buradan gecer: sayfaya gomulen veri, belgeler,
+ // bildirimler ve yuklemeler. Modul erisimi yoksa liste bostur; finans
+ // yetkisi yoksa o modulun finans alanlari silinir (bkz. permissions.mjs).
+ function records(u,module){const key=moduleForCollection(module);const permission=key&&permissionsFor(u)[key];if(!permission?.access)return [];return state[module].filter(r=>own(u,r,module)).map(r=>{if(customerRoles.has(u.role)){if(module==='shipments')return pick(r,publicLogistics);return {...pick(r,publicNcts),fields:pick(r.fields||{},publicNctsFields)};}return staffView(r,permissionsFor(u));});}
+ function data(u){const companies=customerRoles.has(u.role)?state.companies.filter(c=>String(c.id||c.name)===u.companyId).map(c=>pick(c,['id','name','shortName','country','address'])):state.companies;return {revision,user:{...visibleUser(u),permissions:permissionsFor(u),twoFactorEnabled:!!u.totpSecret},companies,shipments:records(u,'shipments'),ncts:records(u,'ncts'),transport:records(u,'transport'),users:u.role==='Yönetici'?state.users.map(visibleUser):[]};}
  let stateAuditChanges=[];
  async function sync(u,body){
  stateAuditChanges=[];
- for(const collection of ['companies','shipments','ncts','users'])if(Array.isArray(body[collection]))for(const row of body[collection]){const id=row.id||row.fileNo||row.no||row.username||row.name;const old=state[collection].find(x=>(x.id||x.fileNo||x.no||x.username||x.name)===id)||{};const fields=Object.keys(row).filter(k=>!['password','salt','passwordHash','totpSecret','lastTotpStep'].includes(k)&&JSON.stringify(row[k])!==JSON.stringify(old[k]));if(fields.length)stateAuditChanges.push({collection,id,fields,...(collection==='users'?{}:{before:pick(old,fields),after:pick(row,fields)})});}
+ for(const collection of ['companies','shipments','ncts','transport','users'])if(Array.isArray(body[collection]))for(const row of body[collection]){const id=row.id||row.fileNo||row.no||row.username||row.name;const old=state[collection].find(x=>(x.id||x.fileNo||x.no||x.username||x.name)===id)||{};const fields=Object.keys(row).filter(k=>!['password','salt','passwordHash','totpSecret','lastTotpStep'].includes(k)&&JSON.stringify(row[k])!==JSON.stringify(old[k]));if(fields.length)stateAuditChanges.push({collection,id,fields,...(collection==='users'?{}:{before:pick(old,fields),after:pick(row,fields)})});}
 
  if(customerRoles.has(u.role))throw Object.assign(Error('Yetkisiz'),{status:403});
  if(u.role!=='Yönetici'){
  if(body.users)throw Object.assign(Error('Yetkisiz'),{status:403});
- const cleaned={};
- for(const key of ['shipments','ncts'])if(body[key]){
+ const cleaned={},granted=permissionsFor(u);
+ for(const key of ['shipments','ncts','transport'])if(body[key]){
+ const module=moduleForCollection(key);
+ // Erisimi olmayan modula yazma reddedilir; sessizce yok sayilsaydi arayuz
+ // 'kaydedildi' der, kullanici verisinin kayboldugunu fark etmezdi.
+ if(!granted[module].access)throw Object.assign(Error('Bu modüle erişim yetkiniz yok: '+MODULES[module].label),{status:403});
  cleaned[key]=state[key].map(r=>({...r}));
- for(const incoming of body[key]){const id=incoming.id||incoming.fileNo||incoming.no;if(!id)throw Error('Dosya no gerekli');const index=cleaned[key].findIndex(r=>(r.id||r.fileNo||r.no)===id);const safe={...incoming};for(const field of ['purchasePrice','profit','share','shareTL','exchangeRate','salePrice','financeCurrency','freightFee','guaranteeFee','paymentDueDate','sourceQuoteId','sourceOfferId','customerCompanyIds'])delete safe[field];if(index<0)cleaned[key].push(safe);else cleaned[key][index]={...cleaned[key][index],...safe};}
+ for(const incoming of body[key]){const id=incoming.id||incoming.fileNo||incoming.no;if(!id)throw Error('Dosya no gerekli');const index=cleaned[key].findIndex(r=>(r.id||r.fileNo||r.no)===id);const safe=staffWrite(incoming,module,granted);if(index<0)cleaned[key].push(safe);else cleaned[key][index]={...cleaned[key][index],...safe};}
  }
  if(body.companies)cleaned.companies=body.companies;
  body=cleaned;
  }
-for(const key of ['companies','shipments','ncts'])if(body[key]!==undefined){if(!Array.isArray(body[key]))throw Error('Invalid data');if(key==='companies'){for(const account of state.users){const previous=state.companies.find(c=>String(c.id||c.name)===account.companyId);const replacement=previous&&body[key].find(c=>c.name===previous.name);if(replacement)account.companyId=String(replacement.id||replacement.name);}}if(key==='companies'){const ids=new Set(),names=new Set();for(const c of body[key]){for(const contact of c.contacts||[]){if(contact.transportModes!==undefined&&(!Array.isArray(contact.transportModes)||contact.transportModes.some(mode=>!['Hava','Kara','Deniz','Demiryolu'].includes(mode))))throw Error('Geçersiz taşıma türü seçimi');}if(c.isCarrier&&(!(c.serviceCountries||[]).length||!(c.contacts||[]).some(x=>(x.transportModes||[x.transportMode]).some(mode=>['Hava','Kara','Deniz','Demiryolu'].includes(mode))&&/^\S+@\S+\.\S+$/.test(x.email||''))))throw Error('Acente hizmet ülkesi ve birim e-postası gerekli');const id=String(c.id||c.name),name=String(c.name||'').trim().toLocaleLowerCase('tr');if(!id||!name||ids.has(id)||names.has(name))throw Error('Firma kimliği ve unvanı benzersiz olmalı');ids.add(id);names.add(name);}}state[key]=body[key];if(key!=='companies')state[key]=state[key].map(r=>bind(r,key));}
- if(body.users){if(new Set(body.users.map(v=>v.username)).size!==body.users.length)throw Error('Kullanıcı adları benzersiz olmalı');if(!Array.isArray(body.users))throw Error('Invalid users');const next=body.users.map(v=>{const old=state.users.find(x=>x.username===v.username);if(v.active&&customerRoles.has(v.role)&&!state.companies.some(c=>String(c.id||c.name)===v.companyId))throw Error('Firma seçimi zorunlu');if(!['Yönetici','Operasyon','Finans','Görüntüleme','Müşteri'].includes(v.role))throw Error('Geçersiz rol');if(v.password){if(v.password.length<12)throw Error('Şifre kısa');return user(v);}if(!old)throw Error('Şifre gerekli');return {...old,...pick(v,['name','email','role','active','companyId','companyName'])};});if(!next.some(v=>v.username===u.username&&v.active&&v.role==='Yönetici'))throw Error('Kendi yönetici erişiminiz kaldırılamaz');state.users=next;}
+if(body.transport!==undefined)body.transport=normalizeTransport(body.transport);
+for(const key of ['companies','shipments','ncts','transport'])if(body[key]!==undefined){if(!Array.isArray(body[key]))throw Error('Invalid data');if(key==='companies'){for(const account of state.users){const previous=state.companies.find(c=>String(c.id||c.name)===account.companyId);const replacement=previous&&body[key].find(c=>c.name===previous.name);if(replacement)account.companyId=String(replacement.id||replacement.name);}}if(key==='companies'){const ids=new Set(),names=new Set();for(const c of body[key]){for(const contact of c.contacts||[]){if(contact.transportModes!==undefined&&(!Array.isArray(contact.transportModes)||contact.transportModes.some(mode=>!['Hava','Kara','Deniz','Demiryolu'].includes(mode))))throw Error('Geçersiz taşıma türü seçimi');}if(c.isCarrier&&(!(c.serviceCountries||[]).length||!(c.contacts||[]).some(x=>(x.transportModes||[x.transportMode]).some(mode=>['Hava','Kara','Deniz','Demiryolu'].includes(mode))&&/^\S+@\S+\.\S+$/.test(x.email||''))))throw Error('Acente hizmet ülkesi ve birim e-postası gerekli');const id=String(c.id||c.name),name=String(c.name||'').trim().toLocaleLowerCase('tr');if(!id||!name||ids.has(id)||names.has(name))throw Error('Firma kimliği ve unvanı benzersiz olmalı');ids.add(id);names.add(name);}}state[key]=body[key];if(key==='shipments'||key==='ncts')state[key]=state[key].map(r=>bind(r,key));}
+ if(body.users){if(new Set(body.users.map(v=>v.username)).size!==body.users.length)throw Error('Kullanıcı adları benzersiz olmalı');if(!Array.isArray(body.users))throw Error('Invalid users');const withPermissions=(record,v,old)=>{const sent=v.permissions!==undefined?v.permissions:old?.permissions;const permissions=sanitizePermissions(v.role,sent);const result={...record};delete result.permissions;if(permissions)result.permissions=permissions;return result;};
+ const next=body.users.map(v=>{const old=state.users.find(x=>x.username===v.username);if(v.active&&customerRoles.has(v.role)&&!state.companies.some(c=>String(c.id||c.name)===v.companyId))throw Error('Firma seçimi zorunlu');if(!['Yönetici','Operasyon','Finans','Görüntüleme','Müşteri'].includes(v.role))throw Error('Geçersiz rol');if(v.password){if(v.password.length<12)throw Error('Şifre kısa');return withPermissions(user(v),v,old);}if(!old)throw Error('Şifre gerekli');return withPermissions({...old,...pick(v,['name','email','role','active','companyId','companyName'])},v,old);});if(!next.some(v=>v.username===u.username&&v.active&&v.role==='Yönetici'))throw Error('Kendi yönetici erişiminiz kaldırılamaz');state.users=next;}
  await persist(u.username,{collections:Object.keys(body).filter(k=>k!=='_revision'),changes:stateAuditChanges});}
 
  async function security(action,u,body={}){

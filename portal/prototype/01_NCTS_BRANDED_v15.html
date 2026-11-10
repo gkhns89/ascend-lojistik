@@ -597,12 +597,15 @@ function persistNcts(){if(nctsReadOnly())return;if(nctsRolePreview){sessionStora
 
 
 function nctsSession(){return JSON.parse(sessionStorage.getItem('ascend_session')||'null');}
-function isNctsAdmin(){return !nctsRolePreview&&nctsSession()?.role==='Yönetici';}
+// NCTS finansi: yonetici ya da NCTS modulunde finans yetkisi verilmis
+// personel. Kural sunucuda da uygulanir; yetkisi olmayana ucret ve
+// teminat alanlari hic gelmez.
+function isNctsAdmin(){const s=nctsSession();if(s?.role==='Yönetici')return !nctsRolePreview;return nctsViewRole==='staff'&&s?.permissions?.ncts?.finance===true;}
 function applyNctsRoleVisibility(){
  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden-role',!isNctsAdmin()));
 }
 function showNctsFinance(){
- if(!isNctsAdmin()){alert('Bu bölüme yalnızca yönetici erişebilir.');return;}
+ if(!isNctsAdmin()){alert('Bu bölüm için NCTS finans yetkisi gerekir.');return;}
  nctsListSection.classList.add('hidden');
  nctsFormSection.classList.add('hidden');
  nctsFinanceEditSection.classList.add('hidden');
@@ -815,7 +818,8 @@ for(const id of ['nSender','nReceiver']){
 </script><script src="portal-reports.js"></script><script>
 function applyNctsPreview(){
  if(!nctsRolePreview)return;
- document.querySelectorAll('.admin-only,.report-launch').forEach(e=>e.classList.add('hidden'));
+ // Raporlar sunucuda yalniz yoneticiye acik; finans yetkisi onlari acmaz.
+ document.querySelectorAll(isNctsAdmin()?'.report-launch':'.admin-only,.report-launch').forEach(e=>e.classList.add('hidden'));
  if(nctsReadOnly()){
   document.querySelectorAll('.party-grid .card').forEach(card=>{if(card.querySelector('h3')?.textContent.includes('Nakliyeci'))card.classList.add('hidden');});
   document.querySelectorAll('#nctsFormSection input,#nctsFormSection textarea,#nctsFormSection select').forEach(e=>e.disabled=true);

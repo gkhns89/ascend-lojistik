@@ -2,6 +2,7 @@
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ASCEND Kullanıcı Yönetimi</title>
 <style>
+.perm-field{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:16px}.perm-field legend{font-weight:700;padding:0 6px}.perm-table{width:100%;border-collapse:collapse;margin-top:8px;min-width:0}.perm-table th,.perm-table td{padding:8px;border-bottom:1px solid var(--border);text-align:left}.perm-table td{width:140px}.perm-table input{width:18px;height:18px}.perm-field[hidden]{display:none}
 :root{--primary:#302080;--secondary:#30b0c0;--bg:#f4f6f8;--card:#fff;--text:#18212f;--muted:#6b7780;--border:#dfe4e8}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
 header{height:72px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
@@ -25,15 +26,24 @@ table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px s
 <div class="field"><label>Kullanıcı Adı</label><input id="uUsername"></div>
 <div class="field"><label>E-posta</label><input id="uEmail" type="email"></div>
 <div class="field"><label>Şifre</label><input id="uPassword" type="password"></div>
-<div class="field"><label>Rol</label><select id="uRole" onchange="updateCompanyField()"><option>Yönetici</option><option>Operasyon</option><option>Finans</option><option>Görüntüleme</option></select></div>
+<div class="field"><label>Rol</label><select id="uRole" onchange="updateCompanyField();updatePermField(editPerms)"><option>Yönetici</option><option>Operasyon</option><option>Finans</option><option>Görüntüleme</option></select></div>
 <div class="field" id="companyField" hidden><label for="uCompany">Firma *</label><select id="uCompany" aria-describedby="companyHelp"></select><small id="companyHelp">Görüntüleme hesabının bağlı olacağı firmayı seçin.</small></div>
 </div>
+<fieldset id="permField" class="perm-field">
+ <legend>Modül yetkileri</legend>
+ <p class="muted" id="permHelp" style="margin:0"></p>
+ <table class="perm-table"><thead><tr><th scope="col">Modül</th><th scope="col">Erişim</th><th scope="col">Finans bilgisi</th></tr></thead><tbody>
+  <tr data-module="ncts"><th scope="row">NCTS / T1</th><td><input type="checkbox" class="perm-access" aria-label="NCTS / T1 erişim"></td><td><input type="checkbox" class="perm-finance" aria-label="NCTS / T1 finans bilgisi"></td></tr>
+  <tr data-module="transport"><th scope="row">İç Nakliye</th><td><input type="checkbox" class="perm-access" aria-label="İç Nakliye erişim"></td><td><input type="checkbox" class="perm-finance" aria-label="İç Nakliye finans bilgisi"></td></tr>
+  <tr data-module="logistics"><th scope="row">Lojistik Operasyon</th><td><input type="checkbox" class="perm-access" aria-label="Lojistik Operasyon erişim"></td><td><input type="checkbox" class="perm-finance" aria-label="Lojistik Operasyon finans bilgisi"></td></tr>
+ </tbody></table>
+</fieldset>
 <div style="margin-top:12px;display:flex;gap:8px"><button class="primary" id="saveUserBtn" onclick="saveUser()">Kullanıcı Oluştur</button><button class="secondary" id="cancelEditBtn" style="display:none" onclick="cancelUserEdit()">Vazgeç</button></div>
 <div id="msg" role="status" aria-live="polite" class="muted" style="margin-top:8px"></div>
 </div>
 
 <div class="card">
-<table><thead><tr><th>Ad Soyad</th><th>Kullanıcı Adı</th><th>E-posta</th><th>Rol</th><th>Firma</th><th>Durum</th><th>İşlem</th></tr></thead><tbody id="userBody"></tbody></table>
+<table><thead><tr><th>Ad Soyad</th><th>Kullanıcı Adı</th><th>E-posta</th><th>Rol</th><th>Firma</th><th>Yetkiler</th><th>Durum</th><th>İşlem</th></tr></thead><tbody id="userBody"></tbody></table>
 </div>
 </main>
 <script>
@@ -55,6 +65,45 @@ function requireAdmin(){
  if(s.role!=='Yönetici'){alert('Bu bölüme yalnızca yönetici erişebilir.');location.href='index.html';return false}
  return true;
 }
+// Modul yetkileri. Bu tablo yalniz yoneticinin secimini toplar; kural
+// sunucuda uygulanir (permissions.mjs). Yonetici her seyi gorur ve
+// kisitlanamaz; musteri hesabi finans ve Ic Nakliye alamaz.
+const PERM_LABELS={ncts:'NCTS / T1',transport:'İç Nakliye',logistics:'Lojistik'};
+const PERM_DEFAULTS={ncts:true,transport:false,logistics:true};
+let editPerms;
+function updatePermField(perms){
+ const role=uRole.value,admin=role==='Yönetici',customer=role==='Görüntüleme'||role==='Müşteri';
+ for(const row of permField.querySelectorAll('tr[data-module]')){
+  const key=row.dataset.module,access=row.querySelector('.perm-access'),finance=row.querySelector('.perm-finance');
+  if(admin){access.checked=true;finance.checked=true;}
+  else if(customer){access.checked=key!=='transport';finance.checked=false;}
+  else{const p=perms?.[key];access.checked=typeof p?.access==='boolean'?p.access:PERM_DEFAULTS[key];finance.checked=access.checked&&p?.finance===true;}
+  access.disabled=admin||customer;finance.disabled=admin||customer||!access.checked;
+  access.onchange=()=>{finance.disabled=!access.checked;if(!access.checked)finance.checked=false;};
+ }
+ permHelp.textContent=admin?'Yönetici tüm modülleri ve tüm finans bilgilerini görür; kısıtlanamaz.'
+  :customer?'Müşteri hesabı yalnız kendi firmasının kayıtlarını görür. Finans bilgisi ve İç Nakliye müşteriye açılamaz.'
+  :'Finans bilgisi (alış, kazanç, pay, ücretler, ödeme durumu) yalnız erişimi açık modülde verilebilir.';
+}
+function readPermissions(role){
+ if(role==='Yönetici'||role==='Görüntüleme'||role==='Müşteri')return undefined;
+ const result={};
+ for(const row of permField.querySelectorAll('tr[data-module]')){
+  const access=row.querySelector('.perm-access').checked;
+  result[row.dataset.module]={access,finance:access&&row.querySelector('.perm-finance').checked};
+ }
+ return result;
+}
+function permSummary(u){
+ if(u.role==='Yönetici')return 'Tümü · finans dahil';
+ if(u.role==='Görüntüleme'||u.role==='Müşteri')return 'Kendi firma kayıtları';
+ const parts=[];
+ for(const key of ['ncts','transport','logistics']){
+  const p=u.permissions?.[key],access=typeof p?.access==='boolean'?p.access:PERM_DEFAULTS[key];
+  if(access)parts.push(PERM_LABELS[key]+(p?.finance?' (finans)':''));
+ }
+ return parts.join(' · ')||'Modül yok';
+}
 function saveUser(){
  const name=uName.value.trim(),username=uUsername.value.trim(),email=uEmail.value.trim(),password=uPassword.value,role=uRole.value;
  if(!name||!username||!email){msg.textContent='Ad soyad, kullanıcı adı ve e-posta zorunludur.';return}
@@ -67,11 +116,11 @@ function saveUser(){
    if(!password){msg.textContent='Yeni kullanıcı için şifre zorunludur.';return}
    if(password.length<12){msg.textContent='Şifre en az 12 karakter olmalı.';return}
    if(list.some(x=>x.username===username)){msg.textContent='Bu kullanıcı adı zaten kullanılıyor.';return}
-   list.push({name,username,email,password,role,companyId,companyName,active:true});
+   list.push({name,username,email,password,role,companyId,companyName,active:true,permissions:readPermissions(role)});
  }else{
    if(list.some((x,i)=>i!==editUserIndex && x.username===username)){msg.textContent='Bu kullanıcı adı başka bir kullanıcı tarafından kullanılıyor.';return}
    const current=list[editUserIndex];
-   current.name=name;current.username=username;current.email=email;current.role=role;current.companyId=companyId;current.companyName=companyName;
+   current.name=name;current.username=username;current.email=email;current.role=role;current.companyId=companyId;current.companyName=companyName;current.permissions=readPermissions(role);
    if(password){
      if(password.length<12){msg.textContent='Şifre en az 12 karakter olmalı.';return}
      current.password=password;
@@ -88,7 +137,7 @@ function editUser(i){
  uUsername.value=u.username||'';
  uEmail.value=u.email||'';
  uPassword.value='';
- uRole.value=u.role||'Görüntüleme';updateCompanyField(u.companyId||u.companyName||'');
+ uRole.value=u.role||'Görüntüleme';updateCompanyField(u.companyId||u.companyName||'');editPerms=u.permissions;updatePermField(editPerms);
  saveUserBtn.textContent='Değişiklikleri Kaydet';
  cancelEditBtn.style.display='inline-block';
  msg.textContent='Şifreyi değiştirmek istemiyorsanız şifre alanını boş bırakın.';
@@ -97,7 +146,7 @@ function editUser(i){
 function cancelUserEdit(){
  editUserIndex=null;
  uName.value='';uUsername.value='';uEmail.value='';uPassword.value='';
- uRole.value='Operasyon';updateCompanyField();
+ uRole.value='Operasyon';updateCompanyField();editPerms=undefined;updatePermField(editPerms);
  saveUserBtn.textContent='Kullanıcı Oluştur';
  cancelEditBtn.style.display='none';
 }
@@ -118,7 +167,7 @@ function deleteUser(i){
 function render(){
  userBody.innerHTML='';users().forEach((u,i)=>{
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${u.name}</td><td>${u.username}</td><td>${u.email||'—'}</td><td>${escapeUser(u.role)}</td><td>${escapeUser(u.companyName||'—')}</td><td>${u.active?'Aktif':'Pasif'}</td>
+  tr.innerHTML=`<td>${u.name}</td><td>${u.username}</td><td>${u.email||'—'}</td><td>${escapeUser(u.role)}</td><td>${escapeUser(u.companyName||'—')}</td><td>${escapeUser(permSummary(u))}</td><td>${u.active?'Aktif':'Pasif'}</td>
   <td><button class="secondary" onclick="editUser(${i})">Düzenle</button> <button class="secondary" onclick="toggleUser(${i})">${u.active?'Pasife Al':'Aktif Et'}</button>
   <button class="secondary" onclick="resetPassword(${i})">Şifre Yenile</button>
   <button class="secondary" onclick="deleteUser(${i})">Sil</button></td>`;
@@ -130,6 +179,6 @@ function logout(){sessionStorage.removeItem('ascend_session');location.href='ind
 let migrated=users().map(u=>({...u,email:u.email||''}));
 setUsers(migrated);
 
-if(requireAdmin()){render();updateCompanyField();}
+if(requireAdmin()){render();updateCompanyField();updatePermField(editPerms);}
 </script>
 </body></html>

@@ -1,0 +1,246 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASCEND · İç Nakliye</title><link rel="stylesheet" href="portal-design.css"><link rel="stylesheet" href="portal-fonts.css"><link rel="stylesheet" href="portal-theme.css"><script src="portal-theme.js"></script>
+<style>
+main{padding:24px;max-width:1240px;margin:0 auto}
+header{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding:16px 24px}header img{height:48px}
+.card{padding:24px;margin:20px 0}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.field{display:grid;gap:6px}.field.wide{grid-column:1/-1}
+input,select,textarea,button{padding:10px;font:inherit}textarea{width:100%;min-height:72px;resize:vertical}
+button{cursor:pointer}
+.check{display:flex;align-items:center;gap:8px;font-weight:600}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+#status{padding:12px 0;min-height:1.4em}
+.toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:12px}
+.toolbar .field{min-width:220px}
+.segment{display:flex;gap:6px;flex-wrap:wrap}
+.segment button{border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-weight:700;font-size:13px;padding:7px 15px}
+.segment button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary,#fff)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:700}
+td.money{white-space:nowrap;font-variant-numeric:tabular-nums}
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+.total{border:1px solid var(--border);border-radius:10px;padding:14px}
+.total .label{color:var(--muted);font-size:13px;font-weight:700}
+.total .value{font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;margin-top:4px}
+.total .value div+div{margin-top:2px}
+.badge-paid{color:var(--text);background:var(--ok);padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.badge-wait{color:var(--text);background:var(--warn);padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}
+button.remove{background:transparent!important;border:1px solid #c0392b!important;color:#c0392b!important;border-radius:8px;font-weight:600}
+button.remove:hover{background:#c0392b!important;color:#fff!important}
+.empty{color:var(--muted);padding:18px 0}
+[hidden]{display:none!important}
+</style></head>
+<body>
+<header><img src="ascend-logo-light.svg" alt="ASCEND Lojistik"><a href="index.html">Ana Sayfa</a><a href="02_LOJISTIK_PORTAL_BRANDED_v14.html?section=companies">Firma Kartları</a></header>
+<main>
+<h1>İç Nakliye</h1>
+<p class="muted">Gümrükten depoya ve teslim adresine yapılan yurtiçi taşımalar.</p>
+<p id="status" role="status" aria-live="polite"></p>
+
+<section id="denied" class="card" hidden><h2>Erişim yok</h2><p>Bu modül için yetkiniz bulunmuyor. Yöneticinizden İç Nakliye erişimi isteyin.</p></section>
+
+<form id="entry" class="card" novalidate hidden>
+ <h2 id="formTitle">Yeni kayıt</h2>
+ <div class="fields">
+  <div class="field"><label for="company">Firma *</label><input id="company" autocomplete="off" required maxlength="200"></div>
+  <div class="field"><label for="customs">Gümrük adı</label><input id="customs" autocomplete="off" maxlength="200"></div>
+  <div class="field"><label for="warehouse">Depo</label><input id="warehouse" autocomplete="off" maxlength="200"></div>
+  <div class="field wide"><label for="deliveryAddress">Teslim adresi</label><textarea id="deliveryAddress" maxlength="1000"></textarea></div>
+  <div class="field finance"><label for="fee">Taşıma ücreti</label><input id="fee" type="number" min="0" step="0.01" inputmode="decimal"></div>
+  <div class="field finance"><label for="currency">Döviz</label><select id="currency"><option>TRY</option><option>EUR</option><option>USD</option><option>GBP</option><option>CHF</option></select></div>
+  <div class="field finance"><span class="check"><input id="paid" type="checkbox"><label for="paid">Ödeme alındı</label></span></div>
+ </div>
+ <div class="actions">
+  <button class="primary" type="submit" id="saveBtn">Kaydet</button>
+  <button type="button" class="secondary" id="cancelBtn" hidden>Vazgeç</button>
+ </div>
+</form>
+
+<section id="listCard" class="card" hidden>
+ <h2>Kayıtlar</h2>
+ <div class="toolbar">
+  <div class="field"><label for="search">Ara</label><input id="search" placeholder="Firma, gümrük, depo, adres…" autocomplete="off"></div>
+  <div class="segment finance" role="group" aria-label="Ödeme durumu">
+   <button type="button" data-filter="" aria-pressed="true">Tümü</button>
+   <button type="button" data-filter="wait" aria-pressed="false">Ödeme bekleyen</button>
+   <button type="button" data-filter="paid" aria-pressed="false">Ödendi</button>
+  </div>
+ </div>
+ <div class="table-wrap"><table>
+  <thead><tr><th>No</th><th>Firma</th><th>Gümrük</th><th>Depo</th><th>Teslim adresi</th><th class="finance">Taşıma ücreti</th><th class="finance">Ödeme</th><th>İşlem</th></tr></thead>
+  <tbody id="rows"></tbody>
+ </table></div>
+ <p id="empty" class="empty" hidden></p>
+ <div class="totals finance">
+  <div class="total"><div class="label">Toplam taşıma ücreti</div><div class="value" id="totalAll"></div></div>
+  <div class="total"><div class="label">Tahsil edilen</div><div class="value" id="totalPaid"></div></div>
+  <div class="total"><div class="label">Ödeme bekleyen</div><div class="value" id="totalWait"></div></div>
+ </div>
+</section>
+</main>
+
+<script>
+(() => {
+ const $=id=>document.getElementById(id);
+ const boot=window.portalBootstrap;
+ if(!boot){location.href='index.html?login';return;}
+
+ // Yetki sunucudan gelir ve sunucuda uygulanir. Burada yalniz ekran
+ // duzenlenir: finans alanlari zaten veriyle birlikte gelmez.
+ const permission=boot.user?.permissions?.transport||{access:false,finance:false};
+ const finance=permission.finance===true;
+ const isAdmin=boot.user?.role==='Yönetici';
+ if(!permission.access){$('denied').hidden=false;return;}
+ $('entry').hidden=false;$('listCard').hidden=false;
+ for(const el of document.querySelectorAll('.finance'))el.hidden=!finance;
+
+ let rows=Array.isArray(boot.transport)?boot.transport.map(r=>({...r})):[];
+ let revision=boot.revision,editing=null,filter='';
+ const status=text=>{$('status').textContent=text;};
+ const money=(n,code)=>Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+code;
+
+ function nextId(){
+  const year=new Intl.DateTimeFormat('en',{year:'numeric',timeZone:'Europe/Istanbul'}).format(new Date());
+  const prefix='IN-'+year+'-';
+  let max=0;
+  for(const r of rows){const m=String(r.id||'').startsWith(prefix)?Number(String(r.id).slice(prefix.length)):0;if(Number.isFinite(m)&&m>max)max=m;}
+  return prefix+String(max+1).padStart(4,'0');
+ }
+
+ // Sunucu tek dogru kaynaktir: kayittan sonra liste ondan yeniden okunur,
+ // boylece yuvarlama ve yetkiye gore silinen alanlar ekranla ayni kalir.
+ async function save(next,done){
+  const response=await fetch('/api/tenant/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_revision:revision,transport:next})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok){
+   if(response.status===409)throw Error('Kayıt başka bir oturumda değişti. Sayfayı yenileyip tekrar deneyin.');
+   throw Error(result.error||'Kayıt tamamlanamadı.');
+  }
+  const fresh=await fetch('/api/tenant/data').then(r=>r.ok?r.json():Promise.reject(Error('Liste yenilenemedi.')));
+  rows=fresh.transport||[];revision=fresh.revision;
+  render();status(done);
+ }
+
+ function readForm(){
+  const record={company:$('company').value.trim(),customs:$('customs').value.trim(),warehouse:$('warehouse').value.trim(),deliveryAddress:$('deliveryAddress').value.trim()};
+  if(!record.company){$('company').setAttribute('aria-invalid','true');$('company').focus();throw Error('Firma zorunludur.');}
+  $('company').removeAttribute('aria-invalid');
+  if(finance){
+   const raw=$('fee').value.trim();
+   if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0)){$('fee').focus();throw Error('Taşıma ücreti sıfır veya pozitif bir sayı olmalı.');}
+   record.fee=raw===''?null:Number(raw);
+   record.currency=$('currency').value;
+   record.paid=$('paid').checked;
+  }
+  return record;
+ }
+
+ function resetForm(){
+  editing=null;$('entry').reset();$('currency').value='TRY';
+  $('formTitle').textContent='Yeni kayıt';$('saveBtn').textContent='Kaydet';$('cancelBtn').hidden=true;
+ }
+
+ function edit(id){
+  const r=rows.find(x=>x.id===id);if(!r)return;
+  editing=id;
+  $('company').value=r.company||'';$('customs').value=r.customs||'';$('warehouse').value=r.warehouse||'';$('deliveryAddress').value=r.deliveryAddress||'';
+  if(finance){$('fee').value=r.fee??'';$('currency').value=r.currency||'TRY';$('paid').checked=r.paid===true;}
+  $('formTitle').textContent='Kaydı düzenle · '+id;$('saveBtn').textContent='Değişiklikleri kaydet';$('cancelBtn').hidden=false;
+  $('entry').scrollIntoView({behavior:'smooth',block:'start'});$('company').focus();
+ }
+
+ $('entry').addEventListener('submit',async e=>{
+  e.preventDefault();
+  let record;try{record=readForm();}catch(err){status(err.message);return;}
+  const next=rows.map(r=>({...r}));
+  if(editing){const i=next.findIndex(r=>r.id===editing);if(i<0){status('Kayıt bulunamadı; sayfayı yenileyin.');return;}next[i]={...next[i],...record};}
+  else next.push({id:nextId(),createdAt:new Date().toISOString(),...record});
+  $('saveBtn').disabled=true;
+  try{await save(next,editing?'Kayıt güncellendi.':'Kayıt eklendi.');resetForm();}
+  catch(err){status(err.message);}
+  finally{$('saveBtn').disabled=false;}
+ });
+ $('cancelBtn').onclick=()=>{resetForm();status('');};
+
+ async function togglePaid(id,checkbox){
+  const next=rows.map(r=>r.id===id?{...r,paid:checkbox.checked}:{...r});
+  checkbox.disabled=true;
+  try{await save(next,checkbox.checked?id+' ödendi olarak işaretlendi.':id+' ödeme bekliyor olarak işaretlendi.');}
+  catch(err){checkbox.checked=!checkbox.checked;checkbox.disabled=false;status(err.message);}
+ }
+
+ // Silme yalniz yoneticiye acik: personelin kaydi sunucuda birlestirilir ve
+ // satir silemez, bu yuzden dugmeyi ona gostermek yaniltici olurdu.
+ async function remove(id){
+  const r=rows.find(x=>x.id===id);if(!r)return;
+  if(!confirm(id+' · '+r.company+' kaydı silinsin mi? Bu işlem geri alınamaz.'))return;
+  try{await save(rows.filter(x=>x.id!==id).map(x=>({...x})),id+' silindi.');if(editing===id)resetForm();}
+  catch(err){status(err.message);}
+ }
+
+ const cell=(text,cls)=>{const td=document.createElement('td');td.textContent=text;if(cls)td.className=cls;return td;};
+ const normalize=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i');
+
+ function render(){
+  const q=normalize($('search').value.trim());
+  const visible=rows.filter(r=>{
+   if(q&&!normalize([r.id,r.company,r.customs,r.warehouse,r.deliveryAddress].join(' ')).includes(q))return false;
+   if(finance&&filter==='paid'&&r.paid!==true)return false;
+   if(finance&&filter==='wait'&&r.paid===true)return false;
+   return true;
+  }).sort((a,b)=>String(b.id).localeCompare(String(a.id),'tr',{numeric:true}));
+
+  const body=$('rows');body.replaceChildren();
+  for(const r of visible){
+   const tr=document.createElement('tr');
+   tr.append(cell(r.id),cell(r.company),cell(r.customs||'—'),cell(r.warehouse||'—'),cell(r.deliveryAddress||'—'));
+   if(finance){
+    tr.append(cell(r.fee==null?'—':money(r.fee,r.currency||'TRY'),'money'));
+    const td=document.createElement('td');
+    const box=document.createElement('input');box.type='checkbox';box.checked=r.paid===true;
+    box.setAttribute('aria-label',r.id+' ödeme alındı');
+    box.onchange=()=>togglePaid(r.id,box);
+    const tag=document.createElement('span');tag.className=r.paid?'badge-paid':'badge-wait';tag.textContent=r.paid?'Ödendi':'Bekliyor';
+    const wrap=document.createElement('span');wrap.className='check';wrap.append(box,tag);td.append(wrap);tr.append(td);
+   }
+   const actions=document.createElement('td');
+   const editBtn=document.createElement('button');editBtn.type='button';editBtn.className='secondary';editBtn.textContent='Düzenle';editBtn.onclick=()=>edit(r.id);
+   actions.append(editBtn);
+   if(isAdmin){const del=document.createElement('button');del.type='button';del.className='remove';del.textContent='Sil';del.style.marginLeft='6px';del.onclick=()=>remove(r.id);actions.append(del);}
+   tr.append(actions);body.append(tr);
+  }
+  const empty=$('empty');
+  empty.hidden=visible.length>0;
+  empty.textContent=rows.length?'Aramaya uyan kayıt yok.':'Henüz iç nakliye kaydı yok. Yukarıdaki formdan ilk kaydı ekleyin.';
+
+  if(finance)renderTotals(visible);
+ }
+
+ // Dovizler birbirine eklenmez: her doviz ayri satirda toplanir.
+ function renderTotals(list){
+  const buckets=new Map();
+  for(const r of list){
+   if(r.fee==null)continue;
+   const code=String(r.currency||'TRY');
+   const b=buckets.get(code)||{all:0,paid:0,wait:0};
+   b.all+=Number(r.fee);if(r.paid)b.paid+=Number(r.fee);else b.wait+=Number(r.fee);
+   buckets.set(code,b);
+  }
+  const codes=[...buckets.keys()].sort();
+  const fill=(id,pick)=>{const node=$(id);node.replaceChildren();if(!codes.length){node.textContent='—';return;}
+   for(const code of codes){const line=document.createElement('div');line.textContent=money(pick(buckets.get(code)),code);node.append(line);}};
+  fill('totalAll',b=>b.all);fill('totalPaid',b=>b.paid);fill('totalWait',b=>b.wait);
+ }
+
+ $('search').addEventListener('input',render);
+ for(const b of document.querySelectorAll('.segment button'))b.onclick=()=>{
+  filter=b.dataset.filter;
+  for(const x of document.querySelectorAll('.segment button'))x.setAttribute('aria-pressed',String(x===b));
+  render();
+ };
+ render();
+})();
+</script>
+</body></html>
