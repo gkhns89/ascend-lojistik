@@ -8,11 +8,18 @@
  const mapping={ascend_users:'users',ascend_companies:'companies',ascend_shipments:'shipments',ascend_ncts_records:'ncts',ascend_logistics_demo_staff:'shipments',ascend_logistics_demo_companies:'companies',ascend_ncts_role_demo:'ncts'};
  let queue=Promise.resolve(),revision=state.revision,conflicted=false;
  function status(text){let note=document.getElementById('serverSaveStatus');if(!note){note=document.createElement('p');note.id='serverSaveStatus';note.setAttribute('role','status');note.className='no-print';document.body.append(note);}note.textContent=text;}
+ // Her kayit adimi kendi sonucunu dondurur: {ok:true} ya da {ok:false,error}.
+ // Basari mesajini sunucu onayina baglamak isteyen sayfa bu sonucu bekler.
  function save(key,value){if(!mapping[key])return;if(['Görüntüleme','Müşteri'].includes(state.user.role))return;
- queue=queue.then(async()=>{if(conflicted)throw Error('Kayıt çakışması var. Girdiğiniz verileri koruyup sayfayı yenileyin.');const res=await fetch('/api/tenant/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_revision:revision,[mapping[key]]:JSON.parse(value)})});const result=await res.json();if(!res.ok){if(res.status===409)conflicted=true;throw Error(result.error||'Sunucu kaydı tamamlanamadı.');}revision=result.revision;status('Sunucuya kaydedildi.');}).catch(e=>status(e.message));}
+ queue=queue.then(async()=>{if(conflicted)throw Error('Kayıt çakışması var. Girdiğiniz verileri koruyup sayfayı yenileyin.');const res=await fetch('/api/tenant/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_revision:revision,[mapping[key]]:JSON.parse(value)})});const result=await res.json();if(!res.ok){if(res.status===409)conflicted=true;throw Error(result.error||'Sunucu kaydı tamamlanamadı.');}revision=result.revision;status('Sunucuya kaydedildi.');return {ok:true};}).catch(e=>{status(e.message);return {ok:false,error:e.message};});return queue;}
  window.portalLocal={getItem:k=>k==='ascend-portal-theme'?nativeStorage.getItem(k):cache[k]??null,setItem(k,v){if(k==='ascend-portal-theme'){nativeStorage.setItem(k,v);return;}if(cache[k]===String(v))return;cache[k]=String(v);save(k,v);},removeItem:k=>delete cache[k]};
  window.portalSession={getItem:k=>session[k]??null,setItem(k,v){if(session[k]===String(v))return;session[k]=String(v);save(k,v);},removeItem:k=>delete session[k]};
  window.portalSavePending=()=>queue;
+ // Onayli kayit: sonucu bu yazmaya aittir, onceki bir adimin hatasi karismaz.
+ window.portalSave=(key,value)=>{if(cache[key]===String(value))return Promise.resolve({ok:true,unchanged:true});cache[key]=String(value);return save(key,value)||Promise.resolve({ok:false,error:'Bu kayıt için yetkiniz yok.'});};
+ // Kullanici listesini sunucudaki hale doner. Reddedilen bir degisiklik ya da
+ // kaydedilmis bir parola tamponda kalirsa sonraki her kayitla yeniden gider.
+ window.portalReloadUsers=async()=>{const res=await fetch('/api/tenant/data');if(!res.ok)return false;const data=await res.json();if(!Array.isArray(data.users))return false;cache.ascend_users=JSON.stringify(data.users);return true;};
  // Sayfa ust kismina kisayollar. Eskiden her biri iri bir dugme olarak
  // basliga ekleniyor ve iki satira tasiyordu; artik tek, kucuk bir serit.
  window.addEventListener('DOMContentLoaded',()=>{
