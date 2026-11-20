@@ -2,7 +2,7 @@
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ASCEND Kullanıcı Yönetimi</title>
 <style>
-.perm-field{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:16px}.perm-field legend{font-weight:700;padding:0 6px}.perm-table{width:100%;border-collapse:collapse;margin-top:8px;min-width:0}.perm-table th,.perm-table td{padding:8px;border-bottom:1px solid var(--border);text-align:left}.perm-table td{width:140px}.perm-table input{width:18px;height:18px}.perm-field[hidden]{display:none}
+.notify-option{display:flex;align-items:center;gap:8px;font-weight:600}.perm-field{border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:16px}.perm-field legend{font-weight:700;padding:0 6px}.perm-table{width:100%;border-collapse:collapse;margin-top:8px;min-width:0}.perm-table th,.perm-table td{padding:8px;border-bottom:1px solid var(--border);text-align:left}.perm-table td{width:140px}.perm-table input{width:18px;height:18px}.perm-field[hidden]{display:none}
 :root{--primary:#302080;--secondary:#30b0c0;--bg:#f4f6f8;--card:#fff;--text:#18212f;--muted:#6b7780;--border:#dfe4e8}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
 header{height:72px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
@@ -39,6 +39,11 @@ input[readonly]{background:var(--bg);color:var(--muted)}button:disabled{opacity:
   <tr data-module="transport"><th scope="row">İç Nakliye</th><td><input type="checkbox" class="perm-access" aria-label="İç Nakliye erişim"></td><td><input type="checkbox" class="perm-finance" aria-label="İç Nakliye finans bilgisi"></td></tr>
   <tr data-module="logistics"><th scope="row">Lojistik Operasyon</th><td><input type="checkbox" class="perm-access" aria-label="Lojistik Operasyon erişim"></td><td><input type="checkbox" class="perm-finance" aria-label="Lojistik Operasyon finans bilgisi"></td></tr>
  </tbody></table>
+</fieldset>
+<fieldset id="notifyField" class="perm-field">
+ <legend>E-posta bildirimleri</legend>
+ <label class="notify-option"><input type="checkbox" id="uNotifyTransport"> Yeni İç Nakliye kaydı açıldığında e-posta gönder</label>
+ <p class="muted" id="notifyHelp" style="margin:6px 0 0"></p>
 </fieldset>
 <div style="margin-top:12px;display:flex;gap:8px"><button class="primary" id="saveUserBtn" onclick="saveUser()">Kullanıcı Oluştur</button><button class="secondary" id="cancelEditBtn" style="display:none" onclick="cancelUserEdit()">Vazgeç</button></div>
 <div id="msg" role="status" aria-live="polite" class="muted" style="margin-top:8px"></div>
@@ -88,11 +93,26 @@ function updatePermField(perms){
   else if(customer){access.checked=key!=='transport';finance.checked=false;}
   else{const p=perms?.[key];access.checked=typeof p?.access==='boolean'?p.access:PERM_DEFAULTS[key];finance.checked=access.checked&&p?.finance===true;}
   access.disabled=admin||customer;finance.disabled=admin||customer||!access.checked;
-  access.onchange=()=>{finance.disabled=!access.checked;if(!access.checked)finance.checked=false;};
+  access.onchange=()=>{finance.disabled=!access.checked;if(!access.checked)finance.checked=false;updateNotifyField();};
  }
+ updateNotifyField();
  permHelp.textContent=admin?'Yönetici tüm modülleri ve tüm finans bilgilerini görür; kısıtlanamaz.'
   :customer?'Müşteri hesabı yalnız kendi firmasının kayıtlarını görür. Finans bilgisi ve İç Nakliye müşteriye açılamaz.'
   :'Finans bilgisi (alış, kazanç, pay, ücretler, ödeme durumu) yalnız erişimi açık modülde verilebilir.';
+}
+// Yeni Ic Nakliye kaydi bildirimi. Yalniz Ic Nakliye erisimi olan personel
+// ve yonetici alabilir; sunucu gonderim aninda erisimi yeniden denetler.
+// Kaydi acan kisiye kendi kaydi bildirilmez. Varsayilan kapali.
+function notifyAllowed(){
+ const role=uRole.value;
+ if(role==='Görüntüleme'||role==='Müşteri')return false;
+ return role==='Yönetici'||permField.querySelector('tr[data-module="transport"] .perm-access').checked;
+}
+function updateNotifyField(){
+ const allowed=notifyAllowed();
+ uNotifyTransport.disabled=!allowed;if(!allowed)uNotifyTransport.checked=false;
+ notifyHelp.textContent=allowed?"Başka bir kullanıcı İç Nakliye'ye kayıt açınca bu kişinin e-posta adresine kaydın özeti ve PDF'i gider. Kendi açtığı kayıt için e-posta gitmez."
+  :'Bu bildirim yalnız İç Nakliye erişimi olan personele ve yöneticiye açılabilir.';
 }
 function readPermissions(role){
  if(role==='Yönetici'||role==='Görüntüleme'||role==='Müşteri')return undefined;
@@ -104,14 +124,15 @@ function readPermissions(role){
  return result;
 }
 function permSummary(u){
- if(u.role==='Yönetici')return 'Tümü · finans dahil';
+ const notice=u.notifyTransport?' · İç Nakliye e-postası':'';
+ if(u.role==='Yönetici')return 'Tümü · finans dahil'+notice;
  if(u.role==='Görüntüleme'||u.role==='Müşteri')return 'Kendi firma kayıtları';
  const parts=[];
  for(const key of ['ncts','transport','logistics']){
   const p=u.permissions?.[key],access=typeof p?.access==='boolean'?p.access:PERM_DEFAULTS[key];
   if(access)parts.push(PERM_LABELS[key]+(p?.finance?' (finans)':''));
  }
- return parts.join(' · ')||'Modül yok';
+ return (parts.join(' · ')||'Modül yok')+notice;
 }
 // Kullanici listesini sunucuya yazar ve sunucunun cevabini dondurur. Basari
 // mesaji ancak sunucu kabul ettiginde gosterilir; reddedilirse liste sunucudaki
@@ -143,13 +164,13 @@ async function saveUser(){
    if(!password){msg.textContent='Yeni kullanıcı için şifre zorunludur.';return}
    if(password.length<8){msg.textContent='Şifre en az 8 karakter olmalı.';return}
    if(list.some(x=>x.username===username)){msg.textContent='Bu kullanıcı adı zaten kullanılıyor.';return}
-   list.push({name,username,email,password,role,companyId,companyName,active:true,permissions:readPermissions(role)});
+   list.push({name,username,email,password,role,companyId,companyName,active:true,permissions:readPermissions(role),notifyTransport:notifyAllowed()&&uNotifyTransport.checked});
  }else{
    // Kullanici adi duzenlemede kilitlidir: sunucu kaydi kullanici adiyla
    // eslestirir, degisen ad yeni ve sifresiz bir hesap gibi gorunurdu.
    const current=list[editUserIndex];
    if(current.username===sess()?.username&&role!=='Yönetici'){msg.textContent='Kendi yönetici rolünüzü kaldıramazsınız. Bunu başka bir yönetici yapabilir.';return}
-   current.name=name;current.email=email;current.role=role;current.companyId=companyId;current.companyName=companyName;current.permissions=readPermissions(role);
+   current.name=name;current.email=email;current.role=role;current.companyId=companyId;current.companyName=companyName;current.permissions=readPermissions(role);current.notifyTransport=notifyAllowed()&&uNotifyTransport.checked;
    if(password){
      if(password.length<8){msg.textContent='Şifre en az 8 karakter olmalı.';return}
      current.password=password;
@@ -169,7 +190,7 @@ function editUser(i){
  uUsername.value=u.username||'';uUsername.readOnly=true;
  uEmail.value=u.email||'';
  uPassword.value='';
- uRole.value=u.role||'Görüntüleme';updateCompanyField(u.companyId||u.companyName||'');editPerms=u.permissions;updatePermField(editPerms);
+ uRole.value=u.role||'Görüntüleme';updateCompanyField(u.companyId||u.companyName||'');editPerms=u.permissions;uNotifyTransport.checked=u.notifyTransport===true;updatePermField(editPerms);
  saveUserBtn.textContent='Değişiklikleri Kaydet';
  cancelEditBtn.style.display='inline-block';
  msg.textContent='Şifreyi değiştirmek istemiyorsanız şifre alanını boş bırakın. Buradan yeni şifre vermek kullanıcının iki adımlı doğrulamasını da kapatır; kullanıcının şifresini kendisinin belirlemesi için listeden Sıfırlama Bağlantısı üretin.';
@@ -178,7 +199,7 @@ function editUser(i){
 function cancelUserEdit(){
  editUserIndex=null;
  uName.value='';uUsername.value='';uUsername.readOnly=false;uEmail.value='';uPassword.value='';
- uRole.value='Operasyon';updateCompanyField();editPerms=undefined;updatePermField(editPerms);
+ uRole.value='Operasyon';updateCompanyField();editPerms=undefined;uNotifyTransport.checked=false;updatePermField(editPerms);
  saveUserBtn.textContent='Kullanıcı Oluştur';
  cancelEditBtn.style.display='none';
  msg.textContent='';

@@ -6,8 +6,8 @@ const html=readFileSync(new URL('../prototype/03_KULLANICI_YONETIMI.html',import
 const save=html.slice(html.indexOf('async function saveUser(){'),html.indexOf('function editUser('));
 function setup(companyValue,role='Görüntüleme'){
  let saved;const field=value=>({value,setAttribute(){},removeAttribute(){},focus(){}});
- const ctx={uName:field('Test'),uUsername:field('test'),uEmail:field('test@example.com'),uPassword:field('TestPassword'),uRole:field(role),uCompany:field(companyValue),companyList:()=>[{id:'c1',name:'Test Firma'}],editUserIndex:null,readPermissions:()=>undefined,msg:{},users:()=>[],saving:false,commitUsers:async list=>{saved=list;return {ok:true};},cancelUserEdit(){},render(){}};
+ const ctx={uName:field('Test'),uUsername:field('test'),uEmail:field('test@example.com'),uPassword:field('TestPassword'),uRole:field(role),uCompany:field(companyValue),companyList:()=>[{id:'c1',name:'Test Firma'}],editUserIndex:null,readPermissions:()=>undefined,notifyAllowed:()=>role!=='Görüntüleme',uNotifyTransport:{checked:true},msg:{},users:()=>[],saving:false,commitUsers:async list=>{saved=list;return {ok:true};},cancelUserEdit(){},render(){}};
  vm.createContext(ctx);vm.runInContext(save+';saveUser()',ctx);return {ctx,saved};
 }
 test('view-only users require a registered company, including forged IDs',()=>{for(const id of ['', 'missing']){const {saved,ctx}=setup(id);assert.equal(saved,undefined);assert.match(ctx.msg.textContent,/firma seçmelisiniz/);}});
-test('company association is saved for customer and omitted for operation staff',()=>{assert.equal(setup('c1').saved[0].companyId,'c1');assert.equal(setup('c1').saved[0].companyName,'Test Firma');assert.equal(setup('c1','Operasyon').saved[0].companyId,null);});
+test('company association is saved for customer and omitted for operation staff',()=>{assert.equal(setup('c1').saved[0].companyId,'c1');assert.equal(setup('c1').saved[0].companyName,'Test Firma');assert.equal(setup('c1','Operasyon').saved[0].companyId,null);assert.equal(setup('c1').saved[0].notifyTransport,false,'musteriye Ic Nakliye bildirimi acilamaz');});

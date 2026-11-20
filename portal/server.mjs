@@ -179,7 +179,18 @@ export async function createPortalServer(env = process.env) {
         if(!principal)return json(401,{error:'Giriş gerekli'});
         if(pathname==='/api/tenant/logout'&&req.method==='POST'){tenants.logout(req);res.setHeader('Set-Cookie','ascend_sid=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'+secureCookie);return json(200,{});}
         if(pathname==='/api/tenant/data'&&req.method==='GET')return json(200,tenants.data(principal));
-        if(pathname==='/api/tenant/sync'&&req.method==='POST'){if(!Number.isInteger(body._revision))return json(409,{error:'Sayfayı yenileyin: kayıt sürümü gerekli.'});await tenants.sync(principal,body);return json(200,{revision:tenants.revision()});}
+        if(pathname==='/api/tenant/sync'&&req.method==='POST'){if(!Number.isInteger(body._revision))return json(409,{error:'Sayfayı yenileyin: kayıt sürümü gerekli.'});const created=await tenants.sync(principal,body);
+          // Kayit zaten kaydedildi; bildirim kuyruga alinamazsa kaydi geri
+          // almayiz, denetim gunlugune yazariz.
+          try{operations.transportCreated(principal,created,publicOrigin);}catch(error){tenants.database.audit(principal.username,'transport.notice-failed',{error:error.message});}
+          return json(200,{revision:tenants.revision()});}
+        // Ic Nakliye PDF'i: tek kayit GET ile, secili liste POST ile.
+        if(pathname==='/api/tenant/transport/pdf'&&(req.method==='GET'||req.method==='POST')){
+          const ids=req.method==='GET'?[new URL(req.url,'http://localhost').searchParams.get('id')].filter(Boolean):body.ids;
+          const pdf=await operations.transportPdf(principal,ids,req.method==='GET'?'record':'list');
+          res.setHeader('Content-Disposition',"attachment; filename*=UTF-8''"+encodeURIComponent(pdf.name));
+          return send(200,pdf.body,'application/pdf');
+        }
         if(pathname.startsWith('/api/tenant/security/')&&req.method==='POST')return json(200,await tenants.security(pathname.split('/').pop(),principal,body));
         if(pathname==='/api/tenant/mail-import/inspect'&&req.method==='POST')return json(200,await mailImports.inspect(principal,body));
         if(pathname==='/api/tenant/mail-import/commit'&&req.method==='POST')return json(200,mailImports.commit(principal,body));

@@ -27,7 +27,7 @@ export async function createTenantStore(path,options={}){
  // Pay sahipleri ve aktarimlari 10 Kasim 2026'da eklendi.
  if(!Array.isArray(state.shareholders))state.shareholders=[];
  if(!Array.isArray(state.shareTransfers))state.shareTransfers=[];
- function user(data){const salt=randomBytes(16).toString('hex');return {...pick(data,['username','name','role','companyId','companyName','active','email']),salt,passwordHash:hash(data.password,salt)};}
+ function user(data){const salt=randomBytes(16).toString('hex');return {...pick(data,['username','name','role','companyId','companyName','active','email','notifyTransport']),salt,passwordHash:hash(data.password,salt)};}
  // Ilk acilista tek bir yonetici olusturulur ve parolasi cagirandan gelir.
  // Uretimde bu deger PORTAL_BOOTSTRAP_PASSWORD'dur (bkz. server.mjs); boylece
  // depoda saklanan sabit bir parola production'a hic sizmaz. Yonetici kendi
@@ -51,7 +51,7 @@ export async function createTenantStore(path,options={}){
  function persist(actor='system',detail={}){revision=database.save(state,revision,actor,detail);return Promise.resolve();}
  if(!database.current())await persist();const sessions=new Map(),failures=new Map(),enrollments=new Map();
  const fingerprint=u=>u.passwordHash+'|'+u.role+'|'+u.companyId+'|'+u.active;
- const visibleUser=u=>pick(u,['username','name','role','companyId','companyName','email','active','permissions']);
+ const visibleUser=u=>pick(u,['username','name','role','companyId','companyName','email','active','permissions','notifyTransport']);
  function principal(req){const token=(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('ascend_sid='))?.slice(11);const session=sessions.get(token);if(!session||session.expires<Date.now())return null;return state.users.find(u=>u.username===session.username&&u.active&&fingerprint(u)===session.fingerprint)||null;}
  function own(u,r,module){if(!customerRoles.has(u.role))return true;if(!u.companyId)return false;const c=state.companies.find(c=>String(c.id||c.name)===u.companyId);if(!c)return false;const ids=r.customerCompanyIds;if(Array.isArray(ids))return ids.includes(u.companyId);return false;}
  // Sunucudan cikan her kayit buradan gecer: sayfaya gomulen veri, belgeler,
@@ -96,7 +96,7 @@ for(const r of transfers.removed)stateAuditChanges.push({collection:'shareTransf
 state.shareholders=holders.rows;state.shareTransfers=transfers.rows;}
 for(const key of ['companies','shipments','ncts','transport'])if(body[key]!==undefined){if(!Array.isArray(body[key]))throw Error('Invalid data');if(key==='companies'){for(const account of state.users){const previous=state.companies.find(c=>String(c.id||c.name)===account.companyId);const replacement=previous&&body[key].find(c=>c.name===previous.name);if(replacement)account.companyId=String(replacement.id||replacement.name);}}if(key==='companies'){const ids=new Set(),names=new Set();for(const c of body[key]){for(const contact of c.contacts||[]){if(contact.transportModes!==undefined&&(!Array.isArray(contact.transportModes)||contact.transportModes.some(mode=>!['Hava','Kara','Deniz','Demiryolu'].includes(mode))))throw Error('Geçersiz taşıma türü seçimi');}if(c.isCarrier&&(!(c.serviceCountries||[]).length||!(c.contacts||[]).some(x=>(x.transportModes||[x.transportMode]).some(mode=>['Hava','Kara','Deniz','Demiryolu'].includes(mode))&&/^\S+@\S+\.\S+$/.test(x.email||''))))throw Error('Acente hizmet ülkesi ve birim e-postası gerekli');const id=String(c.id||c.name),name=String(c.name||'').trim().toLocaleLowerCase('tr');if(!id||!name||ids.has(id)||names.has(name))throw Error('Firma kimliği ve unvanı benzersiz olmalı');ids.add(id);names.add(name);}}state[key]=body[key];if(key==='shipments'||key==='ncts')state[key]=state[key].map(r=>bind(r,key));}
  if(body.users){if(new Set(body.users.map(v=>v.username)).size!==body.users.length)throw Error('Kullanıcı adları benzersiz olmalı');if(!Array.isArray(body.users))throw Error('Invalid users');const withPermissions=(record,v,old)=>{const sent=v.permissions!==undefined?v.permissions:old?.permissions;const permissions=sanitizePermissions(v.role,sent);const result={...record};delete result.permissions;if(permissions)result.permissions=permissions;return result;};
- const next=body.users.map(v=>{const old=state.users.find(x=>x.username===v.username);if(v.active&&customerRoles.has(v.role)&&!state.companies.some(c=>String(c.id||c.name)===v.companyId))throw Error('Firma seçimi zorunlu');if(!['Yönetici','Operasyon','Finans','Görüntüleme','Müşteri'].includes(v.role))throw Error('Geçersiz rol');if(v.password){if(v.password.length<MIN_PASSWORD_LENGTH)throw Error('Şifre en az '+MIN_PASSWORD_LENGTH+' karakter olmalı');return withPermissions(user(v),v,old);}if(!old)throw Error('Şifre gerekli');return withPermissions({...old,...pick(v,['name','email','role','active','companyId','companyName'])},v,old);});if(!next.some(v=>v.username===u.username&&v.active&&v.role==='Yönetici'))throw Error('Kendi yönetici erişiminiz kaldırılamaz');state.users=next;}
+ const next=body.users.map(v=>{const old=state.users.find(x=>x.username===v.username);if(v.notifyTransport!==undefined&&typeof v.notifyTransport!=='boolean')throw Error('Bildirim tercihi evet/hayır olmalı');if(v.active&&customerRoles.has(v.role)&&!state.companies.some(c=>String(c.id||c.name)===v.companyId))throw Error('Firma seçimi zorunlu');if(!['Yönetici','Operasyon','Finans','Görüntüleme','Müşteri'].includes(v.role))throw Error('Geçersiz rol');if(v.password){if(v.password.length<MIN_PASSWORD_LENGTH)throw Error('Şifre en az '+MIN_PASSWORD_LENGTH+' karakter olmalı');return withPermissions(user(v),v,old);}if(!old)throw Error('Şifre gerekli');return withPermissions({...old,...pick(v,['name','email','role','active','companyId','companyName','notifyTransport'])},v,old);});if(!next.some(v=>v.username===u.username&&v.active&&v.role==='Yönetici'))throw Error('Kendi yönetici erişiminiz kaldırılamaz');state.users=next;}
  await persist(u.username,{collections:Object.keys(body).filter(k=>k!=='_revision'),changes:stateAuditChanges});}
 
  async function security(action,u,body={}){
@@ -113,7 +113,14 @@ for(const key of ['companies','shipments','ncts','transport'])if(body[key]!==und
  throw Error('Geçersiz işlem');
  }
  let mutations=Promise.resolve();
- return {principal,data,records,database,security,revision:()=>revision,close:()=>database.close(),async sync(u,b){const operation=mutations.then(async()=>{const before=structuredClone(state);try{if(b._revision!==undefined&&b._revision!==revision)throw Object.assign(Error('Kayıt başka bir oturumda değişti. Sayfayı yenileyin.'),{status:409});await sync(u,b);}catch(e){state=before;throw e;}});mutations=operation.catch(()=>{});return operation;},login(username,password,code){
+ // Yeni Ic Nakliye kaydinda e-posta alacak kisiler: yoneticinin Kullanici
+ // Yonetimi'nde isaretledigi, aktif, gecerli e-postasi olan ve Ic Nakliye
+ // erisimi suren kullanicilar. Erisimi sonradan kapanan kisi isaretli kalsa
+ // bile e-posta almaz. Kaydi acan kisiye kendi kaydi bildirilmez.
+ function transportSubscribers(except){return state.users.filter(x=>x.active&&x.notifyTransport===true&&x.username!==except&&!customerRoles.has(x.role)&&permissionsFor(x).transport?.access&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(x.email||'').trim())).map(x=>({username:x.username,name:x.name,email:String(x.email).trim().toLowerCase()}));}
+ return {principal,data,records,database,security,transportSubscribers,revision:()=>revision,close:()=>database.close(),async sync(u,b){const operation=mutations.then(async()=>{const before=structuredClone(state);try{if(b._revision!==undefined&&b._revision!==revision)throw Object.assign(Error('Kayıt başka bir oturumda değişti. Sayfayı yenileyin.'),{status:409});await sync(u,b);}catch(e){state=before;throw e;}
+ // Yeni acilan Ic Nakliye kayitlari bildirim icin cagirana doner (bkz. operations.transportCreated).
+ const known=new Set(before.transport.map(r=>r.id));return state.transport.filter(r=>!known.has(r.id)).map(r=>({...r}));});mutations=operation.catch(()=>{});return operation;},login(username,password,code){
  const attempts=failures.get(username);if(attempts?.until>Date.now()&&attempts.count>=5)throw Object.assign(Error('Çok fazla deneme. 15 dakika sonra tekrar deneyin.'),{status:429});
  const u=state.users.find(u=>u.username===username&&u.active);
  const valid=u&&timingSafeEqual(Buffer.from(hash(password,u.salt),'hex'),Buffer.from(u.passwordHash,'hex'));
